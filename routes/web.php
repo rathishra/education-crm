@@ -109,8 +109,12 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->post('/leads/{id}/convert', 'Admin\LeadController@convert', 'leads.convert');
 
     // Enquiries
+    // Enquiries — static routes before {id} to prevent collision
     $router->get('/enquiries', 'Admin\EnquiryController@index', 'enquiries.index');
     $router->get('/enquiries/create', 'Admin\EnquiryController@create', 'enquiries.create');
+    $router->get('/enquiries/check-duplicate', 'Admin\EnquiryController@checkDuplicate', 'enquiries.check_duplicate');
+    $router->get('/enquiries/ajax/departments', 'Admin\EnquiryController@ajaxDepartments', 'enquiries.ajax_departments');
+    $router->get('/enquiries/ajax/courses', 'Admin\EnquiryController@ajaxCourses', 'enquiries.ajax_courses');
     $router->post('/enquiries', 'Admin\EnquiryController@store', 'enquiries.store');
     $router->get('/enquiries/{id}', 'Admin\EnquiryController@show', 'enquiries.show');
     $router->get('/enquiries/{id}/edit', 'Admin\EnquiryController@edit', 'enquiries.edit');
