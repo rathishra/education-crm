@@ -3,8 +3,28 @@ namespace App\Models;
 
 class Lead extends BaseModel
 {
-    protected string $table = 'leads';
+    protected string $table   = 'leads';
     protected bool $softDeletes = true;
+
+    /** Cached result: TRUE once migration 16 has been applied. */
+    private ?bool $enhanced = null;
+
+    /**
+     * Check once whether the migration-16 columns exist.
+     * Uses a zero-row LIMIT query — no data read, no side effects.
+     */
+    private function isEnhanced(): bool
+    {
+        if ($this->enhanced === null) {
+            try {
+                $this->db->query("SELECT next_followup_date FROM leads LIMIT 0");
+                $this->enhanced = true;
+            } catch (\Throwable $e) {
+                $this->enhanced = false;
+            }
+        }
+        return $this->enhanced;
+    }
 
     // =========================================================
     // LIST & SEARCH
@@ -60,8 +80,8 @@ class Lead extends BaseModel
             $params[] = $filters['course_id'];
         }
 
-        // NEW: department filter
-        if (!empty($filters['department_id'])) {
+        // department filter — only available after migration 16
+        if ($this->isEnhanced() && !empty($filters['department_id'])) {
             $where   .= " AND l.department_id = ?";
             $params[] = $filters['department_id'];
         }
@@ -82,10 +102,19 @@ class Lead extends BaseModel
             $params[] = $filters['only_mine'];
         }
 
-        // NEW: overdue follow-up filter — next_followup_date is today or earlier
-        if (!empty($filters['next_followup_overdue'])) {
+        // overdue follow-up filter — only available after migration 16
+        if ($this->isEnhanced() && !empty($filters['next_followup_overdue'])) {
             $where .= " AND l.next_followup_date IS NOT NULL AND l.next_followup_date <= CURDATE()";
         }
+
+        // Extra SELECT columns and JOINs only available after migration 16
+        $extraSelect = $this->isEnhanced()
+            ? ",\n                       d.name AS department_name,
+                       l.lead_score, l.next_followup_date, l.followup_mode, l.campaign_name"
+            : '';
+        $deptJoin = $this->isEnhanced()
+            ? "LEFT JOIN departments    d    ON d.id    = l.department_id\n                "
+            : '';
 
         $sql = "SELECT l.*,
                        ls.name          AS status_name,
@@ -93,19 +122,13 @@ class Lead extends BaseModel
                        lsrc.name        AS source_name,
                        CONCAT(u.first_name, ' ', u.last_name) AS assigned_name,
                        c.name           AS course_name,
-                       d.name           AS department_name,
-                       i.name           AS institution_name,
-                       l.campaign_name,
-                       l.lead_score,
-                       l.next_followup_date,
-                       l.followup_mode
+                       i.name           AS institution_name{$extraSelect}
                 FROM leads l
                 LEFT JOIN lead_statuses  ls   ON ls.id   = l.lead_status_id
                 LEFT JOIN lead_sources   lsrc ON lsrc.id = l.lead_source_id
                 LEFT JOIN users          u    ON u.id    = l.assigned_to
                 LEFT JOIN courses        c    ON c.id    = l.course_interested_id
-                LEFT JOIN departments    d    ON d.id    = l.department_id
-                LEFT JOIN institutions   i    ON i.id    = l.institution_id
+                {$deptJoin}LEFT JOIN institutions   i    ON i.id    = l.institution_id
                 WHERE {$where}
                 ORDER BY l.created_at DESC";
 
@@ -121,6 +144,10 @@ class Lead extends BaseModel
      */
     public function findWithDetails(int $id): ?array
     {
+        $deptSelect = $this->isEnhanced() ? ",\n                       d.name AS department_name" : '';
+        $deptJoin   = $this->isEnhanced()
+            ? "LEFT JOIN departments d ON d.id = l.department_id\n                " : '';
+
         $sql = "SELECT l.*,
                        ls.name   AS status_name,
                        ls.color  AS status_color,
@@ -131,16 +158,14 @@ class Lead extends BaseModel
                        CONCAT(uc.first_name, ' ', uc.last_name) AS created_by_name,
                        c.name    AS course_name,
                        c.code    AS course_code,
-                       d.name    AS department_name,
-                       i.name    AS institution_name
+                       i.name    AS institution_name{$deptSelect}
                 FROM leads l
                 LEFT JOIN lead_statuses  ls   ON ls.id   = l.lead_status_id
                 LEFT JOIN lead_sources   lsrc ON lsrc.id = l.lead_source_id
                 LEFT JOIN users          ua   ON ua.id   = l.assigned_to
                 LEFT JOIN users          uc   ON uc.id   = l.created_by
                 LEFT JOIN courses        c    ON c.id    = l.course_interested_id
-                LEFT JOIN departments    d    ON d.id    = l.department_id
-                LEFT JOIN institutions   i    ON i.id    = l.institution_id
+                {$deptJoin}LEFT JOIN institutions   i    ON i.id    = l.institution_id
                 WHERE l.id = ? AND l.deleted_at IS NULL";
 
         $this->db->query($sql, [$id]);
@@ -161,16 +186,20 @@ class Lead extends BaseModel
         );
         $lead['activities'] = $this->db->fetchAll();
 
-        // Dedicated lead followups (lead_followups table)
-        $this->db->query(
-            "SELECT lf.*, CONCAT(u.first_name, ' ', u.last_name) AS counselor_name
-             FROM lead_followups lf
-             LEFT JOIN users u ON u.id = lf.counselor_id
-             WHERE lf.lead_id = ?
-             ORDER BY lf.followup_date DESC",
-            [$id]
-        );
-        $lead['followups'] = $this->db->fetchAll();
+        // Dedicated lead followups — only available after migration 16
+        if ($this->isEnhanced()) {
+            $this->db->query(
+                "SELECT lf.*, CONCAT(u.first_name, ' ', u.last_name) AS counselor_name
+                 FROM lead_followups lf
+                 LEFT JOIN users u ON u.id = lf.counselor_id
+                 WHERE lf.lead_id = ?
+                 ORDER BY lf.followup_date DESC",
+                [$id]
+            );
+            $lead['followups'] = $this->db->fetchAll();
+        } else {
+            $lead['followups'] = [];
+        }
 
         // Documents
         $this->db->query(
@@ -487,33 +516,45 @@ class Lead extends BaseModel
     public function getStats(int $institutionId): array
     {
         $sql = "SELECT
-                    COUNT(*)                                                                AS total,
-                    SUM(priority = 'hot')                                                  AS hot,
-                    SUM(priority = 'warm')                                                 AS warm,
-                    SUM(priority = 'cold')                                                 AS cold,
-                    SUM(
-                        next_followup_date IS NOT NULL
-                        AND next_followup_date <= CURDATE()
-                        AND deleted_at IS NULL
-                    )                                                                      AS followup_due,
-                    SUM(converted_at IS NOT NULL)                                          AS converted,
-                    SUM(DATE(created_at) >= DATE_FORMAT(NOW(), '%Y-%m-01'))                AS this_month
+                    COUNT(*)                                             AS total,
+                    SUM(converted_at IS NOT NULL)                        AS converted,
+                    SUM(DATE(created_at) >= DATE_FORMAT(NOW(),'%Y-%m-01')) AS this_month
                 FROM leads
                 WHERE institution_id = ? AND deleted_at IS NULL";
 
         $this->db->query($sql, [$institutionId]);
         $row = $this->db->fetch();
 
-        // Ensure all keys are present and cast to int
-        return [
-            'total'        => (int)($row['total']        ?? 0),
-            'hot'          => (int)($row['hot']          ?? 0),
-            'warm'         => (int)($row['warm']         ?? 0),
-            'cold'         => (int)($row['cold']         ?? 0),
-            'followup_due' => (int)($row['followup_due'] ?? 0),
-            'converted'    => (int)($row['converted']    ?? 0),
-            'this_month'   => (int)($row['this_month']   ?? 0),
+        $stats = [
+            'total'        => (int)($row['total']     ?? 0),
+            'hot'          => 0,
+            'warm'         => 0,
+            'cold'         => 0,
+            'followup_due' => 0,
+            'converted'    => (int)($row['converted'] ?? 0),
+            'this_month'   => (int)($row['this_month'] ?? 0),
         ];
+
+        // Extended stats only available after migration 16
+        if ($this->isEnhanced()) {
+            $this->db->query(
+                "SELECT
+                    SUM(priority = 'hot')  AS hot,
+                    SUM(priority = 'warm') AS warm,
+                    SUM(priority = 'cold') AS cold,
+                    SUM(next_followup_date IS NOT NULL AND next_followup_date <= CURDATE()) AS followup_due
+                 FROM leads
+                 WHERE institution_id = ? AND deleted_at IS NULL",
+                [$institutionId]
+            );
+            $ext = $this->db->fetch();
+            $stats['hot']          = (int)($ext['hot']          ?? 0);
+            $stats['warm']         = (int)($ext['warm']         ?? 0);
+            $stats['cold']         = (int)($ext['cold']         ?? 0);
+            $stats['followup_due'] = (int)($ext['followup_due'] ?? 0);
+        }
+
+        return $stats;
     }
 
     // =========================================================
