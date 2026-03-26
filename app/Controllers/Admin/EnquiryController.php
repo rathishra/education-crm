@@ -205,6 +205,9 @@ class EnquiryController extends BaseController
                 'hostel_required'      => !empty($data['hostel_required']) ? 1 : 0,
                 'transport_required'   => !empty($data['transport_required']) ? 1 : 0,
                 'scholarship_required' => !empty($data['scholarship_required']) ? 1 : 0,
+                'pref2_department_id'  => !empty($data['pref2_department_id']) ? (int)$data['pref2_department_id'] : null,
+                'pref2_course_id'      => !empty($data['pref2_course_id']) ? (int)$data['pref2_course_id'] : null,
+                'pref2_academic_year'  => sanitize($data['pref2_academic_year'] ?? ''),
                 'created_by'           => $this->user['id'],
             ];
         }
@@ -374,6 +377,9 @@ class EnquiryController extends BaseController
                 'hostel_required'      => !empty($data['hostel_required']) ? 1 : 0,
                 'transport_required'   => !empty($data['transport_required']) ? 1 : 0,
                 'scholarship_required' => !empty($data['scholarship_required']) ? 1 : 0,
+                'pref2_department_id'  => !empty($data['pref2_department_id']) ? (int)$data['pref2_department_id'] : null,
+                'pref2_course_id'      => !empty($data['pref2_course_id']) ? (int)$data['pref2_course_id'] : null,
+                'pref2_academic_year'  => sanitize($data['pref2_academic_year'] ?? ''),
             ];
         }
 

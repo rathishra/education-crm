@@ -121,4 +121,31 @@ ALTER TABLE `enquiries`
 ALTER TABLE `enquiries`
     ADD INDEX IF NOT EXISTS `idx_enquiries_deleted_at` (`deleted_at`);
 
+-- ============================================================
+-- 2nd Preference fields
+-- ============================================================
+
+ALTER TABLE `enquiries`
+    ADD COLUMN IF NOT EXISTS `pref2_department_id` BIGINT UNSIGNED NULL AFTER `preferred_mode`;
+
+ALTER TABLE `enquiries`
+    ADD COLUMN IF NOT EXISTS `pref2_course_id` BIGINT UNSIGNED NULL AFTER `pref2_department_id`;
+
+ALTER TABLE `enquiries`
+    ADD COLUMN IF NOT EXISTS `pref2_academic_year` VARCHAR(20) NULL AFTER `pref2_course_id`;
+
+-- FK: pref2_department_id -> departments(id)
+ALTER TABLE `enquiries`
+    ADD CONSTRAINT `fk_enquiries_pref2_department`
+    FOREIGN KEY IF NOT EXISTS (`pref2_department_id`) REFERENCES `departments`(`id`) ON DELETE SET NULL;
+
+-- FK: pref2_course_id -> courses(id)
+ALTER TABLE `enquiries`
+    ADD CONSTRAINT `fk_enquiries_pref2_course`
+    FOREIGN KEY IF NOT EXISTS (`pref2_course_id`) REFERENCES `courses`(`id`) ON DELETE SET NULL;
+
+-- Index: pref2_course_id
+ALTER TABLE `enquiries`
+    ADD INDEX IF NOT EXISTS `idx_enquiries_pref2_course` (`pref2_course_id`);
+
 SET FOREIGN_KEY_CHECKS = 1;

@@ -88,6 +88,8 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
+
+                        <!-- Institution (shared) -->
                         <div class="col-md-6">
                             <label class="form-label">Institution</label>
                             <select class="form-select" name="institution_id" id="institutionSelect">
@@ -100,61 +102,116 @@
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Department</label>
-                            <select class="form-select" name="department_id" id="departmentSelect">
-                                <option value="">-- Select Department --</option>
-                                <?php foreach ($departments as $dept): ?>
-                                <option value="<?= $dept['id'] ?>"
-                                    <?= old('department_id') == $dept['id'] ? 'selected' : '' ?>>
-                                    <?= e($dept['name']) ?>
-                                </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Course <span class="text-danger">*</span></label>
-                            <select class="form-select" name="course_interested_id" id="courseSelect" required>
-                                <option value="">-- Select Course --</option>
-                                <?php foreach ($courses as $c): ?>
-                                <option value="<?= $c['id'] ?>"
-                                    <?= old('course_interested_id') == $c['id'] ? 'selected' : '' ?>>
-                                    <?= e($c['name']) ?>
-                                </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Academic Year</label>
-                            <select class="form-select" name="academic_year">
-                                <option value="">-- Select Year --</option>
-                                <?php foreach (['2023-24','2024-25','2025-26','2026-27'] as $yr): ?>
-                                <option value="<?= $yr ?>" <?= old('academic_year') === $yr ? 'selected' : '' ?>>
-                                    <?= $yr ?>
-                                </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="col-12">
+
+                        <!-- Preferred Mode (shared) -->
+                        <div class="col-md-6 d-flex flex-column justify-content-end">
                             <label class="form-label">Preferred Mode</label>
-                            <div class="btn-group w-100" role="group" aria-label="Preferred mode">
+                            <div class="btn-group w-100" role="group">
                                 <?php
-                                $modes = ['online' => 'Online', 'offline' => 'Offline', 'hybrid' => 'Hybrid'];
+                                $modes = ['online' => ['icon'=>'fa-wifi','label'=>'Online'], 'offline' => ['icon'=>'fa-building','label'=>'Offline'], 'hybrid' => ['icon'=>'fa-blender','label'=>'Hybrid']];
                                 $selMode = old('preferred_mode', 'offline');
-                                foreach ($modes as $mval => $mlabel):
+                                foreach ($modes as $mval => $m):
                                 ?>
                                 <input type="radio" class="btn-check" name="preferred_mode"
                                        id="mode_<?= $mval ?>" value="<?= $mval ?>"
                                        <?= $selMode === $mval ? 'checked' : '' ?>>
                                 <label class="btn btn-outline-primary" for="mode_<?= $mval ?>">
-                                    <?php if ($mval === 'online'): ?><i class="fas fa-wifi me-1"></i><?php endif; ?>
-                                    <?php if ($mval === 'offline'): ?><i class="fas fa-building me-1"></i><?php endif; ?>
-                                    <?php if ($mval === 'hybrid'): ?><i class="fas fa-blender me-1"></i><?php endif; ?>
-                                    <?= $mlabel ?>
+                                    <i class="fas <?= $m['icon'] ?> me-1"></i><?= $m['label'] ?>
                                 </label>
                                 <?php endforeach; ?>
                             </div>
                         </div>
+
+                        <!-- 1st Preference (mandatory) -->
+                        <div class="col-12 mt-3">
+                            <div class="border rounded p-3" style="background:#f8f9ff;border-color:#4f46e5!important;">
+                                <div class="d-flex align-items-center mb-3">
+                                    <span class="badge me-2" style="background:#4f46e5;font-size:.75rem;">1st Preference</span>
+                                    <span class="text-danger small fw-semibold">Required</span>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Department</label>
+                                        <select class="form-select" name="department_id" id="dept1Select">
+                                            <option value="">-- Select Department --</option>
+                                            <?php foreach ($departments as $dept): ?>
+                                            <option value="<?= $dept['id'] ?>"
+                                                <?= old('department_id') == $dept['id'] ? 'selected' : '' ?>>
+                                                <?= e($dept['name']) ?>
+                                            </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Course <span class="text-danger">*</span></label>
+                                        <select class="form-select" name="course_interested_id" id="course1Select" required>
+                                            <option value="">-- Select Course --</option>
+                                            <?php foreach ($courses as $c): ?>
+                                            <option value="<?= $c['id'] ?>"
+                                                <?= old('course_interested_id') == $c['id'] ? 'selected' : '' ?>>
+                                                <?= e($c['name']) ?>
+                                            </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Academic Year</label>
+                                        <select class="form-select" name="academic_year">
+                                            <option value="">-- Select Year --</option>
+                                            <?php foreach (['2023-24','2024-25','2025-26','2026-27'] as $yr): ?>
+                                            <option value="<?= $yr ?>" <?= old('academic_year') === $yr ? 'selected' : '' ?>><?= $yr ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2nd Preference (optional) -->
+                        <div class="col-12">
+                            <div class="border rounded p-3" style="background:#fafafa;">
+                                <div class="d-flex align-items-center mb-3">
+                                    <span class="badge bg-secondary me-2" style="font-size:.75rem;">2nd Preference</span>
+                                    <span class="text-muted small">Optional</span>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Department</label>
+                                        <select class="form-select" name="pref2_department_id" id="dept2Select">
+                                            <option value="">-- Select Department --</option>
+                                            <?php foreach ($departments as $dept): ?>
+                                            <option value="<?= $dept['id'] ?>"
+                                                <?= old('pref2_department_id') == $dept['id'] ? 'selected' : '' ?>>
+                                                <?= e($dept['name']) ?>
+                                            </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Course</label>
+                                        <select class="form-select" name="pref2_course_id" id="course2Select">
+                                            <option value="">-- Select Course --</option>
+                                            <?php foreach ($courses as $c): ?>
+                                            <option value="<?= $c['id'] ?>"
+                                                <?= old('pref2_course_id') == $c['id'] ? 'selected' : '' ?>>
+                                                <?= e($c['name']) ?>
+                                            </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Academic Year</label>
+                                        <select class="form-select" name="pref2_academic_year">
+                                            <option value="">-- Select Year --</option>
+                                            <?php foreach (['2023-24','2024-25','2025-26','2026-27'] as $yr): ?>
+                                            <option value="<?= $yr ?>" <?= old('pref2_academic_year') === $yr ? 'selected' : '' ?>><?= $yr ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -430,8 +487,10 @@ form#enquiryForm {
 <script>
 (function () {
     const institutionSelect = document.getElementById('institutionSelect');
-    const departmentSelect  = document.getElementById('departmentSelect');
-    const courseSelect      = document.getElementById('courseSelect');
+    const dept1Select       = document.getElementById('dept1Select');
+    const course1Select     = document.getElementById('course1Select');
+    const dept2Select       = document.getElementById('dept2Select');
+    const course2Select     = document.getElementById('course2Select');
     const phoneInput        = document.getElementById('phoneInput');
     const emailInput        = document.getElementById('emailInput');
     const dupAlert          = document.getElementById('duplicateAlert');
@@ -512,57 +571,68 @@ form#enquiryForm {
         });
     }
 
+    function loadDepts(instId, selectEl, courseEl) {
+        selectEl.innerHTML = '<option value="">-- Select Department --</option>';
+        if (courseEl) courseEl.innerHTML = '<option value="">-- Select Course --</option>';
+        if (!instId) return;
+        fetch('<?= url('enquiries/ajax/departments') ?>?institution_id=' + instId)
+            .then(r => r.json())
+            .then(depts => {
+                depts.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id; opt.textContent = d.name;
+                    selectEl.appendChild(opt);
+                });
+            }).catch(() => {});
+    }
+
+    function loadCoursesByDept(deptId, courseEl) {
+        courseEl.innerHTML = '<option value="">-- Select Course --</option>';
+        if (!deptId) return;
+        fetch('<?= url('enquiries/ajax/courses') ?>?department_id=' + deptId)
+            .then(r => r.json())
+            .then(courses => {
+                courses.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id; opt.textContent = c.name;
+                    courseEl.appendChild(opt);
+                });
+            }).catch(() => {});
+    }
+
+    function loadCoursesByInst(instId, courseEl) {
+        courseEl.innerHTML = '<option value="">-- Select Course --</option>';
+        if (!instId) return;
+        fetch('<?= url('enquiries/ajax/courses') ?>?institution_id=' + instId)
+            .then(r => r.json())
+            .then(courses => {
+                courses.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id; opt.textContent = c.name;
+                    courseEl.appendChild(opt);
+                });
+            }).catch(() => {});
+    }
+
     if (institutionSelect) {
         institutionSelect.addEventListener('change', function () {
             const instId = this.value;
-            // Reset department and course
-            departmentSelect.innerHTML = '<option value="">-- Select Department --</option>';
-            courseSelect.innerHTML     = '<option value="">-- Select Course --</option>';
-            if (!instId) return;
-
-            fetch('<?= url('enquiries/ajax/departments') ?>?institution_id=' + instId)
-                .then(r => r.json())
-                .then(depts => {
-                    depts.forEach(d => {
-                        const opt    = document.createElement('option');
-                        opt.value    = d.id;
-                        opt.textContent = d.name;
-                        departmentSelect.appendChild(opt);
-                    });
-                })
-                .catch(() => {});
-
-            fetch('<?= url('enquiries/ajax/courses') ?>?institution_id=' + instId)
-                .then(r => r.json())
-                .then(courses => {
-                    courses.forEach(c => {
-                        const opt    = document.createElement('option');
-                        opt.value    = c.id;
-                        opt.textContent = c.name;
-                        courseSelect.appendChild(opt);
-                    });
-                })
-                .catch(() => {});
+            loadDepts(instId, dept1Select, course1Select);
+            loadDepts(instId, dept2Select, course2Select);
+            if (!dept1Select.value) loadCoursesByInst(instId, course1Select);
+            if (!dept2Select.value) loadCoursesByInst(instId, course2Select);
         });
     }
 
-    if (departmentSelect) {
-        departmentSelect.addEventListener('change', function () {
-            const deptId = this.value;
-            courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
-            if (!deptId) return;
+    if (dept1Select) {
+        dept1Select.addEventListener('change', function () {
+            loadCoursesByDept(this.value, course1Select);
+        });
+    }
 
-            fetch('<?= url('enquiries/ajax/courses') ?>?department_id=' + deptId)
-                .then(r => r.json())
-                .then(courses => {
-                    courses.forEach(c => {
-                        const opt    = document.createElement('option');
-                        opt.value    = c.id;
-                        opt.textContent = c.name;
-                        courseSelect.appendChild(opt);
-                    });
-                })
-                .catch(() => {});
+    if (dept2Select) {
+        dept2Select.addEventListener('change', function () {
+            loadCoursesByDept(this.value, course2Select);
         });
     }
 })();
