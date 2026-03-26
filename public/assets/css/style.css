@@ -104,6 +104,11 @@ a:hover { color: var(--brand-primary); }
    TOP NAVBAR
    ============================================================ */
 .sb-topnav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
     height: var(--navbar-height);
     background: var(--navbar-bg) !important;
     border-bottom: 1px solid rgba(255,255,255,0.06);
