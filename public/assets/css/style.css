@@ -1,0 +1,382 @@
+/* ============================================================
+   Education CRM - Main Stylesheet
+   ============================================================ */
+
+:root {
+    --primary: #0d6efd;
+    --primary-dark: #0a58ca;
+    --sidebar-width: 250px;
+    --sidebar-collapsed-width: 0px;
+    --topnav-height: 56px;
+}
+
+/* ---- General ---- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.9rem;
+    background-color: #f8f9fc;
+}
+
+a { text-decoration: none; }
+
+/* ---- Top Navbar ---- */
+.sb-topnav {
+    height: var(--topnav-height);
+    z-index: 1039;
+}
+
+.sb-topnav .navbar-brand {
+    width: var(--sidebar-width);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* ---- Sidebar ---- */
+#layoutSidenav {
+    display: flex;
+}
+
+#layoutSidenav #layoutSidenav_nav {
+    flex-basis: var(--sidebar-width);
+    flex-shrink: 0;
+    transition: margin-left 0.15s;
+    z-index: 1038;
+    position: fixed;
+    top: var(--topnav-height);
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;
+}
+
+#layoutSidenav #layoutSidenav_content {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    min-height: calc(100vh - var(--topnav-height));
+    transition: margin-left 0.15s;
+    padding-top: var(--topnav-height);
+    display: flex;
+    flex-direction: column;
+}
+
+#layoutSidenav #layoutSidenav_content main {
+    flex: 1;
+}
+
+/* Sidebar collapsed state */
+body.sb-sidenav-toggled #layoutSidenav #layoutSidenav_nav {
+    margin-left: calc(var(--sidebar-width) * -1);
+}
+
+body.sb-sidenav-toggled #layoutSidenav #layoutSidenav_content {
+    margin-left: 0;
+    width: 100%;
+}
+
+.sb-sidenav {
+    background-color: #fff;
+    box-shadow: 2px 0 10px rgba(0,0,0,.05);
+}
+
+.sb-sidenav .sb-sidenav-menu {
+    padding-top: 0.5rem;
+}
+
+.sb-sidenav .sb-sidenav-menu .nav {
+    flex-direction: column;
+}
+
+.sb-sidenav .sb-sidenav-menu-heading {
+    padding: 1.2rem 1rem 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #adb5bd;
+}
+
+.sb-sidenav .nav-link {
+    padding: 0.6rem 1rem;
+    color: #495057;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+}
+
+.sb-sidenav .nav-link:hover {
+    color: var(--primary);
+    background-color: #f0f4ff;
+    border-left-color: var(--primary);
+}
+
+.sb-sidenav .nav-link.active {
+    color: var(--primary);
+    font-weight: 600;
+    background-color: #e8f0fe;
+    border-left-color: var(--primary);
+}
+
+.sb-sidenav .sb-nav-link-icon {
+    width: 28px;
+    text-align: center;
+    margin-right: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.sb-sidenav-footer {
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    font-size: 0.8rem;
+    border-top: 1px solid #e9ecef;
+}
+
+/* ---- Cards ---- */
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+    padding: 0.8rem 1.25rem;
+}
+
+/* Stat Cards */
+.stat-card {
+    border-left: 4px solid;
+    transition: transform 0.15s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-card .stat-icon {
+    font-size: 2rem;
+    opacity: 0.3;
+}
+
+.stat-card.border-primary { border-left-color: #0d6efd; }
+.stat-card.border-success { border-left-color: #198754; }
+.stat-card.border-warning { border-left-color: #ffc107; }
+.stat-card.border-info    { border-left-color: #0dcaf0; }
+.stat-card.border-danger  { border-left-color: #dc3545; }
+.stat-card.border-purple  { border-left-color: #6f42c1; }
+
+/* ---- Tables ---- */
+.table th {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #6c757d;
+    white-space: nowrap;
+}
+
+.table td {
+    vertical-align: middle;
+    font-size: 0.875rem;
+}
+
+/* ---- Badges ---- */
+.badge { font-weight: 500; }
+
+/* Status badges */
+.badge-status-new         { background-color: #0d6efd; }
+.badge-status-contacted   { background-color: #6f42c1; }
+.badge-status-interested  { background-color: #fd7e14; }
+.badge-status-converted   { background-color: #198754; }
+.badge-status-lost        { background-color: #6c757d; }
+.badge-status-active      { background-color: #198754; }
+.badge-status-inactive    { background-color: #6c757d; }
+.badge-status-pending     { background-color: #ffc107; color: #000; }
+.badge-status-approved    { background-color: #198754; }
+.badge-status-rejected    { background-color: #dc3545; }
+
+/* ---- Forms ---- */
+.form-label {
+    font-weight: 500;
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.15);
+}
+
+.required::after {
+    content: ' *';
+    color: #dc3545;
+}
+
+/* ---- Page Header ---- */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    color: #212529;
+}
+
+.page-header .breadcrumb {
+    margin-bottom: 0;
+    font-size: 0.8rem;
+}
+
+/* ---- Activity Timeline ---- */
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.75rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.6rem;
+    top: 0.3rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px var(--primary);
+}
+
+.timeline-item .timeline-date {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+/* ---- Lead Pipeline ---- */
+.pipeline-stage {
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pipeline-stage:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+/* ---- Priority badges ---- */
+.priority-low    { color: #198754; }
+.priority-medium { color: #fd7e14; }
+.priority-high   { color: #dc3545; }
+.priority-urgent { color: #dc3545; font-weight: bold; }
+
+/* ---- DataTables overrides ---- */
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: 0.375rem;
+    border: 1px solid #dee2e6;
+    padding: 0.375rem 0.75rem;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    border-radius: 0.375rem;
+    border: 1px solid #dee2e6;
+}
+
+/* ---- Select2 overrides ---- */
+.select2-container--bootstrap-5 .select2-selection {
+    font-size: 0.9rem;
+}
+
+/* ---- Loading overlay ---- */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+/* ---- Mobile Responsive ---- */
+@media (max-width: 991.98px) {
+    #layoutSidenav #layoutSidenav_nav {
+        margin-left: calc(var(--sidebar-width) * -1);
+    }
+
+    #layoutSidenav #layoutSidenav_content {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    body.sb-sidenav-toggled #layoutSidenav #layoutSidenav_nav {
+        margin-left: 0;
+    }
+
+    .sb-topnav .navbar-brand {
+        width: auto;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .container-fluid {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .stat-card .card-body {
+        padding: 0.75rem;
+    }
+}
+
+/* ---- Print ---- */
+@media print {
+    #layoutSidenav_nav,
+    .sb-topnav,
+    .page-header .btn,
+    footer {
+        display: none !important;
+    }
+
+    #layoutSidenav_content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+}

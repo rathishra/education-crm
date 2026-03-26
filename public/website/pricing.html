@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Pricing plans for Education CRM and Clinic Management System by Your Company Name. Starter, Professional, and Enterprise plans." />
+  <title>Pricing | Your Company Name</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%236366f1'/><text y='.9em' font-size='70' x='15' fill='white' font-weight='900'>Y</text></svg>" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div id="page-loader">
+    <div class="loader-inner">
+      <div class="loader-logo">Pricing Plans</div>
+      <div class="loader-subtitle">Your Company Name</div>
+      <div class="loader-bar"><div class="loader-progress"></div></div>
+    </div>
+  </div>
+
+  <nav class="navbar navbar-custom navbar-expand-lg w-100">
+    <div class="container">
+      <a class="navbar-brand-custom" href="index.html">
+        <div class="brand-logo">Y</div>
+        <div><span class="brand-name">Your Company</span><span class="brand-tagline">Enterprise Software</span></div>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="products.html" data-bs-toggle="dropdown">Products</a>
+            <ul class="dropdown-menu dropdown-menu-custom">
+              <li><a class="dropdown-item" href="education-crm.html"><i class="fas fa-graduation-cap"></i> Education CRM</a></li>
+              <li><a class="dropdown-item" href="clinic-management.html"><i class="fas fa-hospital-user"></i> Clinic System</a></li>
+            </ul>
+          </li>
+          <li class="nav-item"><a class="nav-link active" href="pricing.html">Pricing</a></li>
+          <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+          <li class="nav-item ms-lg-2">
+            <a class="nav-link btn-demo-nav" href="contact.html#demo"><i class="fas fa-calendar-check me-1"></i> Request Demo</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- PAGE HERO -->
+  <section class="page-hero">
+    <div class="container">
+      <div class="page-hero-inner text-center">
+        <nav class="breadcrumb-nav justify-content-center">
+          <a href="index.html">Home</a><span>/</span>
+          <span class="bc-cur">Pricing</span>
+        </nav>
+        <span class="section-badge" style="background:rgba(99,102,241,.2);color:#a5b4fc;border-color:rgba(99,102,241,.35)">Pricing Plans</span>
+        <h1>Simple, <span class="gradient-text">Transparent Pricing</span></h1>
+        <p class="mt-3" style="max-width:580px;margin:0 auto;color:rgba(255,255,255,.7)">No hidden fees. No long-term lock-in. Choose the plan that scales with you.</p>
+
+        <!-- Product selector -->
+        <div class="d-flex gap-3 justify-content-center mt-4 flex-wrap">
+          <button class="btn btn-primary-gradient" id="btnEduPricing" onclick="showPricing('edu')">
+            <i class="fas fa-graduation-cap"></i> Education CRM
+          </button>
+          <button class="btn btn-outline-light-custom" id="btnClinicPricing" onclick="showPricing('clinic')">
+            <i class="fas fa-hospital-user"></i> Clinic System
+          </button>
+        </div>
+
+        <!-- Billing toggle -->
+        <div class="d-flex align-items-center justify-content-center gap-3 mt-4">
+          <span class="toggle-label-m fw-bold" style="font-size:.9rem;color:rgba(255,255,255,.7)">Monthly</span>
+          <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" id="billingToggle" style="width:48px;height:26px;cursor:pointer" />
+          </div>
+          <span class="toggle-label-a" style="font-size:.9rem;color:rgba(255,255,255,.7)">
+            Annual <span class="badge" style="background:var(--gradient-secondary);font-size:.65rem;vertical-align:middle">Save 20%</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EDUCATION PRICING -->
+  <section class="section-py" id="edu-pricing">
+    <div class="container">
+      <div class="text-center mb-4" data-aos="fade-up">
+        <span class="section-badge"><i class="fas fa-graduation-cap me-1"></i> Education CRM Plans</span>
+      </div>
+      <div class="row g-4 align-items-center justify-content-center">
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="50">
+          <div class="pricing-card">
+            <div class="pricing-plan">Starter</div>
+            <div class="pricing-amount"><span data-monthly="₹1,499" data-annual="₹14,990">₹1,499</span><sub>/mo</sub></div>
+            <p class="pricing-desc">Ideal for small colleges and single-campus institutes.</p>
+            <hr class="pricing-hr" />
+            <ul class="pricing-feats">
+              <li><i class="fas fa-check-circle"></i> Up to 500 Students</li>
+              <li><i class="fas fa-check-circle"></i> 5 Staff Accounts</li>
+              <li><i class="fas fa-check-circle"></i> Admission CRM</li>
+              <li><i class="fas fa-check-circle"></i> Fee Management</li>
+              <li><i class="fas fa-check-circle"></i> Attendance Tracking</li>
+              <li><i class="fas fa-check-circle"></i> Basic Reports</li>
+              <li><i class="fas fa-check-circle"></i> Email Support</li>
+              <li class="na"><i class="fas fa-times-circle"></i> Multi-Branch</li>
+              <li class="na"><i class="fas fa-times-circle"></i> Hostel / Transport</li>
+              <li class="na"><i class="fas fa-times-circle"></i> API Access</li>
+            </ul>
+            <a href="contact.html#demo" class="btn btn-outline-primary w-100">Get Started Free</a>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="150">
+          <div class="pricing-card popular">
+            <div class="popular-badge">⭐ Most Popular</div>
+            <div class="pricing-plan">Professional</div>
+            <div class="pricing-amount"><span data-monthly="₹3,999" data-annual="₹39,990">₹3,999</span><sub>/mo</sub></div>
+            <p class="pricing-desc">For medium to large colleges with multiple departments.</p>
+            <hr class="pricing-hr" />
+            <ul class="pricing-feats">
+              <li><i class="fas fa-check-circle"></i> Up to 5,000 Students</li>
+              <li><i class="fas fa-check-circle"></i> 25 Staff Accounts</li>
+              <li><i class="fas fa-check-circle"></i> All Starter Features</li>
+              <li><i class="fas fa-check-circle"></i> Exam Management</li>
+              <li><i class="fas fa-check-circle"></i> Timetable &amp; Academic</li>
+              <li><i class="fas fa-check-circle"></i> Hostel &amp; Transport</li>
+              <li><i class="fas fa-check-circle"></i> Multi-Branch (3)</li>
+              <li><i class="fas fa-check-circle"></i> Custom Reports</li>
+              <li><i class="fas fa-check-circle"></i> Priority Support (8h)</li>
+              <li class="na"><i class="fas fa-times-circle"></i> API Access</li>
+            </ul>
+            <a href="contact.html#demo" class="btn btn-outline-light-custom w-100">Get Started</a>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="250">
+          <div class="pricing-card">
+            <div class="pricing-plan">Enterprise</div>
+            <div class="pricing-amount"><span data-monthly="Custom" data-annual="Custom">Custom</span></div>
+            <p class="pricing-desc">For university groups, autonomous colleges, and large chains.</p>
+            <hr class="pricing-hr" />
+            <ul class="pricing-feats">
+              <li><i class="fas fa-check-circle"></i> Unlimited Students</li>
+              <li><i class="fas fa-check-circle"></i> Unlimited Accounts</li>
+              <li><i class="fas fa-check-circle"></i> All Professional Features</li>
+              <li><i class="fas fa-check-circle"></i> Unlimited Branches</li>
+              <li><i class="fas fa-check-circle"></i> AI Analytics &amp; BI</li>
+              <li><i class="fas fa-check-circle"></i> Full API Access &amp; SSO</li>
+              <li><i class="fas fa-check-circle"></i> Custom Development</li>
+              <li><i class="fas fa-check-circle"></i> Dedicated Account Manager</li>
+              <li><i class="fas fa-check-circle"></i> 24/7 Support &amp; SLA</li>
+              <li><i class="fas fa-check-circle"></i> On-Premise Option</li>
+            </ul>
+            <a href="contact.html#demo" class="btn btn-primary-gradient w-100">Contact Sales</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLINIC PRICING (hidden by default, shown via JS) -->
+  <section class="section-py" id="clinic-pricing" style="display:none">
+    <div class="container">
+      <div class="text-center mb-4" data-aos="fade-up">
+        <span class="section-badge clinic"><i class="fas fa-hospital-user me-1"></i> Clinic Management Plans</span>
+      </div>
+      <div class="row g-4 align-items-center justify-content-center">
+        <div class="col-lg-4 col-md-6">
+          <div class="pricing-card">
+            <div class="pricing-plan">Starter</div>
+            <div class="pricing-amount"><span data-monthly="₹999" data-annual="₹9,990">₹999</span><sub>/mo</sub></div>
+            <p class="pricing-desc">For solo practitioners and small single-room clinics.</p>
+            <hr class="pricing-hr" />
+            <ul class="pricing-feats">
+              <li><i class="fas fa-check-circle"></i> Up to 200 Patients/Month</li>
+              <li><i class="fas fa-check-circle"></i> 3 Staff Accounts</li>
+              <li><i class="fas fa-check-circle"></i> OPD Registration</li>
+              <li><i class="fas fa-check-circle"></i> Digital Prescriptions</li>
+              <li><i class="fas fa-check-circle"></i> Basic Billing</li>
+              <li><i class="fas fa-check-circle"></i> Appointment Scheduling</li>
+              <li class="na"><i class="fas fa-times-circle"></i> Lab Module</li>
+              <li class="na"><i class="fas fa-times-circle"></i> Insurance / TPA</li>
+              <li class="na"><i class="fas fa-times-circle"></i> IPD Management</li>
+            </ul>
+            <a href="contact.html#demo" class="btn btn-outline-primary w-100">Get Started Free</a>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+          <div class="pricing-card popular" style="background:var(--gradient-clinic)">
+            <div class="popular-badge">⭐ Most Popular</div>
+            <div class="pricing-plan">Professional</div>
+            <div class="pricing-amount"><span data-monthly="₹2,999" data-annual="₹29,990">₹2,999</span><sub>/mo</sub></div>
+            <p class="pricing-desc">For multi-specialty clinics and small hospitals.</p>
+            <hr class="pricing-hr" />
+            <ul class="pricing-feats">
+              <li><i class="fas fa-check-circle"></i> Unlimited Patients</li>
+              <li><i class="fas fa-check-circle"></i> 15 Staff Accounts</li>
+              <li><i class="fas fa-check-circle"></i> OPD + IPD Management</li>
+              <li><i class="fas fa-check-circle"></i> Full EMR</li>
+              <li><i class="fas fa-check-circle"></i> Lab Integration</li>
+              <li><i class="fas fa-check-circle"></i> GST Billing &amp; Insurance</li>
+              <li><i class="fas fa-check-circle"></i> Pharmacy Module</li>
+              <li><i class="fas fa-check-circle"></i> Priority Support</li>
+              <li class="na"><i class="fas fa-times-circle"></i> Multi-Branch</li>
+            </ul>
+            <a href="contact.html#demo" class="btn btn-outline-light-custom w-100">Get Started</a>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+          <div class="pricing-card">
+            <div class="pricing-plan">Enterprise</div>
+            <div class="pricing-amount"><span data-monthly="Custom" data-annual="Custom">Custom</span></div>
+            <p class="pricing-desc">For hospital chains, medical groups, and healthcare networks.</p>
+            <hr class="pricing-hr" />
+            <ul class="pricing-feats">
+              <li><i class="fas fa-check-circle"></i> Unlimited Everything</li>
+              <li><i class="fas fa-check-circle"></i> Unlimited Staff</li>
+              <li><i class="fas fa-check-circle"></i> All Pro Features</li>
+              <li><i class="fas fa-check-circle"></i> Unlimited Branches</li>
+              <li><i class="fas fa-check-circle"></i> NABH / NABL Reporting</li>
+              <li><i class="fas fa-check-circle"></i> HL7 / FHIR Integration</li>
+              <li><i class="fas fa-check-circle"></i> Dedicated Support Team</li>
+              <li><i class="fas fa-check-circle"></i> On-Premise Deployment</li>
+              <li><i class="fas fa-check-circle"></i> Custom Module Development</li>
+            </ul>
+            <a href="contact.html#demo" class="btn btn-primary-gradient w-100">Contact Sales</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INCLUDED IN ALL PLANS -->
+  <section class="section-py bg-light-section">
+    <div class="container">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <span class="section-badge">Included in All Plans</span>
+        <h2 class="section-title">Everything You Need <span class="gradient-text">From Day One</span></h2>
+      </div>
+      <div class="row g-4">
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="50">
+          <div class="feature-card text-center">
+            <div class="feat-icon mx-auto"><i class="fas fa-cloud"></i></div>
+            <h4>Cloud Hosting</h4>
+            <p>Fully managed cloud infrastructure on AWS with auto-scaling and 99.9% uptime guarantee.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="100">
+          <div class="feature-card text-center">
+            <div class="feat-icon mx-auto"><i class="fas fa-shield-alt"></i></div>
+            <h4>SSL &amp; Encryption</h4>
+            <p>End-to-end AES-256 encryption, SSL certificates, and secure data storage in Indian data centers.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="150">
+          <div class="feature-card text-center">
+            <div class="feat-icon mx-auto"><i class="fas fa-database"></i></div>
+            <h4>Automatic Backups</h4>
+            <p>Daily automated backups with 30-day retention and one-click point-in-time restore.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="200">
+          <div class="feature-card text-center">
+            <div class="feat-icon mx-auto"><i class="fas fa-graduation-cap"></i></div>
+            <h4>Free Onboarding</h4>
+            <p>Dedicated implementation team, data migration, staff training, and go-live support included.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="250">
+          <div class="feature-card text-center">
+            <div class="feat-icon mx-auto"><i class="fas fa-sync-alt"></i></div>
+            <h4>Automatic Updates</h4>
+            <p>All new features and regulatory updates deployed automatically at no additional cost.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="300">
+          <div class="feature-card text-center">
+            <div class="feat-icon mx-auto"><i class="fas fa-mobile-alt"></i></div>
+            <h4>Mobile App</h4>
+            <p>iOS and Android apps for staff, students/patients, and management — included for free.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="350">
+          <div class="feature-card text-center">
+            <div class="feat-icon mx-auto"><i class="fas fa-headset"></i></div>
+            <h4>Support Portal</h4>
+            <p>Ticketing system, knowledge base, video tutorials, and live chat during business hours.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="400">
+          <div class="feature-card text-center">
+            <div class="feat-icon mx-auto"><i class="fas fa-undo"></i></div>
+            <h4>30-Day Guarantee</h4>
+            <p>Not satisfied within 30 days? We'll refund every rupee — no questions asked.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section-py">
+    <div class="container">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <span class="section-badge">FAQ</span>
+        <h2 class="section-title">Frequently Asked <span class="gradient-text">Questions</span></h2>
+      </div>
+      <div class="row justify-content-center">
+        <div class="col-lg-8" data-aos="fade-up" data-aos-delay="100">
+          <div class="accordion" id="faqAccordion">
+            <div class="accordion-item faq-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button faq-btn" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                  Can I switch plans later?
+                </button>
+              </h2>
+              <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                <div class="accordion-body faq-body">
+                  Absolutely. You can upgrade or downgrade your plan at any time from the admin portal. When upgrading, you'll be charged the prorated difference for the current billing period. Downgrades take effect at the next renewal.
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item faq-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button faq-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                  Is there a free trial available?
+                </button>
+              </h2>
+              <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body faq-body">
+                  Yes! We offer a free 14-day trial for the Starter and Professional plans with no credit card required. You get full access to all features in that plan so you can evaluate the software thoroughly before committing.
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item faq-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button faq-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                  What payment methods do you accept?
+                </button>
+              </h2>
+              <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body faq-body">
+                  We accept all major credit/debit cards, UPI, net banking, NEFT/RTGS, and demand drafts for annual subscriptions. We can also issue GST invoices for institutional procurement processes.
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item faq-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button faq-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                  Is my data safe and backed up?
+                </button>
+              </h2>
+              <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body faq-body">
+                  Your data is hosted on AWS infrastructure in Indian data centres, with AES-256 encryption at rest and in transit. Automated daily backups are retained for 30 days, and you can export your data anytime in standard formats (CSV/Excel).
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item faq-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button faq-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                  Do you offer on-premise deployment?
+                </button>
+              </h2>
+              <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body faq-body">
+                  On-premise deployment is available exclusively on the Enterprise plan for institutions with strict data sovereignty requirements. Contact our sales team for a custom quote and technical specifications.
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item faq-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button faq-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                  How long does implementation take?
+                </button>
+              </h2>
+              <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body faq-body">
+                  Starter plan clients are typically live within 3–5 business days. Professional plan implementation takes 7–14 days including data migration. Enterprise deployments are planned based on scope, typically 3–6 weeks with a dedicated project manager.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section section-py">
+    <div class="container">
+      <div class="cta-inner text-center">
+        <h2 class="cta-title">Still Not Sure? Let's Talk.</h2>
+        <p class="cta-subtitle">Our sales team will help you find the right plan and can offer custom pricing for large institutions.</p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+          <a href="contact.html#demo" class="btn btn-outline-light-custom btn-lg-custom"><i class="fas fa-calendar-alt"></i> Book Free Demo</a>
+          <a href="contact.html" class="btn btn-outline-light-custom btn-lg-custom"><i class="fas fa-phone-alt"></i> Talk to Sales</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="row g-5">
+        <div class="col-lg-4 col-md-6">
+          <div class="navbar-brand-custom mb-3">
+            <div class="brand-logo">Y</div>
+            <div><span class="brand-name">Your Company</span><span class="brand-tagline">Enterprise Software</span></div>
+          </div>
+          <p>Empowering educational institutions and healthcare providers with enterprise-grade software.</p>
+          <div class="social-links">
+            <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h6 class="footer-heading">Quick Links</h6>
+          <ul class="footer-links">
+            <li><a href="index.html"><i class="fas fa-chevron-right"></i> Home</a></li>
+            <li><a href="products.html"><i class="fas fa-chevron-right"></i> Products</a></li>
+            <li><a href="pricing.html"><i class="fas fa-chevron-right"></i> Pricing</a></li>
+            <li><a href="about.html"><i class="fas fa-chevron-right"></i> About Us</a></li>
+            <li><a href="contact.html"><i class="fas fa-chevron-right"></i> Contact</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h6 class="footer-heading">Products</h6>
+          <ul class="footer-links">
+            <li><a href="education-crm.html"><i class="fas fa-chevron-right"></i> Education CRM</a></li>
+            <li><a href="clinic-management.html"><i class="fas fa-chevron-right"></i> Clinic System</a></li>
+            <li><a href="contact.html#demo"><i class="fas fa-chevron-right"></i> Request Demo</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4 col-md-6">
+          <h6 class="footer-heading">Get in Touch</h6>
+          <div class="footer-contact-item"><i class="fas fa-map-marker-alt"></i><p>123 Tech Park, Whitefield, Bangalore – 560066</p></div>
+          <div class="footer-contact-item"><i class="fas fa-phone-alt"></i><p>+91 98765 43210</p></div>
+          <div class="footer-contact-item"><i class="fas fa-envelope"></i><p>hello@yourcompany.com</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">
+        <p>&copy; 2026 Your Company Name Pvt. Ltd. All rights reserved. &nbsp;|&nbsp; <a href="#">Privacy Policy</a> &nbsp;|&nbsp; <a href="#">Terms of Service</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></button>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script src="script.js"></script>
+  <script>
+    function showPricing(type) {
+      const eduSection    = document.getElementById('edu-pricing');
+      const clinicSection = document.getElementById('clinic-pricing');
+      const btnEdu        = document.getElementById('btnEduPricing');
+      const btnClinic     = document.getElementById('btnClinicPricing');
+      if (type === 'edu') {
+        eduSection.style.display = '';
+        clinicSection.style.display = 'none';
+        btnEdu.className    = 'btn btn-primary-gradient';
+        btnClinic.className = 'btn btn-outline-light-custom';
+      } else {
+        eduSection.style.display    = 'none';
+        clinicSection.style.display = '';
+        btnClinic.className = 'btn btn-clinic-gradient';
+        btnEdu.className    = 'btn btn-outline-light-custom';
+      }
+    }
+  </script>
+</body>
+</html>

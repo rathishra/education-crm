@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Medu Matrix — Enterprise SaaS software for Education & Healthcare. Education CRM for Colleges and Clinic Management System for Hospitals." />
+  <meta name="keywords" content="Education CRM, Clinic Management, SaaS, ERP, College Software, Hospital Software" />
+  <title>Medu Matrix | ERP For Education & Healthcare for Education &amp; Healthcare</title>
+
+  <!-- Favicon placeholder -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%236366f1'/><text y='.9em' font-size='70' x='15' fill='white' font-weight='900'>Y</text></svg>" />
+
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- AOS -->
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ══════════ PAGE LOADER ══════════ -->
+  <div id="page-loader">
+    <div class="loader-inner">
+      <div class="loader-logo">Medu Matrix</div>
+      <div class="loader-subtitle">ERP For Education & Healthcare Solutions</div>
+      <div class="loader-bar"><div class="loader-progress"></div></div>
+    </div>
+  </div>
+
+  <!-- ══════════ NAVBAR ══════════ -->
+  <nav class="navbar navbar-custom navbar-expand-lg w-100">
+    <div class="container">
+<a class="navbar-brand-custom" href="index.html">
+    <img src="logo.png" class="brand-logo" alt="MeduMatrix">
+</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
+          <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="products.html" data-bs-toggle="dropdown" aria-expanded="false">Products</a>
+            <ul class="dropdown-menu dropdown-menu-custom">
+              <li><a class="dropdown-item" href="education-crm.html"><i class="fas fa-graduation-cap"></i> Education CRM</a></li>
+              <li><a class="dropdown-item" href="clinic-management.html"><i class="fas fa-hospital-user"></i> Clinic System</a></li>
+            </ul>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="pricing.html">Pricing</a></li>
+          <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+          <li class="nav-item ms-lg-2">
+            <a class="nav-link btn-demo-nav" href="contact.html#demo">
+              <i class="fas fa-calendar-check me-1"></i> Request Demo
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══════════ HERO SECTION ══════════ -->
+  <section class="hero-section" id="home">
+    <!-- Background layers -->
+    <div class="hero-bg">
+      <div class="hero-orb hero-orb-1"></div>
+      <div class="hero-orb hero-orb-2"></div>
+      <div class="hero-orb hero-orb-3"></div>
+    </div>
+    <div class="hero-grid"></div>
+    <canvas id="particleCanvas"></canvas>
+
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <!-- Left content -->
+        <div class="col-lg-6 hero-content">
+          <div class="hero-badge">
+            <span class="pulse-dot"></span>
+            Trusted by 500+ Institutions Across India
+          </div>
+          <h1 class="hero-title">
+            ERP For Education & Healthcare for<br>
+            <span class="highlight">Education &amp; Healthcare</span>
+          </h1>
+          <p class="hero-subtitle">
+            Powerful CRM and management solutions purpose-built for colleges, clinics, hospitals, and labs — all in one unified platform.
+          </p>
+          <div class="hero-buttons">
+            <a href="contact.html#demo" class="btn btn-primary-gradient btn-lg-custom">
+              <i class="fas fa-rocket"></i> Request Free Demo
+            </a>
+            <a href="products.html" class="btn btn-outline-light-custom btn-lg-custom">
+              <i class="fas fa-th-large"></i> View Products
+            </a>
+          </div>
+          <div class="hero-stats">
+            <div>
+              <div class="hero-stat-num" data-counter="500" data-suffix="+">0+</div>
+              <div class="hero-stat-lbl">Institutions Served</div>
+            </div>
+            <div>
+              <div class="hero-stat-num" data-counter="2" data-suffix="M+" data-decimals="0">0M+</div>
+              <div class="hero-stat-lbl">Records Managed</div>
+            </div>
+            <div>
+              <div class="hero-stat-num" data-counter="99" data-suffix="%">0%</div>
+              <div class="hero-stat-lbl">Uptime SLA</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right — Dashboard illustration -->
+        <div class="col-lg-6 hero-visual">
+          <div class="position-relative">
+            <!-- Floating card top-left -->
+            <div class="float-card float-card-1">
+              <div class="fc-inner">
+                <div class="fc-icon indigo"><i class="fas fa-user-graduate"></i></div>
+                <div class="fc-text">
+                  <div class="fc-val">+247</div>
+                  <div class="fc-lbl">New Enrollments Today</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Main dashboard card -->
+            <div class="hero-dashboard">
+              <div class="dash-topbar">
+                <div class="dash-dots">
+                  <span></span><span></span><span></span>
+                </div>
+                <div class="dash-title">dashboard.yourcompany.io</div>
+                <div class="dash-status"><span class="dash-status-dot"></span> Live</div>
+              </div>
+
+              <!-- KPI row -->
+              <div class="dash-kpis">
+                <div class="kpi-card">
+                  <span class="kpi-val">2,847</span>
+                  <span class="kpi-lbl">Students</span>
+                  <span class="kpi-trend">↑ 12.4%</span>
+                </div>
+                <div class="kpi-card">
+                  <span class="kpi-val">₹12.4L</span>
+                  <span class="kpi-lbl">Revenue</span>
+                  <span class="kpi-trend">↑ 8.7%</span>
+                </div>
+                <div class="kpi-card">
+                  <span class="kpi-val">94%</span>
+                  <span class="kpi-lbl">Retention</span>
+                  <span class="kpi-trend">↑ 3.1%</span>
+                </div>
+              </div>
+
+              <!-- Chart -->
+              <div class="dash-chart-wrap">
+                <div class="dash-chart-head">
+                  <span class="chart-lbl">Monthly Admissions</span>
+                  <span class="chart-val">↑ 24% vs last year</span>
+                </div>
+                <div class="chart-bars">
+                  <div class="chart-bar-item indigo" data-h="45"></div>
+                  <div class="chart-bar-item indigo" data-h="62"></div>
+                  <div class="chart-bar-item purple" data-h="55"></div>
+                  <div class="chart-bar-item indigo" data-h="78"></div>
+                  <div class="chart-bar-item cyan"   data-h="66"></div>
+                  <div class="chart-bar-item indigo" data-h="85"></div>
+                  <div class="chart-bar-item purple" data-h="72"></div>
+                  <div class="chart-bar-item indigo" data-h="90"></div>
+                  <div class="chart-bar-item cyan"   data-h="68"></div>
+                  <div class="chart-bar-item indigo" data-h="95"></div>
+                </div>
+              </div>
+
+              <!-- Recent list -->
+              <div class="dash-list">
+                <div class="dash-row">
+                  <span class="dash-row-name"><i class="fas fa-user-circle me-2" style="color:#a78bfa"></i>Priya Sharma — B.Tech CSE</span>
+                  <span class="dash-badge badge-active">Active</span>
+                </div>
+                <div class="dash-row">
+                  <span class="dash-row-name"><i class="fas fa-user-circle me-2" style="color:#a78bfa"></i>Rahul Kumar — MBA Finance</span>
+                  <span class="dash-badge badge-pending">Pending</span>
+                </div>
+                <div class="dash-row">
+                  <span class="dash-row-name"><i class="fas fa-user-circle me-2" style="color:#a78bfa"></i>Anjali Singh — B.Sc Nursing</span>
+                  <span class="dash-badge badge-new">New</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Floating card bottom-right -->
+            <div class="float-card float-card-2">
+              <div class="fc-inner">
+                <div class="fc-icon green"><i class="fas fa-check-circle"></i></div>
+                <div class="fc-text">
+                  <div class="fc-val">₹45,000</div>
+                  <div class="fc-lbl">Payment Received</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ STATS BAR ══════════ -->
+  <section class="stats-section section-py-sm">
+    <div class="container">
+      <div class="row g-3 text-center">
+        <div class="col-6 col-md-3">
+          <div class="stat-item">
+            <div class="stat-num" data-counter="500" data-suffix="+">0+</div>
+            <div class="stat-lbl">Institutions Served</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-item">
+            <div class="stat-num" data-counter="50000" data-suffix="+">0+</div>
+            <div class="stat-lbl">Students Managed</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-item">
+            <div class="stat-num" data-counter="100" data-suffix="+">0+</div>
+            <div class="stat-lbl">Clinics & Hospitals</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-item">
+            <div class="stat-num" data-counter="99" data-suffix="%">0%</div>
+            <div class="stat-lbl">Customer Satisfaction</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SECTION 2 : OUR PRODUCTS ══════════ -->
+  <section class="section-py" id="products">
+    <div class="container">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <span class="section-badge">Our Products</span>
+        <h2 class="section-title">One Platform. <span class="gradient-text">Two Powerful Solutions.</span></h2>
+        <p class="section-subtitle">Tailored ERP For Education & Healthcare designed for the unique workflows of educational institutions and healthcare providers.</p>
+      </div>
+      <div class="row g-4">
+        <!-- Education CRM -->
+        <div class="col-lg-6" data-aos="fade-right" data-aos-delay="100">
+          <div class="product-card">
+            <div class="product-icon"><i class="fas fa-graduation-cap"></i></div>
+            <h3>Education CRM</h3>
+            <p>A comprehensive student lifecycle management platform covering admissions, academics, fees, exams, and alumni — built for colleges, universities, and institutes of all sizes.</p>
+            <ul class="product-feats">
+              <li><i class="fas fa-check-circle"></i> Admission & Enquiry Management</li>
+              <li><i class="fas fa-check-circle"></i> Student Information System</li>
+              <li><i class="fas fa-check-circle"></i> Fee & Payment Automation</li>
+              <li><i class="fas fa-check-circle"></i> Exam & Result Management</li>
+              <li><i class="fas fa-check-circle"></i> Hostel & Transport Modules</li>
+              <li><i class="fas fa-check-circle"></i> Real-time Analytics Dashboard</li>
+            </ul>
+            <a href="education-crm.html" class="btn btn-primary-gradient">
+              <i class="fas fa-arrow-right"></i> Learn More
+            </a>
+          </div>
+        </div>
+        <!-- Clinic System -->
+        <div class="col-lg-6" data-aos="fade-left" data-aos-delay="200">
+          <div class="product-card clinic">
+            <div class="product-icon clinic"><i class="fas fa-hospital-user"></i></div>
+            <h3>Clinic Management System</h3>
+            <p>An end-to-end practice management solution for clinics, multi-specialty hospitals, diagnostic labs, and healthcare chains — streamlining patient care from registration to billing.</p>
+            <ul class="product-feats">
+              <li><i class="fas fa-check-circle"></i> Patient Registration & OPD Management</li>
+              <li><i class="fas fa-check-circle"></i> Electronic Medical Records (EMR)</li>
+              <li><i class="fas fa-check-circle"></i> Lab & Diagnostic Integration</li>
+              <li><i class="fas fa-check-circle"></i> Prescription & Pharmacy Module</li>
+              <li><i class="fas fa-check-circle"></i> Insurance & Billing Automation</li>
+              <li><i class="fas fa-check-circle"></i> Multi-branch Management</li>
+            </ul>
+            <a href="clinic-management.html" class="btn btn-clinic-gradient">
+              <i class="fas fa-arrow-right"></i> Learn More
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SECTION 3 : WHY CHOOSE US ══════════ -->
+  <section class="why-section section-py">
+    <div class="container position-relative" style="z-index:2">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <span class="section-badge" style="background:rgba(99,102,241,.2);color:#a78bfa;border-color:rgba(99,102,241,.3)">Why Choose Us</span>
+        <h2 class="section-title text-white">Built for <span class="gradient-text">Enterprise Scale</span></h2>
+        <p class="section-subtitle text-muted-white">Everything you need to run your institution or clinic — secure, fast, and always available.</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="50">
+          <div class="why-card">
+            <div class="why-icon"><i class="fas fa-cloud"></i></div>
+            <h4>Cloud Based</h4>
+            <p>Access your data from anywhere on any device. Zero infrastructure costs with automatic updates and backups.</p>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+          <div class="why-card">
+            <div class="why-icon"><i class="fas fa-shield-alt"></i></div>
+            <h4>Bank-Grade Security</h4>
+            <p>AES-256 encryption, role-based access control, audit logs, and compliance with data protection regulations.</p>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="150">
+          <div class="why-card">
+            <div class="why-icon"><i class="fas fa-bolt"></i></div>
+            <h4>Fast Implementation</h4>
+            <p>Go live in as little as 7 days with our dedicated onboarding team, data migration, and training support.</p>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+          <div class="why-card">
+            <div class="why-icon"><i class="fas fa-sitemap"></i></div>
+            <h4>Multi-Institution</h4>
+            <p>Manage multiple campuses or branches from a single centralized dashboard with isolated data per entity.</p>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="250">
+          <div class="why-card">
+            <div class="why-icon"><i class="fas fa-user-lock"></i></div>
+            <h4>Role-Based Access</h4>
+            <p>Fine-grained permission system — define exactly what each user role can view, edit, or export.</p>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+          <div class="why-card">
+            <div class="why-icon"><i class="fas fa-chart-pie"></i></div>
+            <h4>Analytics Dashboard</h4>
+            <p>Real-time charts, KPI widgets, custom reports, and executive summaries — all in one place.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SECTION 4 : FEATURES GRID ══════════ -->
+  <section class="section-py bg-light-section" id="features">
+    <div class="container">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <span class="section-badge">Platform Features</span>
+        <h2 class="section-title">Everything You Need, <span class="gradient-text">Right Out of the Box</span></h2>
+        <p class="section-subtitle">100+ features across both products designed to eliminate manual work and unlock actionable insight.</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="50">
+          <div class="feature-card">
+            <div class="feat-icon"><i class="fas fa-users"></i></div>
+            <h4>Student Management</h4>
+            <p>Complete student lifecycle from enquiry through graduation with profiles, documents, and history.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="100">
+          <div class="feature-card">
+            <div class="feat-icon"><i class="fas fa-funnel-dollar"></i></div>
+            <h4>Admission CRM</h4>
+            <p>Lead capture, follow-ups, conversion tracking, and automated counselling workflows.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="150">
+          <div class="feature-card">
+            <div class="feat-icon"><i class="fas fa-rupee-sign"></i></div>
+            <h4>Fee Management</h4>
+            <p>Fee structures, online payment gateway integration, receipts, and defaulter tracking.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="200">
+          <div class="feature-card">
+            <div class="feat-icon"><i class="fas fa-file-alt"></i></div>
+            <h4>Exam Management</h4>
+            <p>Time-table scheduling, hall ticket generation, marks entry, and result publishing.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="250">
+          <div class="feature-card">
+            <div class="feat-icon"><i class="fas fa-procedures"></i></div>
+            <h4>Patient Management</h4>
+            <p>OPD/IPD registration, appointment scheduling, EMR, and discharge summaries.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="300">
+          <div class="feature-card">
+            <div class="feat-icon"><i class="fas fa-flask"></i></div>
+            <h4>Lab Integration</h4>
+            <p>Sample tracking, LIS integration, digital reports, and automated result alerts to patients.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="350">
+          <div class="feature-card">
+            <div class="feat-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+            <h4>Billing &amp; Reports</h4>
+            <p>GST-ready invoicing, insurance claim management, and 50+ pre-built analytical reports.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="zoom-in" data-aos-delay="400">
+          <div class="feature-card">
+            <div class="feat-icon"><i class="fas fa-code-branch"></i></div>
+            <h4>Multi-Branch</h4>
+            <p>Centralized control with branch-level isolation, inter-branch transfers, and consolidated reporting.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SECTION 5 : INDUSTRIES ══════════ -->
+  <section class="section-py">
+    <div class="container">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <span class="section-badge">Industries We Serve</span>
+        <h2 class="section-title">Trusted Across <span class="gradient-text">Every Sector</span></h2>
+        <p class="section-subtitle">From single-campus colleges to multi-city hospital chains — our platform adapts to your scale.</p>
+      </div>
+      <div class="text-center" data-aos="fade-up" data-aos-delay="100">
+        <div class="d-flex flex-wrap justify-content-center">
+          <span class="industry-tag"><i class="fas fa-university"></i> Engineering Colleges</span>
+          <span class="industry-tag"><i class="fas fa-book-open"></i> Arts &amp; Science Colleges</span>
+          <span class="industry-tag"><i class="fas fa-heartbeat"></i> Medical Colleges</span>
+          <span class="industry-tag"><i class="fas fa-school"></i> Professional Institutes</span>
+          <span class="industry-tag"><i class="fas fa-stethoscope"></i> Clinics &amp; Polyclinics</span>
+          <span class="industry-tag"><i class="fas fa-hospital"></i> Multi-Specialty Hospitals</span>
+          <span class="industry-tag"><i class="fas fa-flask"></i> Diagnostic Labs</span>
+          <span class="industry-tag"><i class="fas fa-tooth"></i> Dental Clinics</span>
+          <span class="industry-tag"><i class="fas fa-eye"></i> Eye Hospitals</span>
+          <span class="industry-tag"><i class="fas fa-child"></i> Paediatric Centres</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SECTION 6 : PRICING ══════════ -->
+  <section class="section-py bg-light-section" id="pricing">
+    <div class="container">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <span class="section-badge">Pricing Plans</span>
+        <h2 class="section-title">Simple, <span class="gradient-text">Transparent Pricing</span></h2>
+        <p class="section-subtitle">No hidden fees. Pick the plan that fits your institution size and requirements.</p>
+
+        <!-- Billing toggle -->
+        <div class="d-flex align-items-center justify-content-center gap-3 mt-4">
+          <span class="toggle-label-m fw-bold" style="font-size:.9rem;color:var(--text-secondary)">Monthly</span>
+          <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" id="billingToggle" style="width:48px;height:26px;cursor:pointer" />
+          </div>
+          <span class="toggle-label-a" style="font-size:.9rem;color:var(--text-secondary)">
+            Annual <span class="badge" style="background:var(--gradient-secondary);font-size:.65rem;vertical-align:middle">Save 20%</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="row g-4 align-items-center justify-content-center">
+        <!-- Starter -->
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="50">
+          <div class="pricing-card">
+            <div class="pricing-plan">Starter</div>
+            <div class="pricing-amount">
+              <span data-monthly="₹1,499" data-annual="₹14,999">₹1,499</span>
+              <sub>/month</sub>
+            </div>
+            <p class="pricing-desc">Perfect for small institutes &amp; single-clinic practices.</p>
+            <hr class="pricing-hr" />
+            <ul class="pricing-feats">
+              <li><i class="fas fa-check-circle"></i> Up to 500 Students / Patients</li>
+              <li><i class="fas fa-check-circle"></i> 5 User Accounts</li>
+              <li><i class="fas fa-check-circle"></i> Core Modules</li>
+              <li><i class="fas fa-check-circle"></i> Email Support (48h SLA)</li>
+              <li><i class="fas fa-check-circle"></i> 10 GB Cloud Storage</li>
+              <li class="na"><i class="fas fa-times-circle"></i> Multi-Branch</li>
+              <li class="na"><i class="fas fa-times-circle"></i> Custom Reports</li>
+              <li class="na"><i class="fas fa-times-circle"></i> API Access</li>
+            </ul>
+            <a href="contact.html#demo" class="btn btn-outline-primary w-100">Get Started</a>
+          </div>
+        </div>
+
+        <!-- Professional (popular) -->
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="150">
+          <div class="pricing-card popular">
+            <div class="popular-badge">⭐ Most Popular</div>
+            <div class="pricing-plan">Professional</div>
+            <div class="pricing-amount">
+              <span data-monthly="₹3,999" data-annual="₹39,999">₹3,999</span>
+              <sub>/month</sub>
+            </div>
+            <p class="pricing-desc">For growing institutions with multiple departments.</p>
+            <hr class="pricing-hr" />
+            <ul class="pricing-feats">
+              <li><i class="fas fa-check-circle"></i> Up to 5,000 Students / Patients</li>
+              <li><i class="fas fa-check-circle"></i> 25 User Accounts</li>
+              <li><i class="fas fa-check-circle"></i> All Modules Included</li>
+              <li><i class="fas fa-check-circle"></i> Priority Support (8h SLA)</li>
+              <li><i class="fas fa-check-circle"></i> 100 GB Cloud Storage</li>
+              <li><i class="fas fa-check-circle"></i> Multi-Branch (up to 3)</li>
+              <li><i class="fas fa-check-circle"></i> Custom Reports</li>
+              <li class="na"><i class="fas fa-times-circle"></i> API Access</li>
+            </ul>
+            <a href="contact.html#demo" class="btn btn-outline-light-custom w-100">Get Started</a>
+          </div>
+        </div>
+
+        <!-- Enterprise -->
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="250">
+          <div class="pricing-card">
+            <div class="pricing-plan">Enterprise</div>
+            <div class="pricing-amount">
+              <span data-monthly="Custom" data-annual="Custom">Custom</span>
+            </div>
+            <p class="pricing-desc">For large universities, hospital chains, and groups.</p>
+            <hr class="pricing-hr" />
+            <ul class="pricing-feats">
+              <li><i class="fas fa-check-circle"></i> Unlimited Students / Patients</li>
+              <li><i class="fas fa-check-circle"></i> Unlimited Users</li>
+              <li><i class="fas fa-check-circle"></i> All Modules + Custom Dev</li>
+              <li><i class="fas fa-check-circle"></i> 24/7 Dedicated Support</li>
+              <li><i class="fas fa-check-circle"></i> Unlimited Storage</li>
+              <li><i class="fas fa-check-circle"></i> Unlimited Branches</li>
+              <li><i class="fas fa-check-circle"></i> Advanced Analytics &amp; BI</li>
+              <li><i class="fas fa-check-circle"></i> Full API Access + SSO</li>
+            </ul>
+            <a href="contact.html#demo" class="btn btn-primary-gradient w-100">Contact Sales</a>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-center mt-4" style="color:var(--text-muted);font-size:.88rem" data-aos="fade-up">
+        All plans include free onboarding, data migration assistance, and a 30-day money-back guarantee.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════ TESTIMONIALS ══════════ -->
+  <section class="section-py">
+    <div class="container">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <span class="section-badge">Testimonials</span>
+        <h2 class="section-title">Loved by <span class="gradient-text">Thousands of Users</span></h2>
+      </div>
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="50">
+          <div class="testimonial-card">
+            <div class="t-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+            <p class="t-text">"The Education CRM transformed our admission process completely. We reduced manual follow-ups by 80% and increased conversions by 35%. Absolutely brilliant product!"</p>
+            <div class="t-author">
+              <div class="t-avatar">A</div>
+              <div>
+                <div class="t-name">Dr. Arjun Mehta</div>
+                <div class="t-role">Principal, Sunrise Engineering College</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="150">
+          <div class="testimonial-card">
+            <div class="t-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+            <p class="t-text">"Our clinic billing used to take 4 hours daily. With this system, we process everything in under 30 minutes. The lab integration is seamless and our patients love the digital reports."</p>
+            <div class="t-author">
+              <div class="t-avatar" style="background:var(--gradient-clinic)">S</div>
+              <div>
+                <div class="t-name">Dr. Sunita Patel</div>
+                <div class="t-role">Medical Director, Patel Multi-Specialty Clinic</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="250">
+          <div class="testimonial-card">
+            <div class="t-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div>
+            <p class="t-text">"Implementation was incredibly smooth — we were live in 5 days. The support team is exceptional. Managing all 3 of our campuses from one dashboard saves us enormous time."</p>
+            <div class="t-author">
+              <div class="t-avatar" style="background:linear-gradient(135deg,#06b6d4,#10b981)">R</div>
+              <div>
+                <div class="t-name">Ravi Chandran</div>
+                <div class="t-role">Admin Director, Lotus Group of Institutions</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SECTION 7 : CTA ══════════ -->
+  <section class="cta-section section-py">
+    <div class="container">
+      <div class="cta-inner text-center">
+        <div data-aos="fade-up">
+          <span class="section-badge" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.3);margin-bottom:16px">Free Demo</span>
+          <h2 class="cta-title">Ready to Transform Your Institution?</h2>
+          <p class="cta-subtitle">Book a free 30-minute personalised demo. No credit card required. No commitment.</p>
+          <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="contact.html#demo" class="btn btn-outline-light-custom btn-lg-custom">
+              <i class="fas fa-calendar-alt"></i> Book Free Demo
+            </a>
+            <a href="contact.html" class="btn btn-outline-light-custom btn-lg-custom">
+              <i class="fas fa-phone-alt"></i> Talk to Sales
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ FOOTER ══════════ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="row g-5">
+        <div class="col-lg-4 col-md-6">
+          <div class="navbar-brand-custom mb-3">
+            <div class="brand-logo">Y</div>
+            <div>
+              <span class="brand-name">Medu Matrix</span>
+              <span class="brand-tagline">ERP For Education & Healthcare</span>
+            </div>
+          </div>
+          <p>Empowering educational institutions and healthcare providers with enterprise-grade software since 2018.</p>
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#" class="social-link" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="social-link" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="social-link" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h6 class="footer-heading">Quick Links</h6>
+          <ul class="footer-links">
+            <li><a href="index.html"><i class="fas fa-chevron-right"></i> Home</a></li>
+            <li><a href="products.html"><i class="fas fa-chevron-right"></i> Products</a></li>
+            <li><a href="pricing.html"><i class="fas fa-chevron-right"></i> Pricing</a></li>
+            <li><a href="about.html"><i class="fas fa-chevron-right"></i> About Us</a></li>
+            <li><a href="contact.html"><i class="fas fa-chevron-right"></i> Contact</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h6 class="footer-heading">Products</h6>
+          <ul class="footer-links">
+            <li><a href="education-crm.html"><i class="fas fa-chevron-right"></i> Education CRM</a></li>
+            <li><a href="clinic-management.html"><i class="fas fa-chevron-right"></i> Clinic System</a></li>
+            <li><a href="pricing.html"><i class="fas fa-chevron-right"></i> Pricing Plans</a></li>
+            <li><a href="contact.html#demo"><i class="fas fa-chevron-right"></i> Request Demo</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4 col-md-6">
+          <h6 class="footer-heading">Get in Touch</h6>
+          <div class="footer-contact-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <p>123 Tech Park, Whitefield,<br>Bangalore – 560066, India</p>
+          </div>
+          <div class="footer-contact-item">
+            <i class="fas fa-phone-alt"></i>
+            <p>+91 98765 43210</p>
+          </div>
+          <div class="footer-contact-item">
+            <i class="fas fa-envelope"></i>
+            <p>rathish467@gmail.com</p>
+          </div>
+          <div class="footer-contact-item">
+            <i class="fas fa-clock"></i>
+            <p>Mon – Sat: 9:00 AM – 6:00 PM IST</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">
+        <p>&copy; 2026 Medu Matrix Pvt. Ltd. All rights reserved. &nbsp;|&nbsp; <a href="#">Privacy Policy</a> &nbsp;|&nbsp; <a href="#">Terms of Service</a> &nbsp;|&nbsp; <a href="#">Sitemap</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Back to Top -->
+  <button class="back-to-top" id="backToTop" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- AOS -->
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <!-- Custom JS -->
+  <script src="script.js"></script>
+</body>
+</html>

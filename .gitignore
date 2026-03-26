@@ -1,0 +1,17 @@
+.env
+storage/logs/*
+storage/cache/*
+storage/sessions/*
+public/uploads/*
+!public/uploads/.gitkeep
+!storage/logs/.gitkeep
+!storage/cache/.gitkeep
+!storage/sessions/.gitkeep
+vendor/
+node_modules/
+.idea/
+.vscode/
+*.swp
+*.swo
+Thumbs.db
+.DS_Store

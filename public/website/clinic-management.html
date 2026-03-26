@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Clinic Management System by Your Company Name — Complete patient, lab, billing, and pharmacy management for clinics and hospitals." />
+  <title>Clinic Management System | Your Company Name</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2306b6d4'/><text y='.9em' font-size='70' x='15' fill='white' font-weight='900'>Y</text></svg>" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- PAGE LOADER -->
+  <div id="page-loader">
+    <div class="loader-inner">
+      <div class="loader-logo" style="background:var(--gradient-clinic);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Clinic System</div>
+      <div class="loader-subtitle">Your Company Name</div>
+      <div class="loader-bar"><div class="loader-progress" style="background:var(--gradient-clinic)"></div></div>
+    </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-custom navbar-expand-lg w-100">
+    <div class="container">
+      <a class="navbar-brand-custom" href="index.html">
+        <div class="brand-logo">Y</div>
+        <div><span class="brand-name">Your Company</span><span class="brand-tagline">Enterprise Software</span></div>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle active" href="products.html" data-bs-toggle="dropdown">Products</a>
+            <ul class="dropdown-menu dropdown-menu-custom">
+              <li><a class="dropdown-item" href="education-crm.html"><i class="fas fa-graduation-cap"></i> Education CRM</a></li>
+              <li><a class="dropdown-item" href="clinic-management.html"><i class="fas fa-hospital-user"></i> Clinic System</a></li>
+            </ul>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="pricing.html">Pricing</a></li>
+          <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+          <li class="nav-item ms-lg-2">
+            <a class="nav-link btn-demo-nav" href="contact.html#demo"><i class="fas fa-calendar-check me-1"></i> Request Demo</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- PAGE HERO -->
+  <section class="page-hero" style="background:linear-gradient(135deg,#0c1a2e 0%,#0a2a3b 55%,#0d2424 100%)">
+    <div class="container">
+      <div class="page-hero-inner">
+        <nav class="breadcrumb-nav">
+          <a href="index.html">Home</a><span>/</span>
+          <a href="products.html">Products</a><span>/</span>
+          <span class="bc-cur" style="color:#22d3ee">Clinic Management</span>
+        </nav>
+        <div class="row align-items-center g-5">
+          <div class="col-lg-7">
+            <span class="section-badge clinic">
+              <i class="fas fa-hospital-user me-2"></i>Clinic Management System
+            </span>
+            <h1>End-to-End Healthcare<br><span class="gradient-text-clinic">Practice Management</span></h1>
+            <p class="mt-3">From patient registration and OPD management to lab integration, prescription, billing, and analytics — everything your clinic or hospital needs in one powerful system.</p>
+            <div class="d-flex gap-3 flex-wrap mt-4">
+              <a href="contact.html#demo" class="btn btn-clinic-gradient btn-lg-custom">
+                <i class="fas fa-rocket"></i> Request Free Demo
+              </a>
+              <a href="pricing.html" class="btn btn-outline-light-custom btn-lg-custom">
+                <i class="fas fa-tag"></i> See Pricing
+              </a>
+            </div>
+          </div>
+          <div class="col-lg-5 text-center" data-aos="fade-left">
+            <div style="font-size:8rem;opacity:.2;line-height:1">🏥</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="stats-section section-py-sm">
+    <div class="container">
+      <div class="row g-3 text-center">
+        <div class="col-6 col-md-3">
+          <div class="stat-item">
+            <div class="stat-num" style="background:var(--gradient-clinic);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" data-counter="150" data-suffix="+">0+</div>
+            <div class="stat-lbl">Clinics &amp; Hospitals</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-item">
+            <div class="stat-num" style="background:var(--gradient-clinic);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" data-counter="1000000" data-suffix="+">0+</div>
+            <div class="stat-lbl">Patient Records</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-item">
+            <div class="stat-num" style="background:var(--gradient-clinic);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" data-counter="70" data-suffix="%">0%</div>
+            <div class="stat-lbl">Billing Time Saved</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-item">
+            <div class="stat-num" style="background:var(--gradient-clinic);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" data-counter="99.9" data-suffix="%" data-decimals="1">0%</div>
+            <div class="stat-lbl">System Uptime</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PATIENT MANAGEMENT -->
+  <section class="section-py bg-light-section" id="patient">
+    <div class="container">
+      <div class="row g-5 align-items-center">
+        <div class="col-lg-6" data-aos="fade-right">
+          <span class="section-badge clinic">Patient Management</span>
+          <h2 class="section-title">Seamless Patient <span class="gradient-text-clinic">Registration &amp; OPD Flow</span></h2>
+          <p style="color:var(--text-secondary);line-height:1.8">Eliminate queues and paperwork. Digitise your entire patient journey from the moment they walk in — registration, triage, doctor consultation, and discharge in a smooth, connected workflow.</p>
+          <div class="mt-4">
+            <div class="benefit-item">
+              <div class="benefit-icon clinic"><i class="fas fa-user-plus"></i></div>
+              <div class="benefit-text">
+                <h6>One-Click Registration</h6>
+                <p>UHID generation, auto-fill from Aadhaar/previous records, and instant token/queue assignment.</p>
+              </div>
+            </div>
+            <div class="benefit-item">
+              <div class="benefit-icon clinic"><i class="fas fa-calendar-check"></i></div>
+              <div class="benefit-text">
+                <h6>Smart Appointment Scheduling</h6>
+                <p>Online booking, SMS/WhatsApp reminders, waitlist management, and real-time slot availability.</p>
+              </div>
+            </div>
+            <div class="benefit-item">
+              <div class="benefit-icon clinic"><i class="fas fa-notes-medical"></i></div>
+              <div class="benefit-text">
+                <h6>Electronic Medical Records (EMR)</h6>
+                <p>Full SOAP notes, vital signs, medical history, allergies, previous prescriptions, and attachments.</p>
+              </div>
+            </div>
+            <div class="benefit-item">
+              <div class="benefit-icon clinic"><i class="fas fa-bed"></i></div>
+              <div class="benefit-text">
+                <h6>IPD &amp; Ward Management</h6>
+                <p>Bed allocation, ward rounds, nursing notes, surgeon assignment, and discharge summary generation.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6" data-aos="fade-left">
+          <div class="screen-placeholder" style="min-height:400px;border-color:rgba(6,182,212,.3)">
+            <div class="screen-inner">
+              <div class="screen-icon" style="background:var(--gradient-clinic);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text"><i class="fas fa-procedures"></i></div>
+              <div class="screen-label">Patient Management Dashboard</div>
+            </div>
+            <div style="position:absolute;bottom:20px;left:20px;right:20px;display:flex;flex-direction:column;gap:8px">
+              <div style="background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.2);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:.76rem;color:rgba(255,255,255,.7)"><i class="fas fa-user-circle me-2" style="color:#22d3ee"></i>Sanjay Gupta — Token #042</span>
+                <span style="font-size:.68rem;background:rgba(6,182,212,.25);color:#67e8f9;padding:3px 10px;border-radius:50px">Waiting</span>
+              </div>
+              <div style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:.76rem;color:rgba(255,255,255,.7)"><i class="fas fa-user-circle me-2" style="color:#34d399"></i>Meena Krishnan — Token #041</span>
+                <span style="font-size:.68rem;background:rgba(16,185,129,.25);color:#6ee7b7;padding:3px 10px;border-radius:50px">In Consult</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LAB MODULE -->
+  <section class="section-py" id="lab">
+    <div class="container">
+      <div class="row g-5 align-items-center">
+        <div class="col-lg-6 order-lg-2" data-aos="fade-left">
+          <span class="section-badge clinic">Lab Module</span>
+          <h2 class="section-title">Integrated Lab &amp; <span class="gradient-text-clinic">Diagnostic Management</span></h2>
+          <p style="color:var(--text-secondary);line-height:1.8">Connect your diagnostic lab directly to the clinical workflow. Doctors order tests digitally, lab processes samples, and reports are delivered automatically — without a single paper form.</p>
+          <div class="mt-4">
+            <div class="benefit-item">
+              <div class="benefit-icon green"><i class="fas fa-flask"></i></div>
+              <div class="benefit-text">
+                <h6>Digital Test Orders</h6>
+                <p>Doctors send test orders from the consultation screen; lab staff receive them instantly with UHID-linked sample tracking.</p>
+              </div>
+            </div>
+            <div class="benefit-item">
+              <div class="benefit-icon green"><i class="fas fa-barcode"></i></div>
+              <div class="benefit-text">
+                <h6>Sample Barcode Tracking</h6>
+                <p>Barcode/QR-based sample identification eliminates mix-ups and enables real-time status updates at every stage.</p>
+              </div>
+            </div>
+            <div class="benefit-item">
+              <div class="benefit-icon green"><i class="fas fa-file-medical"></i></div>
+              <div class="benefit-text">
+                <h6>Digital Reports with Range Flags</h6>
+                <p>Auto-generated PDF reports with normal/abnormal flags, doctor sign-off, and WhatsApp/Email delivery to patients.</p>
+              </div>
+            </div>
+            <div class="benefit-item">
+              <div class="benefit-icon green"><i class="fas fa-link"></i></div>
+              <div class="benefit-text">
+                <h6>LIS &amp; Equipment Integration</h6>
+                <p>Bi-directional integration with leading LIS platforms and lab analysers for automated result import.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 order-lg-1" data-aos="fade-right">
+          <div class="screen-placeholder" style="min-height:380px;border-color:rgba(16,185,129,.3)">
+            <div class="screen-inner">
+              <div class="screen-icon" style="background:linear-gradient(135deg,#10b981,#059669);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text"><i class="fas fa-flask"></i></div>
+              <div class="screen-label">Lab Management Interface</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BILLING -->
+  <section class="section-py bg-light-section" id="billing">
+    <div class="container">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <span class="section-badge clinic">Billing &amp; Finance</span>
+        <h2 class="section-title">Smart Billing for <span class="gradient-text-clinic">Clinics &amp; Hospitals</span></h2>
+        <p class="section-subtitle">From OPD receipts to complex IPD final bills with insurance adjustments — our billing engine handles it all.</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="50">
+          <div class="module-card clinic">
+            <div class="module-icon" style="background:rgba(6,182,212,.1);color:var(--accent)"><i class="fas fa-file-invoice-dollar"></i></div>
+            <h5>GST-Ready Invoicing</h5>
+            <p>Auto-generate compliant invoices with HSN codes, GST breakup, and digitally signed receipts for OPD and IPD.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="100">
+          <div class="module-card clinic">
+            <div class="module-icon" style="background:rgba(6,182,212,.1);color:var(--accent)"><i class="fas fa-shield-alt"></i></div>
+            <h5>Insurance &amp; TPA</h5>
+            <p>Pre-authorization, cashless claim submission, TPA management, and claim tracking with automated follow-ups.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="150">
+          <div class="module-card clinic">
+            <div class="module-icon" style="background:rgba(6,182,212,.1);color:var(--accent)"><i class="fas fa-credit-card"></i></div>
+            <h5>Multi-Mode Payments</h5>
+            <p>Cash, card, UPI, net banking, and EMI — all recorded in the system with reconciliation and audit logs.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="200">
+          <div class="module-card clinic">
+            <div class="module-icon" style="background:rgba(6,182,212,.1);color:var(--accent)"><i class="fas fa-chart-bar"></i></div>
+            <h5>Revenue Analytics</h5>
+            <p>Department-wise revenue, daily/weekly/monthly P&amp;L, doctor-wise collection, and trend analysis charts.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRESCRIPTION & PHARMACY -->
+  <section class="section-py" id="prescription">
+    <div class="container">
+      <div class="row g-5 align-items-center">
+        <div class="col-lg-6" data-aos="fade-right">
+          <span class="section-badge clinic">Prescription &amp; Pharmacy</span>
+          <h2 class="section-title">Digital Prescriptions &amp; <span class="gradient-text-clinic">Pharmacy Integration</span></h2>
+          <p style="color:var(--text-secondary);line-height:1.8">Doctors write prescriptions on screen with drug database auto-suggest, interaction alerts, and dosage guidance. Orders flow instantly to the pharmacy counter.</p>
+          <div class="row g-3 mt-2">
+            <div class="col-6">
+              <div class="d-flex align-items-center gap-3 p-3" style="background:var(--light-2);border-radius:var(--radius);border:1px solid var(--border-color)">
+                <i class="fas fa-prescription-bottle-alt" style="color:var(--accent);font-size:1.4rem"></i>
+                <span style="font-size:.88rem;font-weight:600">Drug Database</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="d-flex align-items-center gap-3 p-3" style="background:var(--light-2);border-radius:var(--radius);border:1px solid var(--border-color)">
+                <i class="fas fa-exclamation-triangle" style="color:var(--accent-amber);font-size:1.4rem"></i>
+                <span style="font-size:.88rem;font-weight:600">Interaction Alerts</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="d-flex align-items-center gap-3 p-3" style="background:var(--light-2);border-radius:var(--radius);border:1px solid var(--border-color)">
+                <i class="fas fa-pills" style="color:var(--accent-green);font-size:1.4rem"></i>
+                <span style="font-size:.88rem;font-weight:600">Pharmacy Stocks</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="d-flex align-items-center gap-3 p-3" style="background:var(--light-2);border-radius:var(--radius);border:1px solid var(--border-color)">
+                <i class="fas fa-qrcode" style="color:var(--primary);font-size:1.4rem"></i>
+                <span style="font-size:.88rem;font-weight:600">QR Rx Sharing</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6" data-aos="fade-left">
+          <div class="screen-placeholder" style="min-height:360px;border-color:rgba(6,182,212,.3)">
+            <div class="screen-inner">
+              <div class="screen-icon" style="background:var(--gradient-clinic);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text"><i class="fas fa-prescription"></i></div>
+              <div class="screen-label">Digital Prescription Writer</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REPORTS -->
+  <section class="section-py bg-light-section" id="reports">
+    <div class="container">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <span class="section-badge clinic">Reports &amp; Analytics</span>
+        <h2 class="section-title">Powerful Insights for <span class="gradient-text-clinic">Better Decisions</span></h2>
+        <p class="section-subtitle">50+ pre-built reports and a custom report builder — covering clinical, operational, and financial performance.</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="50">
+          <div class="feature-card">
+            <div class="feat-icon" style="background:rgba(6,182,212,.1);color:var(--accent)"><i class="fas fa-chart-line"></i></div>
+            <h4>OPD/IPD Analytics</h4>
+            <p>Daily patient census, speciality-wise footfall, peak hour analysis, and doctor consultation metrics.</p>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+          <div class="feature-card">
+            <div class="feat-icon" style="background:rgba(6,182,212,.1);color:var(--accent)"><i class="fas fa-file-medical-alt"></i></div>
+            <h4>Lab TAT Reports</h4>
+            <p>Turnaround time monitoring per test category, technician performance, and quality control metrics.</p>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="150">
+          <div class="feature-card">
+            <div class="feat-icon" style="background:rgba(6,182,212,.1);color:var(--accent)"><i class="fas fa-hand-holding-usd"></i></div>
+            <h4>Revenue Reports</h4>
+            <p>Department and doctor-wise billing, collection vs. outstanding, and insurance claim status.</p>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+          <div class="feature-card">
+            <div class="feat-icon" style="background:rgba(6,182,212,.1);color:var(--accent)"><i class="fas fa-pills"></i></div>
+            <h4>Pharmacy Reports</h4>
+            <p>Stock consumption, expiry alerts, supplier-wise purchase, and margin analysis by category.</p>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="250">
+          <div class="feature-card">
+            <div class="feat-icon" style="background:rgba(6,182,212,.1);color:var(--accent)"><i class="fas fa-disease"></i></div>
+            <h4>Clinical Outcome Reports</h4>
+            <p>Disease prevalence, treatment outcomes, readmission rates, and follow-up compliance tracking.</p>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+          <div class="feature-card">
+            <div class="feat-icon" style="background:rgba(6,182,212,.1);color:var(--accent)"><i class="fas fa-code-branch"></i></div>
+            <h4>Multi-Branch Reports</h4>
+            <p>Compare performance across all your branches with consolidated KPI dashboards and branch drill-down.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section section-py clinic">
+    <div class="container">
+      <div class="cta-inner text-center">
+        <h2 class="cta-title">Transform Your Clinic or Hospital Today</h2>
+        <p class="cta-subtitle">See how 150+ healthcare providers streamline operations and improve patient experience with our platform.</p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+          <a href="contact.html#demo" class="btn btn-outline-light-custom btn-lg-custom">
+            <i class="fas fa-calendar-alt"></i> Book Free Demo
+          </a>
+          <a href="pricing.html" class="btn btn-outline-light-custom btn-lg-custom">
+            <i class="fas fa-tag"></i> View Pricing
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="row g-5">
+        <div class="col-lg-4 col-md-6">
+          <div class="navbar-brand-custom mb-3">
+            <div class="brand-logo">Y</div>
+            <div><span class="brand-name">Your Company</span><span class="brand-tagline">Enterprise Software</span></div>
+          </div>
+          <p>Empowering educational institutions and healthcare providers with enterprise-grade software.</p>
+          <div class="social-links">
+            <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h6 class="footer-heading">Quick Links</h6>
+          <ul class="footer-links">
+            <li><a href="index.html"><i class="fas fa-chevron-right"></i> Home</a></li>
+            <li><a href="products.html"><i class="fas fa-chevron-right"></i> Products</a></li>
+            <li><a href="pricing.html"><i class="fas fa-chevron-right"></i> Pricing</a></li>
+            <li><a href="about.html"><i class="fas fa-chevron-right"></i> About Us</a></li>
+            <li><a href="contact.html"><i class="fas fa-chevron-right"></i> Contact</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h6 class="footer-heading">Products</h6>
+          <ul class="footer-links">
+            <li><a href="education-crm.html"><i class="fas fa-chevron-right"></i> Education CRM</a></li>
+            <li><a href="clinic-management.html"><i class="fas fa-chevron-right"></i> Clinic System</a></li>
+            <li><a href="pricing.html"><i class="fas fa-chevron-right"></i> Pricing Plans</a></li>
+            <li><a href="contact.html#demo"><i class="fas fa-chevron-right"></i> Request Demo</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4 col-md-6">
+          <h6 class="footer-heading">Get in Touch</h6>
+          <div class="footer-contact-item"><i class="fas fa-map-marker-alt"></i><p>123 Tech Park, Whitefield, Bangalore – 560066</p></div>
+          <div class="footer-contact-item"><i class="fas fa-phone-alt"></i><p>+91 98765 43210</p></div>
+          <div class="footer-contact-item"><i class="fas fa-envelope"></i><p>hello@yourcompany.com</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">
+        <p>&copy; 2026 Your Company Name Pvt. Ltd. All rights reserved. &nbsp;|&nbsp; <a href="#">Privacy Policy</a> &nbsp;|&nbsp; <a href="#">Terms of Service</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></button>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
