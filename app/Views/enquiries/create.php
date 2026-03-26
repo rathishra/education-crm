@@ -317,54 +317,115 @@
 
         <!-- ==================== SIDEBAR ==================== -->
         <div class="col-lg-4">
+            <div class="enquiry-sidebar-sticky">
 
-            <!-- Duplicate Alert (hidden by default) -->
-            <div id="duplicateAlert" class="card border-warning mb-4 d-none">
-                <div class="card-header bg-warning bg-opacity-10 text-warning fw-semibold">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Possible Duplicate Found
-                </div>
-                <div class="card-body">
-                    <p class="mb-1 text-muted small">
-                        An existing enquiry matches the same
-                        <strong id="dupField"></strong>:
-                    </p>
-                    <p class="mb-1 fw-semibold" id="dupName"></p>
-                    <p class="mb-3">
-                        <a id="dupLink" href="#" target="_blank" class="btn btn-sm btn-outline-warning">
-                            <i class="fas fa-external-link-alt me-1"></i>View Existing Enquiry
-                        </a>
-                    </p>
-                    <p class="text-muted small mb-0">You can still save this as a new enquiry.</p>
-                </div>
-            </div>
-
-            <!-- Save Card -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-save me-2 text-primary"></i>Save Enquiry
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2 mb-3">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-save me-1"></i>Submit Enquiry
-                        </button>
-                        <a href="<?= url('enquiries') ?>" class="btn btn-light">Cancel</a>
+                <!-- Duplicate Alert (hidden by default) -->
+                <div id="duplicateAlert" class="card border-warning mb-3 d-none">
+                    <div class="card-header bg-warning bg-opacity-10 text-warning fw-semibold py-2">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Possible Duplicate
                     </div>
-                    <hr>
-                    <p class="text-muted small fw-semibold mb-2">What happens on save:</p>
-                    <ul class="text-muted small ps-3 mb-0">
-                        <li>Unique enquiry number is auto-generated</li>
-                        <li>Status is set to <strong>New</strong> automatically</li>
-                        <li>Duplicate phone/email check is performed</li>
-                        <li>Enquiry can be converted to Lead or Admission</li>
-                    </ul>
+                    <div class="card-body py-3">
+                        <p class="mb-1 text-muted small">Matches existing enquiry by <strong id="dupField"></strong>:</p>
+                        <p class="mb-2 fw-semibold" id="dupName"></p>
+                        <a id="dupLink" href="#" target="_blank" class="btn btn-sm btn-outline-warning w-100 mb-2">
+                            <i class="fas fa-external-link-alt me-1"></i>View Existing
+                        </a>
+                        <p class="text-muted small mb-0">You can still save this as a new record.</p>
+                    </div>
                 </div>
-            </div>
 
+                <!-- Save Card -->
+                <div class="card mb-3">
+                    <div class="card-header py-2">
+                        <i class="fas fa-paper-plane me-2 text-primary"></i><strong>Save Enquiry</strong>
+                    </div>
+                    <div class="card-body">
+                        <button type="submit" class="btn btn-primary w-100 mb-2" style="padding:.65rem;">
+                            <i class="fas fa-save me-2"></i>Submit Enquiry
+                        </button>
+                        <a href="<?= url('enquiries') ?>" class="btn btn-outline-secondary w-100" style="padding:.6rem;">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Info Card -->
+                <div class="card border-0 bg-light">
+                    <div class="card-body py-3">
+                        <p class="text-muted small fw-semibold mb-2">
+                            <i class="fas fa-info-circle me-1 text-primary"></i>What happens on save:
+                        </p>
+                        <ul class="text-muted small ps-3 mb-0" style="line-height:1.8">
+                            <li>Unique enquiry number auto-generated</li>
+                            <li>Status set to <strong class="text-primary">New</strong></li>
+                            <li>Duplicate phone/email check performed</li>
+                            <li>Can be converted to Lead or Admission</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
         </div><!-- /col-lg-4 -->
 
     </div><!-- /row -->
 </form>
+
+<!-- Sticky bottom action bar (visible on all screen sizes while scrolling) -->
+<div class="enquiry-action-bar">
+    <div class="d-flex align-items-center gap-2 text-muted small">
+        <i class="fas fa-user-plus text-primary"></i>
+        <span>New Enquiry &mdash; fill required fields (<span class="text-danger">*</span>) then submit</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="<?= url('enquiries') ?>" class="btn btn-outline-secondary btn-sm px-3">
+            <i class="fas fa-times me-1"></i>Cancel
+        </a>
+        <button type="submit" form="enquiryForm" class="btn btn-primary btn-sm px-4">
+            <i class="fas fa-save me-1"></i>Submit Enquiry
+        </button>
+    </div>
+</div>
+
+<style>
+/* Sticky sidebar — floats beside the form as user scrolls */
+.enquiry-sidebar-sticky {
+    position: sticky;
+    top: 80px; /* clears the fixed topnav */
+}
+
+/* Sticky bottom action bar */
+.enquiry-action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1040;
+    background: #fff;
+    border-top: 2px solid var(--brand-primary, #4f46e5);
+    padding: .75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 -4px 16px rgba(79,70,229,.10);
+}
+
+/* Push page content up so it isn't hidden behind the bar */
+form#enquiryForm {
+    padding-bottom: 4.5rem;
+}
+
+@media (max-width: 991.98px) {
+    .enquiry-sidebar-sticky {
+        position: static; /* disable sticky on mobile — flows naturally */
+    }
+    .enquiry-action-bar {
+        padding: .6rem 1rem;
+    }
+    .enquiry-action-bar .d-flex.align-items-center {
+        display: none !important; /* hide hint text on small screens */
+    }
+}
+</style>
 
 <script>
 (function () {

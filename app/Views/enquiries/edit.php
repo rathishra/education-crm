@@ -319,56 +319,103 @@ $eId        = $enquiry['id'];
 
         <!-- ==================== SIDEBAR ==================== -->
         <div class="col-lg-4">
+            <div class="enquiry-sidebar-sticky">
 
-            <!-- Duplicate Alert (hidden by default) -->
-            <div id="duplicateAlert" class="card border-warning mb-4 d-none">
-                <div class="card-header bg-warning bg-opacity-10 text-warning fw-semibold">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Possible Duplicate Found
+                <!-- Duplicate Alert (hidden by default) -->
+                <div id="duplicateAlert" class="card border-warning mb-3 d-none">
+                    <div class="card-header bg-warning bg-opacity-10 text-warning fw-semibold py-2">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Possible Duplicate
+                    </div>
+                    <div class="card-body py-3">
+                        <p class="mb-1 text-muted small">Matches existing enquiry by <strong id="dupField"></strong>:</p>
+                        <p class="mb-2 fw-semibold" id="dupName"></p>
+                        <a id="dupLink" href="#" target="_blank" class="btn btn-sm btn-outline-warning w-100">
+                            <i class="fas fa-external-link-alt me-1"></i>View Existing
+                        </a>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p class="mb-1 text-muted small">
-                        An existing enquiry matches the same <strong id="dupField"></strong>:
-                    </p>
-                    <p class="mb-3 fw-semibold" id="dupName"></p>
-                    <a id="dupLink" href="#" target="_blank" class="btn btn-sm btn-outline-warning">
-                        <i class="fas fa-external-link-alt me-1"></i>View Existing Enquiry
-                    </a>
-                </div>
-            </div>
 
-            <!-- Save Card -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-info-circle me-2 text-primary"></i>Enquiry Info
-                </div>
-                <div class="card-body">
-                    <div class="mb-2 small">
-                        <span class="text-muted">Number:</span>
-                        <code class="ms-2"><?= e($enquiry['enquiry_number']) ?></code>
+                <!-- Enquiry Info + Save Card -->
+                <div class="card mb-3">
+                    <div class="card-header py-2">
+                        <i class="fas fa-info-circle me-2 text-primary"></i><strong>Enquiry Info</strong>
                     </div>
-                    <div class="mb-2 small">
-                        <span class="text-muted">Created:</span>
-                        <span class="ms-2"><?= formatDate($enquiry['created_at'], 'd M Y') ?></span>
-                    </div>
-                    <div class="mb-3 small">
-                        <span class="text-muted">Current Status:</span>
-                        <span class="ms-2 badge bg-secondary">
-                            <?= ucwords(str_replace('_', ' ', $enquiry['status'] ?? 'new')) ?>
-                        </span>
-                    </div>
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-save me-1"></i>Update Enquiry
+                    <div class="card-body">
+                        <div class="mb-2 small d-flex justify-content-between">
+                            <span class="text-muted">Number</span>
+                            <code><?= e($enquiry['enquiry_number']) ?></code>
+                        </div>
+                        <div class="mb-2 small d-flex justify-content-between">
+                            <span class="text-muted">Created</span>
+                            <span><?= formatDate($enquiry['created_at'], 'd M Y') ?></span>
+                        </div>
+                        <div class="mb-3 small d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Status</span>
+                            <span class="badge bg-secondary">
+                                <?= ucwords(str_replace('_', ' ', $enquiry['status'] ?? 'new')) ?>
+                            </span>
+                        </div>
+                        <hr class="my-2">
+                        <button type="submit" class="btn btn-primary w-100 mb-2" style="padding:.65rem;">
+                            <i class="fas fa-save me-2"></i>Update Enquiry
                         </button>
-                        <a href="<?= url('enquiries/' . $eId) ?>" class="btn btn-light">Cancel</a>
+                        <a href="<?= url('enquiries/' . $eId) ?>" class="btn btn-outline-secondary w-100" style="padding:.6rem;">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </a>
                     </div>
                 </div>
-            </div>
 
+            </div>
         </div><!-- /col-lg-4 -->
 
     </div><!-- /row -->
 </form>
+
+<!-- Sticky bottom action bar -->
+<div class="enquiry-action-bar">
+    <div class="d-flex align-items-center gap-2 text-muted small">
+        <i class="fas fa-edit text-primary"></i>
+        <span>Editing <strong><?= e($enquiry['enquiry_number']) ?></strong>
+            &mdash; <?= e(trim($enquiry['first_name'] . ' ' . ($enquiry['last_name'] ?? ''))) ?></span>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="<?= url('enquiries/' . $eId) ?>" class="btn btn-outline-secondary btn-sm px-3">
+            <i class="fas fa-times me-1"></i>Cancel
+        </a>
+        <button type="submit" form="enquiryForm" class="btn btn-primary btn-sm px-4">
+            <i class="fas fa-save me-1"></i>Update Enquiry
+        </button>
+    </div>
+</div>
+
+<style>
+.enquiry-sidebar-sticky {
+    position: sticky;
+    top: 80px;
+}
+.enquiry-action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1040;
+    background: #fff;
+    border-top: 2px solid var(--brand-primary, #4f46e5);
+    padding: .75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 -4px 16px rgba(79,70,229,.10);
+}
+form#enquiryForm {
+    padding-bottom: 4.5rem;
+}
+@media (max-width: 991.98px) {
+    .enquiry-sidebar-sticky { position: static; }
+    .enquiry-action-bar { padding: .6rem 1rem; }
+    .enquiry-action-bar .d-flex.align-items-center { display: none !important; }
+}
+</style>
 
 <script>
 (function () {
