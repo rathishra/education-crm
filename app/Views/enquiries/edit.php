@@ -335,12 +335,12 @@ $eId        = $enquiry['id'];
                     </div>
                 </div>
 
-                <!-- Enquiry Info + Save Card -->
-                <div class="card mb-3">
-                    <div class="card-header py-2">
+                <!-- Enquiry Info Card -->
+                <div class="card border-0 bg-light mb-3">
+                    <div class="card-header py-2 bg-transparent border-bottom">
                         <i class="fas fa-info-circle me-2 text-primary"></i><strong>Enquiry Info</strong>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body py-3">
                         <div class="mb-2 small d-flex justify-content-between">
                             <span class="text-muted">Number</span>
                             <code><?= e($enquiry['enquiry_number']) ?></code>
@@ -349,13 +349,21 @@ $eId        = $enquiry['id'];
                             <span class="text-muted">Created</span>
                             <span><?= formatDate($enquiry['created_at'], 'd M Y') ?></span>
                         </div>
-                        <div class="mb-3 small d-flex justify-content-between align-items-center">
+                        <div class="small d-flex justify-content-between align-items-center">
                             <span class="text-muted">Status</span>
                             <span class="badge bg-secondary">
                                 <?= ucwords(str_replace('_', ' ', $enquiry['status'] ?? 'new')) ?>
                             </span>
                         </div>
-                        <hr class="my-2">
+                    </div>
+                </div>
+
+                <!-- Save Card — last so it anchors to bottom of sidebar on mobile -->
+                <div class="card">
+                    <div class="card-header py-2">
+                        <i class="fas fa-save me-2 text-primary"></i><strong>Save Changes</strong>
+                    </div>
+                    <div class="card-body">
                         <button type="submit" class="btn btn-primary w-100 mb-2" style="padding:.65rem;">
                             <i class="fas fa-save me-2"></i>Update Enquiry
                         </button>

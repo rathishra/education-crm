@@ -97,6 +97,9 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->get('/leads/create', 'Admin\LeadController@create', 'leads.create');
     $router->get('/leads/import', 'Admin\LeadController@showImport', 'leads.import');
     $router->get('/leads/export', 'Admin\LeadController@export', 'leads.export');
+    $router->get('/leads/check-duplicate', 'Admin\LeadController@checkDuplicate', 'leads.check_duplicate');
+    $router->get('/leads/ajax/departments', 'Admin\LeadController@ajaxDepartments', 'leads.ajax_departments');
+    $router->get('/leads/ajax/courses', 'Admin\LeadController@ajaxCourses', 'leads.ajax_courses');
     $router->post('/leads', 'Admin\LeadController@store', 'leads.store');
     $router->post('/leads/import', 'Admin\LeadController@import', 'leads.import.post');
     $router->get('/leads/{id}', 'Admin\LeadController@show', 'leads.show');
@@ -106,6 +109,7 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->post('/leads/{id}/assign', 'Admin\LeadController@assign', 'leads.assign');
     $router->post('/leads/{id}/status', 'Admin\LeadController@updateStatus', 'leads.status');
     $router->post('/leads/{id}/activity', 'Admin\LeadController@addActivity', 'leads.activity');
+    $router->post('/leads/{id}/followup', 'Admin\LeadController@storeFollowup', 'leads.followup');
     $router->post('/leads/{id}/convert', 'Admin\LeadController@convert', 'leads.convert');
 
     // Enquiries

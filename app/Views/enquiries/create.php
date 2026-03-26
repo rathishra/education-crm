@@ -334,23 +334,8 @@
                     </div>
                 </div>
 
-                <!-- Save Card -->
-                <div class="card mb-3">
-                    <div class="card-header py-2">
-                        <i class="fas fa-paper-plane me-2 text-primary"></i><strong>Save Enquiry</strong>
-                    </div>
-                    <div class="card-body">
-                        <button type="submit" class="btn btn-primary w-100 mb-2" style="padding:.65rem;">
-                            <i class="fas fa-save me-2"></i>Submit Enquiry
-                        </button>
-                        <a href="<?= url('enquiries') ?>" class="btn btn-outline-secondary w-100" style="padding:.6rem;">
-                            <i class="fas fa-times me-1"></i>Cancel
-                        </a>
-                    </div>
-                </div>
-
                 <!-- Info Card -->
-                <div class="card border-0 bg-light">
+                <div class="card border-0 bg-light mb-3">
                     <div class="card-body py-3">
                         <p class="text-muted small fw-semibold mb-2">
                             <i class="fas fa-info-circle me-1 text-primary"></i>What happens on save:
@@ -361,6 +346,21 @@
                             <li>Duplicate phone/email check performed</li>
                             <li>Can be converted to Lead or Admission</li>
                         </ul>
+                    </div>
+                </div>
+
+                <!-- Save Card — placed last so it anchors to the bottom of the sidebar on mobile -->
+                <div class="card">
+                    <div class="card-header py-2">
+                        <i class="fas fa-paper-plane me-2 text-primary"></i><strong>Save Enquiry</strong>
+                    </div>
+                    <div class="card-body">
+                        <button type="submit" class="btn btn-primary w-100 mb-2" style="padding:.65rem;">
+                            <i class="fas fa-save me-2"></i>Submit Enquiry
+                        </button>
+                        <a href="<?= url('enquiries') ?>" class="btn btn-outline-secondary w-100" style="padding:.6rem;">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </a>
                     </div>
                 </div>
 
