@@ -4,7 +4,6 @@ namespace App\Models;
 class Enquiry extends BaseModel
 {
     protected string $table = 'enquiries';
-    protected bool $softDeletes = true;
 
     /**
      * Paginated list with filters and JOINs
@@ -23,7 +22,7 @@ class Enquiry extends BaseModel
      */
     public function getListPaginated(int $page, int $perPage, array $filters = []): array
     {
-        $where  = "e.deleted_at IS NULL";
+        $where  = "1=1";
         $params = [];
 
         if ($this->institutionScope) {
@@ -84,14 +83,10 @@ class Enquiry extends BaseModel
 
         $sql = "SELECT e.*,
                        c.name  AS course_name,
-                       d.name  AS department_name,
-                       CONCAT(cu.first_name, ' ', cu.last_name) AS counselor_name,
                        CONCAT(au.first_name, ' ', au.last_name) AS assigned_to_name,
                        i.name  AS institution_name
                 FROM enquiries e
                 LEFT JOIN courses      c  ON c.id  = e.course_interested_id
-                LEFT JOIN departments  d  ON d.id  = e.department_id
-                LEFT JOIN users        cu ON cu.id = e.counselor_id
                 LEFT JOIN users        au ON au.id = e.assigned_to
                 LEFT JOIN institutions i  ON i.id  = e.institution_id
                 WHERE {$where}
@@ -108,20 +103,16 @@ class Enquiry extends BaseModel
         $this->db->query(
             "SELECT
                 COUNT(*) AS total,
-                SUM(status = 'new')            AS new_count,
-                SUM(status = 'contacted')      AS contacted,
-                SUM(status = 'interested')     AS interested,
-                SUM(priority = 'hot'  AND deleted_at IS NULL) AS hot,
-                SUM(priority = 'warm' AND deleted_at IS NULL) AS warm,
-                SUM(priority = 'cold' AND deleted_at IS NULL) AS cold,
-                SUM(status = 'converted')      AS converted,
+                SUM(status = 'new')       AS new_count,
+                SUM(status = 'contacted') AS contacted,
+                SUM(status = 'converted') AS converted,
                 SUM(DATE(created_at) >= DATE_FORMAT(NOW(), '%Y-%m-01')) AS this_month
              FROM enquiries
-             WHERE institution_id = ? AND deleted_at IS NULL",
+             WHERE institution_id = ?",
             [$institutionId]
         );
         $row = $this->db->fetch();
-        return $row ?: [
+        return array_merge([
             'total'      => 0,
             'new_count'  => 0,
             'contacted'  => 0,
@@ -131,7 +122,7 @@ class Enquiry extends BaseModel
             'cold'       => 0,
             'converted'  => 0,
             'this_month' => 0,
-        ];
+        ], $row ?: []);
     }
 
     /**
@@ -141,20 +132,35 @@ class Enquiry extends BaseModel
     {
         $sql = "SELECT e.*,
                        c.name  AS course_name,  c.code AS course_code,
-                       d.name  AS department_name,
-                       CONCAT(cu.first_name, ' ', cu.last_name) AS counselor_name,
                        CONCAT(au.first_name, ' ', au.last_name) AS assigned_to_name,
                        i.name  AS institution_name,
                        i.code  AS institution_code
                 FROM enquiries e
                 LEFT JOIN courses      c  ON c.id  = e.course_interested_id
-                LEFT JOIN departments  d  ON d.id  = e.department_id
-                LEFT JOIN users        cu ON cu.id = e.counselor_id
                 LEFT JOIN users        au ON au.id = e.assigned_to
                 LEFT JOIN institutions i  ON i.id  = e.institution_id
-                WHERE e.id = ? AND e.deleted_at IS NULL";
+                WHERE e.id = ?";
         $this->db->query($sql, [$id]);
         return $this->db->fetch() ?: null;
+    }
+
+    /**
+     * Check whether migration 15_enquiries_enhanced.sql has been applied.
+     * Looks for the 'priority' column as a proxy for the full migration.
+     * Result is cached in a static so the SHOW COLUMNS query runs only once per request.
+     */
+    public function hasExtendedColumns(): bool
+    {
+        static $result = null;
+        if ($result === null) {
+            try {
+                $this->db->query("SELECT priority FROM enquiries LIMIT 0");
+                $result = true;
+            } catch (\Throwable $e) {
+                $result = false;
+            }
+        }
+        return $result;
     }
 
     /**
@@ -195,8 +201,7 @@ class Enquiry extends BaseModel
         $sql      = "SELECT id, enquiry_number, first_name, last_name, phone, email
                      FROM enquiries
                      WHERE {$orClause}
-                       AND institution_id = ?
-                       AND deleted_at IS NULL";
+                       AND institution_id = ?";
         $params[] = $institutionId;
 
         if ($excludeId > 0) {
@@ -280,16 +285,13 @@ class Enquiry extends BaseModel
     }
 
     /**
-     * Soft-delete an enquiry by setting deleted_at.
+     * Delete an enquiry record.
+     * Once migration 15_enquiries_enhanced.sql is run, this can be changed
+     * to soft-delete by setting deleted_at instead.
      */
     public function softDelete(int $id): bool
     {
-        $rows = $this->db->update(
-            'enquiries',
-            ['deleted_at' => date('Y-m-d H:i:s')],
-            'id = ? AND deleted_at IS NULL',
-            [$id]
-        );
-        return $rows > 0;
+        $this->db->query("DELETE FROM enquiries WHERE id = ?", [$id]);
+        return true;
     }
 }

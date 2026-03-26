@@ -166,38 +166,48 @@ class EnquiryController extends BaseController
             $duplicate = $this->enquiry->checkDuplicate($phone, $email, $institutionId);
         }
 
+        // Base columns — always exist
         $insertData = [
             'institution_id'       => $institutionId,
             'enquiry_number'       => $this->enquiry->generateEnquiryNumber($institutionId),
             'first_name'           => sanitize($data['first_name']),
             'last_name'            => sanitize($data['last_name'] ?? ''),
-            'gender'               => !empty($data['gender']) ? $data['gender'] : null,
-            'date_of_birth'        => !empty($data['date_of_birth']) ? $data['date_of_birth'] : null,
             'phone'                => $phone,
             'email'                => $email ?: null,
-            'course_interested_id' => (int)$data['course_interested_id'],
-            'department_id'        => !empty($data['department_id']) ? (int)$data['department_id'] : null,
-            'academic_year'        => sanitize($data['academic_year'] ?? ''),
-            'preferred_mode'       => in_array($data['preferred_mode'] ?? '', ['online','offline','hybrid'])
-                                        ? $data['preferred_mode'] : 'offline',
+            'course_interested_id' => !empty($data['course_interested_id']) ? (int)$data['course_interested_id'] : null,
             'source'               => $sourceName,
-            'campaign_name'        => sanitize($data['campaign_name'] ?? ''),
-            'reference_name'       => sanitize($data['reference_name'] ?? ''),
-            'counselor_id'         => !empty($data['counselor_id']) ? (int)$data['counselor_id'] : null,
-            'message'              => sanitize($data['message'] ?? ''),
-            'remarks'              => sanitize($data['remarks'] ?? ''),
+            'message'              => sanitize($data['message'] ?? $data['remarks'] ?? ''),
             'status'               => 'new',
-            'priority'             => in_array($data['priority'] ?? '', ['hot','warm','cold'])
-                                        ? $data['priority'] : 'warm',
-            'next_followup_date'   => !empty($data['next_followup_date']) ? $data['next_followup_date'] : null,
-            'followup_mode'        => in_array($data['followup_mode'] ?? '', ['call','whatsapp','visit','email'])
-                                        ? $data['followup_mode'] : null,
-            'hostel_required'      => !empty($data['hostel_required']) ? 1 : 0,
-            'transport_required'   => !empty($data['transport_required']) ? 1 : 0,
-            'scholarship_required' => !empty($data['scholarship_required']) ? 1 : 0,
             'assigned_to'          => $this->user['id'],
-            'created_by'           => $this->user['id'],
         ];
+
+        // Extended columns — added by migration 15_enquiries_enhanced.sql
+        // These are merged in only if the columns exist; INSERT will fail gracefully
+        // if migration has not yet been run (columns silently skipped is not possible
+        // in MySQL, so we detect existence via a schema check).
+        if ($this->enquiry->hasExtendedColumns()) {
+            $insertData += [
+                'gender'               => !empty($data['gender']) ? $data['gender'] : null,
+                'date_of_birth'        => !empty($data['date_of_birth']) ? $data['date_of_birth'] : null,
+                'department_id'        => !empty($data['department_id']) ? (int)$data['department_id'] : null,
+                'academic_year'        => sanitize($data['academic_year'] ?? ''),
+                'preferred_mode'       => in_array($data['preferred_mode'] ?? '', ['online','offline','hybrid'])
+                                            ? $data['preferred_mode'] : 'offline',
+                'campaign_name'        => sanitize($data['campaign_name'] ?? ''),
+                'reference_name'       => sanitize($data['reference_name'] ?? ''),
+                'counselor_id'         => !empty($data['counselor_id']) ? (int)$data['counselor_id'] : null,
+                'remarks'              => sanitize($data['remarks'] ?? ''),
+                'priority'             => in_array($data['priority'] ?? '', ['hot','warm','cold'])
+                                            ? $data['priority'] : 'warm',
+                'next_followup_date'   => !empty($data['next_followup_date']) ? $data['next_followup_date'] : null,
+                'followup_mode'        => in_array($data['followup_mode'] ?? '', ['call','whatsapp','visit','email'])
+                                            ? $data['followup_mode'] : null,
+                'hostel_required'      => !empty($data['hostel_required']) ? 1 : 0,
+                'transport_required'   => !empty($data['transport_required']) ? 1 : 0,
+                'scholarship_required' => !empty($data['scholarship_required']) ? 1 : 0,
+                'created_by'           => $this->user['id'],
+            ];
+        }
 
         $id = $this->enquiry->create($insertData);
         $this->logAudit('enquiry_created', 'enquiry', $id);
@@ -327,38 +337,45 @@ class EnquiryController extends BaseController
             }
         }
 
+        // Base columns — always exist
         $updateData = [
             'first_name'           => sanitize($data['first_name']),
             'last_name'            => sanitize($data['last_name'] ?? ''),
-            'gender'               => !empty($data['gender']) ? $data['gender'] : null,
-            'date_of_birth'        => !empty($data['date_of_birth']) ? $data['date_of_birth'] : null,
             'phone'                => sanitize($data['phone']),
             'email'                => sanitize($data['email'] ?? '') ?: null,
-            'course_interested_id' => (int)$data['course_interested_id'],
-            'department_id'        => !empty($data['department_id']) ? (int)$data['department_id'] : null,
-            'academic_year'        => sanitize($data['academic_year'] ?? ''),
-            'preferred_mode'       => in_array($data['preferred_mode'] ?? '', ['online','offline','hybrid'])
-                                        ? $data['preferred_mode'] : 'offline',
+            'course_interested_id' => !empty($data['course_interested_id']) ? (int)$data['course_interested_id'] : null,
             'source'               => $sourceName,
-            'campaign_name'        => sanitize($data['campaign_name'] ?? ''),
-            'reference_name'       => sanitize($data['reference_name'] ?? ''),
-            'counselor_id'         => !empty($data['counselor_id']) ? (int)$data['counselor_id'] : null,
-            'message'              => sanitize($data['message'] ?? ''),
-            'remarks'              => sanitize($data['remarks'] ?? ''),
+            'message'              => sanitize($data['message'] ?? $data['remarks'] ?? ''),
             'status'               => in_array($data['status'] ?? '', ['new','contacted','interested','not_interested','converted','closed'])
                                         ? $data['status'] : $enquiry['status'],
-            'priority'             => in_array($data['priority'] ?? '', ['hot','warm','cold'])
-                                        ? $data['priority'] : $enquiry['priority'],
-            'next_followup_date'   => !empty($data['next_followup_date']) ? $data['next_followup_date'] : null,
-            'followup_mode'        => in_array($data['followup_mode'] ?? '', ['call','whatsapp','visit','email'])
-                                        ? $data['followup_mode'] : null,
-            'hostel_required'      => !empty($data['hostel_required']) ? 1 : 0,
-            'transport_required'   => !empty($data['transport_required']) ? 1 : 0,
-            'scholarship_required' => !empty($data['scholarship_required']) ? 1 : 0,
             'assigned_to'          => !empty($data['assigned_to'])
                                         ? (int)$data['assigned_to']
                                         : $enquiry['assigned_to'],
         ];
+
+        // Extended columns — only if migration has been applied
+        if ($this->enquiry->hasExtendedColumns()) {
+            $updateData += [
+                'gender'               => !empty($data['gender']) ? $data['gender'] : null,
+                'date_of_birth'        => !empty($data['date_of_birth']) ? $data['date_of_birth'] : null,
+                'department_id'        => !empty($data['department_id']) ? (int)$data['department_id'] : null,
+                'academic_year'        => sanitize($data['academic_year'] ?? ''),
+                'preferred_mode'       => in_array($data['preferred_mode'] ?? '', ['online','offline','hybrid'])
+                                            ? $data['preferred_mode'] : 'offline',
+                'campaign_name'        => sanitize($data['campaign_name'] ?? ''),
+                'reference_name'       => sanitize($data['reference_name'] ?? ''),
+                'counselor_id'         => !empty($data['counselor_id']) ? (int)$data['counselor_id'] : null,
+                'remarks'              => sanitize($data['remarks'] ?? ''),
+                'priority'             => in_array($data['priority'] ?? '', ['hot','warm','cold'])
+                                            ? $data['priority'] : ($enquiry['priority'] ?? 'warm'),
+                'next_followup_date'   => !empty($data['next_followup_date']) ? $data['next_followup_date'] : null,
+                'followup_mode'        => in_array($data['followup_mode'] ?? '', ['call','whatsapp','visit','email'])
+                                            ? $data['followup_mode'] : null,
+                'hostel_required'      => !empty($data['hostel_required']) ? 1 : 0,
+                'transport_required'   => !empty($data['transport_required']) ? 1 : 0,
+                'scholarship_required' => !empty($data['scholarship_required']) ? 1 : 0,
+            ];
+        }
 
         $this->enquiry->update($id, $updateData);
         $this->logAudit('enquiry_updated', 'enquiry', $id);
