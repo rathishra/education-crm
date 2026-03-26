@@ -61,7 +61,7 @@ class EnquiryController extends BaseController
         // Distinct sources used by this institution
         $this->db->query(
             "SELECT DISTINCT source FROM enquiries
-             WHERE institution_id = ? AND source IS NOT NULL AND source <> '' AND deleted_at IS NULL
+             WHERE institution_id = ? AND source IS NOT NULL AND source <> ''
              ORDER BY source",
             [$this->institutionId]
         );
