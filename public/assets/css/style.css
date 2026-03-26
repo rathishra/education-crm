@@ -629,11 +629,18 @@ body.sb-sidenav-toggled #layoutSidenav_content { margin-left: 0; width: 100%; }
 }
 
 /* Enterprise status badges */
-.badge-soft-success { background: var(--color-success-bg); color: var(--color-success); }
-.badge-soft-warning { background: var(--color-warning-bg); color: var(--color-warning); }
-.badge-soft-danger  { background: var(--color-danger-bg);  color: var(--color-danger); }
-.badge-soft-info    { background: var(--color-info-bg);    color: var(--color-info); }
-.badge-soft-primary { background: var(--brand-primary-xlight); color: var(--brand-primary-dark); }
+.badge-soft-success, .bg-soft-success { background: var(--color-success-bg); color: var(--color-success); }
+.badge-soft-warning, .bg-soft-warning { background: var(--color-warning-bg); color: var(--color-warning); }
+.badge-soft-danger,  .bg-soft-danger  { background: var(--color-danger-bg);  color: var(--color-danger); }
+.badge-soft-info,    .bg-soft-info    { background: var(--color-info-bg);    color: var(--color-info); }
+.badge-soft-primary, .bg-soft-primary { background: var(--brand-primary-xlight); color: var(--brand-primary-dark); }
+
+/* Soft badge shorthand — used as badge classes */
+.badge.bg-soft-success { background: var(--color-success-bg) !important; color: var(--color-success) !important; }
+.badge.bg-soft-warning { background: var(--color-warning-bg) !important; color: var(--color-warning) !important; }
+.badge.bg-soft-danger  { background: var(--color-danger-bg)  !important; color: var(--color-danger)  !important; }
+.badge.bg-soft-info    { background: var(--color-info-bg)    !important; color: var(--color-info)    !important; }
+.badge.bg-soft-primary { background: var(--brand-primary-xlight) !important; color: var(--brand-primary-dark) !important; }
 
 /* ============================================================
    BUTTONS
