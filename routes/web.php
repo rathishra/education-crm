@@ -128,15 +128,18 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->post('/enquiries/{id}/convert-to-admission', 'Admin\EnquiryController@convertToAdmission', 'enquiries.convert_admission');
 
     // Follow-ups
+    // Follow-ups — static routes before {id} to prevent collision
     $router->get('/followups', 'Admin\FollowupController@index', 'followups.index');
     $router->get('/followups/calendar', 'Admin\FollowupController@calendar', 'followups.calendar');
     $router->get('/followups/create', 'Admin\FollowupController@create', 'followups.create');
+    $router->get('/followups/events', 'Admin\FollowupController@events', 'followups.events');
     $router->post('/followups', 'Admin\FollowupController@store', 'followups.store');
+    $router->get('/followups/{id}', 'Admin\FollowupController@show', 'followups.show');
     $router->get('/followups/{id}/edit', 'Admin\FollowupController@edit', 'followups.edit');
     $router->post('/followups/{id}', 'Admin\FollowupController@update', 'followups.update');
     $router->post('/followups/{id}/complete', 'Admin\FollowupController@complete', 'followups.complete');
+    $router->post('/followups/{id}/reschedule', 'Admin\FollowupController@reschedule', 'followups.reschedule');
     $router->post('/followups/{id}/delete', 'Admin\FollowupController@destroy', 'followups.destroy');
-    $router->get('/followups/events', 'Admin\FollowupController@events', 'followups.events');
 
     // Tasks
     $router->get('/tasks', 'Admin\TaskController@index', 'tasks.index');
