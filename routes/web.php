@@ -167,16 +167,29 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->post('/batches/{id}', 'Admin\BatchController@update', 'batches.update');
     $router->post('/batches/{id}/delete', 'Admin\BatchController@destroy', 'batches.destroy');
 
-    // Admissions
+    // Admissions — static routes BEFORE parameterized {id} routes
     $router->get('/admissions', 'Admin\AdmissionController@index', 'admissions.index');
     $router->get('/admissions/create', 'Admin\AdmissionController@create', 'admissions.create');
     $router->post('/admissions', 'Admin\AdmissionController@store', 'admissions.store');
+    $router->get('/admissions/ajax/departments', 'Admin\AdmissionController@ajaxDepartments', 'admissions.ajax.departments');
+    $router->get('/admissions/ajax/courses', 'Admin\AdmissionController@ajaxCourses', 'admissions.ajax.courses');
+    $router->get('/admissions/ajax/batches', 'Admin\AdmissionController@ajaxBatches', 'admissions.ajax.batches');
+    $router->get('/admissions/ajax/from-lead', 'Admin\AdmissionController@fromLead', 'admissions.ajax.from_lead');
+    $router->get('/admissions/check-duplicate', 'Admin\AdmissionController@checkDuplicate', 'admissions.check_duplicate');
     $router->get('/admissions/{id}', 'Admin\AdmissionController@show', 'admissions.show');
     $router->get('/admissions/{id}/edit', 'Admin\AdmissionController@edit', 'admissions.edit');
     $router->post('/admissions/{id}', 'Admin\AdmissionController@update', 'admissions.update');
     $router->post('/admissions/{id}/approve', 'Admin\AdmissionController@approve', 'admissions.approve');
     $router->post('/admissions/{id}/reject', 'Admin\AdmissionController@reject', 'admissions.reject');
+    $router->post('/admissions/{id}/cancel', 'Admin\AdmissionController@cancel', 'admissions.cancel');
+    $router->post('/admissions/{id}/reopen', 'Admin\AdmissionController@reopen', 'admissions.reopen');
+    $router->post('/admissions/{id}/mark-document-pending', 'Admin\AdmissionController@markDocumentPending', 'admissions.mark_doc_pending');
+    $router->post('/admissions/{id}/mark-payment-pending', 'Admin\AdmissionController@markPaymentPending', 'admissions.mark_pay_pending');
     $router->post('/admissions/{id}/enroll', 'Admin\AdmissionController@enroll', 'admissions.enroll');
+    $router->post('/admissions/{id}/documents', 'Admin\AdmissionController@storeDocument', 'admissions.documents.store');
+    $router->post('/admissions/{id}/documents/verify', 'Admin\AdmissionController@verifyDocument', 'admissions.documents.verify');
+    $router->post('/admissions/{id}/payments', 'Admin\AdmissionController@storePayment', 'admissions.payments.store');
+    $router->post('/admissions/{id}/notes', 'Admin\AdmissionController@addNote', 'admissions.notes.store');
 
     // Students
     $router->get('/students/dashboard', 'Admin\StudentDashboardController@index', 'students.dashboard');
