@@ -13,10 +13,13 @@
     </div>
     <div>
         <?php if (hasPermission('leads.edit') && !$lead['is_won']): ?>
-        <a href="<?= url('leads/' . $lead['id'] . '/convert') ?>" class="btn btn-success me-1"
-           onclick="return confirm('Convert this lead to admission?')">
-            <i class="fas fa-exchange-alt me-1"></i>Convert
-        </a>
+        <form method="POST" action="<?= url('leads/' . $lead['id'] . '/convert') ?>" class="d-inline">
+            <?= csrfField() ?>
+            <button type="submit" class="btn btn-success me-1"
+                    onclick="return confirm('Convert this lead to an admission? This will create a student record.')">
+                <i class="fas fa-exchange-alt me-1"></i>Convert to Admission
+            </button>
+        </form>
         <?php endif; ?>
         <?php if (hasPermission('leads.edit')): ?>
         <a href="<?= url('leads/' . $lead['id'] . '/edit') ?>" class="btn btn-primary me-1"><i class="fas fa-edit me-1"></i>Edit</a>

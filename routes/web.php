@@ -92,10 +92,13 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->post('/users/{id}/delete', 'Admin\UserController@destroy', 'users.destroy');
     $router->post('/users/{id}/toggle', 'Admin\UserController@toggleStatus', 'users.toggle');
 
-    // Leads
+    // Leads — static routes MUST come before {id} parameterised routes
     $router->get('/leads', 'Admin\LeadController@index', 'leads.index');
     $router->get('/leads/create', 'Admin\LeadController@create', 'leads.create');
+    $router->get('/leads/import', 'Admin\LeadController@showImport', 'leads.import');
+    $router->get('/leads/export', 'Admin\LeadController@export', 'leads.export');
     $router->post('/leads', 'Admin\LeadController@store', 'leads.store');
+    $router->post('/leads/import', 'Admin\LeadController@import', 'leads.import.post');
     $router->get('/leads/{id}', 'Admin\LeadController@show', 'leads.show');
     $router->get('/leads/{id}/edit', 'Admin\LeadController@edit', 'leads.edit');
     $router->post('/leads/{id}', 'Admin\LeadController@update', 'leads.update');
@@ -104,9 +107,6 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->post('/leads/{id}/status', 'Admin\LeadController@updateStatus', 'leads.status');
     $router->post('/leads/{id}/activity', 'Admin\LeadController@addActivity', 'leads.activity');
     $router->post('/leads/{id}/convert', 'Admin\LeadController@convert', 'leads.convert');
-    $router->get('/leads/import', 'Admin\LeadController@showImport', 'leads.import');
-    $router->post('/leads/import', 'Admin\LeadController@import', 'leads.import.post');
-    $router->get('/leads/export', 'Admin\LeadController@export', 'leads.export');
 
     // Enquiries
     $router->get('/enquiries', 'Admin\EnquiryController@index', 'enquiries.index');
