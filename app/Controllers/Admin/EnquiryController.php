@@ -106,7 +106,7 @@ class EnquiryController extends BaseController
         $id = $this->enquiry->create($insertData);
         $this->logAudit('enquiry_created', 'enquiry', $id);
 
-        $this->redirectWith('enquiries/' . $id, 'success', 'Enquiry created successfully.');
+        $this->redirectWith(url('enquiries/' . $id), 'success', 'Enquiry created successfully.');
     }
 
     public function show(int $id): void
@@ -115,7 +115,7 @@ class EnquiryController extends BaseController
 
         $enquiry = $this->enquiry->findWithDetails($id);
         if (!$enquiry) {
-            $this->redirectWith('enquiries', 'error', 'Enquiry not found.');
+            $this->redirectWith(url('enquiries'), 'error', 'Enquiry not found.');
             return;
         }
 
@@ -128,7 +128,7 @@ class EnquiryController extends BaseController
 
         $enquiry = $this->enquiry->find($id);
         if (!$enquiry) {
-            $this->redirectWith('enquiries', 'error', 'Enquiry not found.');
+            $this->redirectWith(url('enquiries'), 'error', 'Enquiry not found.');
             return;
         }
 
@@ -151,7 +151,7 @@ class EnquiryController extends BaseController
 
         $enquiry = $this->enquiry->find($id);
         if (!$enquiry) {
-            $this->redirectWith('enquiries', 'error', 'Enquiry not found.');
+            $this->redirectWith(url('enquiries'), 'error', 'Enquiry not found.');
             return;
         }
 
@@ -192,7 +192,7 @@ class EnquiryController extends BaseController
         $this->enquiry->update($id, $updateData);
         $this->logAudit('enquiry_updated', 'enquiry', $id);
 
-        $this->redirectWith('enquiries/' . $id, 'success', 'Enquiry updated successfully.');
+        $this->redirectWith(url('enquiries/' . $id), 'success', 'Enquiry updated successfully.');
     }
 
     public function delete(int $id): void
@@ -201,7 +201,7 @@ class EnquiryController extends BaseController
 
         $enquiry = $this->enquiry->find($id);
         if (!$enquiry) {
-            $this->redirectWith('enquiries', 'error', 'Enquiry not found.');
+            $this->redirectWith(url('enquiries'), 'error', 'Enquiry not found.');
             return;
         }
 
@@ -209,7 +209,7 @@ class EnquiryController extends BaseController
         $this->db->query("DELETE FROM enquiries WHERE id = ?", [$id]);
         $this->logAudit('enquiry_deleted', 'enquiry', $id);
 
-        $this->redirectWith('enquiries', 'success', 'Enquiry deleted.');
+        $this->redirectWith(url('enquiries'), 'success', 'Enquiry deleted.');
     }
 
     public function convertToLead(int $id): void
@@ -218,21 +218,21 @@ class EnquiryController extends BaseController
 
         $enquiry = $this->enquiry->find($id);
         if (!$enquiry) {
-            $this->redirectWith('enquiries', 'error', 'Enquiry not found.');
+            $this->redirectWith(url('enquiries'), 'error', 'Enquiry not found.');
             return;
         }
 
         if ($enquiry['status'] === 'converted') {
-            $this->redirectWith('enquiries/' . $id, 'warning', 'Enquiry already converted.');
+            $this->redirectWith(url('enquiries/' . $id), 'warning', 'Enquiry already converted.');
             return;
         }
 
         $leadId = $this->enquiry->convertToLead($id);
         if ($leadId) {
             $this->logAudit('enquiry_converted', 'enquiry', $id, ['lead_id' => $leadId]);
-            $this->redirectWith('leads/' . $leadId, 'success', 'Enquiry converted to lead successfully.');
+            $this->redirectWith(url('leads/' . $leadId), 'success', 'Enquiry converted to lead successfully.');
         } else {
-            $this->redirectWith('enquiries/' . $id, 'error', 'Failed to convert enquiry.');
+            $this->redirectWith(url('enquiries/' . $id), 'error', 'Failed to convert enquiry.');
         }
     }
 }

@@ -118,7 +118,7 @@ class LeadController extends BaseController
         // Set defaults
         $data['institution_id'] = $this->institutionId;
         $data['lead_number'] = $this->leadModel->generateLeadNumber($this->institutionId);
-        $data['lead_status_id'] = $data['lead_status_id'] ?: $this->leadModel->getDefaultStatusId();
+        $data['lead_status_id'] = ($data['lead_status_id'] ?? null) ?: $this->leadModel->getDefaultStatusId();
         $data['created_by'] = $this->user['id'];
 
         // Clean empty values

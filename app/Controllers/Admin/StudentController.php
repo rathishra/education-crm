@@ -54,7 +54,7 @@ class StudentController extends BaseController
         $departments = $db->fetchAll();
         $db->query("SELECT id, name FROM batches WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
         $batches = $db->fetchAll();
-        $db->query("SELECT id, name FROM academic_years WHERE institution_id = ? ORDER BY is_current DESC, start_year DESC LIMIT 5", [$this->institutionId]);
+        $db->query("SELECT id, name FROM academic_years WHERE institution_id = ? ORDER BY is_current DESC, start_date DESC LIMIT 5", [$this->institutionId]);
         $academicYears = $db->fetchAll();
 
         $this->view('students/create', compact('courses', 'departments', 'batches', 'academicYears'));
@@ -166,7 +166,7 @@ class StudentController extends BaseController
         $batches = $db->fetchAll();
         $db->query("SELECT id, name FROM departments WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
         $departments = $db->fetchAll();
-        $db->query("SELECT id, name FROM academic_years WHERE institution_id = ? ORDER BY is_current DESC, start_year DESC LIMIT 5", [$this->institutionId]);
+        $db->query("SELECT id, name FROM academic_years WHERE institution_id = ? ORDER BY is_current DESC, start_date DESC LIMIT 5", [$this->institutionId]);
         $academicYears = $db->fetchAll();
 
         $this->view('students/edit', compact('student', 'courses', 'batches', 'departments', 'academicYears'));
