@@ -146,7 +146,18 @@ class StudentController extends BaseController
             return;
         }
 
-        $this->view('students/show', compact('student'));
+        // Load available sections for the student's batch (for section allotment)
+        $sections = [];
+        if (!empty($student['batch_id'])) {
+            $sections = $this->db->query(
+                "SELECT id, name, code, capacity FROM sections
+                 WHERE batch_id = ? AND status = 'active' AND deleted_at IS NULL
+                 ORDER BY name",
+                [(int)$student['batch_id']]
+            )->fetchAll();
+        }
+
+        $this->view('students/show', compact('student', 'sections'));
     }
 
     public function edit(int $id): void
@@ -264,6 +275,34 @@ class StudentController extends BaseController
         $this->student->addActivity($id, $type, $note, $this->user['id'] ?? null);
         header('Content-Type: application/json');
         echo json_encode(['success' => true, 'message' => 'Note added successfully.']);
+    }
+
+    public function assignSection(int $id): void
+    {
+        $this->authorize('students.edit');
+
+        if (!verifyCsrf()) {
+            $this->redirectWith(url('students/' . $id), 'error', 'Session expired.');
+            return;
+        }
+
+        $sectionId = (int)($this->postData()['section_id'] ?? 0);
+
+        // Verify section belongs to same institution
+        $this->db->query(
+            "SELECT id, batch_id, capacity FROM sections WHERE id = ? AND institution_id = ? AND deleted_at IS NULL",
+            [$sectionId, $this->institutionId]
+        );
+        $section = $this->db->fetch();
+
+        if (!$section) {
+            $this->redirectWith(url('students/' . $id), 'error', 'Section not found.');
+            return;
+        }
+
+        $this->db->query("UPDATE students SET section_id = ?, updated_at = NOW() WHERE id = ?", [$sectionId, $id]);
+        $this->logAudit('section_assigned', 'student', $id, ['section_id' => $sectionId]);
+        $this->redirectWith(url('students/' . $id), 'success', 'Section assigned successfully.');
     }
 
     public function export(): void

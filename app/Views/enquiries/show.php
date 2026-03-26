@@ -26,6 +26,14 @@ $pageTitle = 'Enquiry - ' . e($enquiry['enquiry_number']);
             </button>
         </form>
         <?php endif; ?>
+        <?php if (hasPermission('admissions.create') && $enquiry['status'] !== 'converted'): ?>
+        <form method="POST" action="<?= url('enquiries/' . $enquiry['id'] . '/convert-to-admission') ?>" class="d-inline">
+            <?= csrfField() ?>
+            <button type="submit" class="btn btn-dark" onclick="return confirm('Convert this enquiry directly to an admission application?')">
+                <i class="fas fa-user-graduate me-1"></i>Convert to Admission
+            </button>
+        </form>
+        <?php endif; ?>
         <a href="<?= url('enquiries') ?>" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
     </div>
 </div>

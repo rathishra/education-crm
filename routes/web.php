@@ -117,6 +117,7 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->post('/enquiries/{id}', 'Admin\EnquiryController@update', 'enquiries.update');
     $router->post('/enquiries/{id}/delete', 'Admin\EnquiryController@destroy', 'enquiries.destroy');
     $router->post('/enquiries/{id}/convert', 'Admin\EnquiryController@convertToLead', 'enquiries.convert');
+    $router->post('/enquiries/{id}/convert-to-admission', 'Admin\EnquiryController@convertToAdmission', 'enquiries.convert_admission');
 
     // Follow-ups
     $router->get('/followups', 'Admin\FollowupController@index', 'followups.index');
@@ -148,6 +149,9 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->get('/batches', 'Admin\BatchController@index', 'batches.index');
     $router->get('/batches/create', 'Admin\BatchController@create', 'batches.create');
     $router->post('/batches', 'Admin\BatchController@store', 'batches.store');
+    $router->get('/batches/{id}/subjects', 'Admin\BatchController@subjects', 'batches.subjects');
+    $router->post('/batches/{id}/subjects/assign', 'Admin\BatchController@assignSubject', 'batches.subjects.assign');
+    $router->post('/batches/{id}/subjects/{subjectId}/remove', 'Admin\BatchController@removeSubject', 'batches.subjects.remove');
     $router->get('/batches/{id}/edit', 'Admin\BatchController@edit', 'batches.edit');
     $router->post('/batches/{id}', 'Admin\BatchController@update', 'batches.update');
     $router->post('/batches/{id}/delete', 'Admin\BatchController@destroy', 'batches.destroy');
@@ -173,6 +177,7 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->post('/students/{id}', 'Admin\StudentController@update', 'students.update');
     $router->post('/students/{id}/delete', 'Admin\StudentController@destroy', 'students.destroy');
     $router->post('/students/{id}/note', 'Admin\StudentController@addNote', 'students.note');
+    $router->post('/students/{id}/assign-section', 'Admin\StudentController@assignSection', 'students.assign_section');
     $router->get('/students/export', 'Admin\StudentController@export', 'students.export');
 
     // Fee Structures

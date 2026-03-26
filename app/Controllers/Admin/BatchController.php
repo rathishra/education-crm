@@ -152,4 +152,106 @@ class BatchController extends BaseController
         $this->logAudit('delete', 'batch', $id);
         $this->redirectWith(url('batches'), 'success', 'Batch deleted successfully.');
     }
+
+    /**
+     * Show subjects (regulation) assigned to a batch
+     */
+    public function subjects(int $id): void
+    {
+        $this->authorize('batches.view');
+
+        $this->db->query(
+            "SELECT b.*, c.name AS course_name FROM batches b
+             LEFT JOIN courses c ON c.id = b.course_id
+             WHERE b.id = ? AND b.institution_id = ? AND b.deleted_at IS NULL",
+            [$id, $this->institutionId]
+        );
+        $batch = $this->db->fetch();
+        if (!$batch) {
+            $this->redirectWith(url('batches'), 'error', 'Batch not found.');
+            return;
+        }
+
+        // Subjects already assigned
+        $assigned = $this->db->query(
+            "SELECT bs.*, s.name AS subject_name, s.code AS subject_code, s.type AS subject_type, s.credits
+             FROM batch_subjects bs
+             JOIN subjects s ON s.id = bs.subject_id
+             WHERE bs.batch_id = ?
+             ORDER BY bs.semester, s.name",
+            [$id]
+        )->fetchAll();
+
+        // All available subjects for this institution (not yet assigned)
+        $assignedIds = array_column($assigned, 'subject_id');
+        $availableSql = "SELECT id, name, code, type, credits
+                         FROM subjects
+                         WHERE institution_id = ? AND status = 'active'";
+        if (!empty($assignedIds)) {
+            $placeholders = implode(',', array_fill(0, count($assignedIds), '?'));
+            $availableSql .= " AND id NOT IN ({$placeholders})";
+        }
+        $availableSql .= " ORDER BY name";
+
+        $availableParams = array_merge([$this->institutionId], $assignedIds);
+        $available = $this->db->query($availableSql, $availableParams)->fetchAll();
+
+        $this->view('batches/subjects', compact('batch', 'assigned', 'available'));
+    }
+
+    /**
+     * Assign a subject to a batch
+     */
+    public function assignSubject(int $id): void
+    {
+        $this->authorize('batches.edit');
+
+        if (!verifyCsrf()) {
+            $this->redirectWith(url('batches/' . $id . '/subjects'), 'error', 'Session expired.');
+            return;
+        }
+
+        $data = $this->postData();
+        $subjectId = (int)($data['subject_id'] ?? 0);
+
+        if (!$subjectId) {
+            $this->redirectWith(url('batches/' . $id . '/subjects'), 'error', 'Please select a subject.');
+            return;
+        }
+
+        // Check not already assigned
+        $this->db->query("SELECT id FROM batch_subjects WHERE batch_id = ? AND subject_id = ?", [$id, $subjectId]);
+        if ($this->db->fetch()) {
+            $this->redirectWith(url('batches/' . $id . '/subjects'), 'warning', 'Subject already assigned to this batch.');
+            return;
+        }
+
+        $this->db->insert('batch_subjects', [
+            'batch_id'                => $id,
+            'subject_id'              => $subjectId,
+            'semester'                => $data['semester'] ? (int)$data['semester'] : null,
+            'is_elective'             => isset($data['is_elective']) ? 1 : 0,
+            'teaching_hours_per_week' => $data['teaching_hours'] ? (int)$data['teaching_hours'] : null,
+        ]);
+
+        $this->logAudit('batch_subject_assigned', 'batch', $id, ['subject_id' => $subjectId]);
+        $this->redirectWith(url('batches/' . $id . '/subjects'), 'success', 'Subject assigned to batch successfully.');
+    }
+
+    /**
+     * Remove a subject from a batch
+     */
+    public function removeSubject(int $id, int $subjectId): void
+    {
+        $this->authorize('batches.edit');
+
+        if (!verifyCsrf()) {
+            $this->redirectWith(url('batches/' . $id . '/subjects'), 'error', 'Session expired.');
+            return;
+        }
+
+        $this->db->query("DELETE FROM batch_subjects WHERE batch_id = ? AND subject_id = ?", [$id, $subjectId]);
+        $this->logAudit('batch_subject_removed', 'batch', $id, ['subject_id' => $subjectId]);
+        $this->redirectWith(url('batches/' . $id . '/subjects'), 'success', 'Subject removed from batch.');
+    }
 }

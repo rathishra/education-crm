@@ -235,4 +235,54 @@ class EnquiryController extends BaseController
             $this->redirectWith(url('enquiries/' . $id), 'error', 'Failed to convert enquiry.');
         }
     }
+
+    public function convertToAdmission(int $id): void
+    {
+        $this->authorize('admissions.create');
+
+        $enquiry = $this->enquiry->find($id);
+        if (!$enquiry) {
+            $this->redirectWith(url('enquiries'), 'error', 'Enquiry not found.');
+            return;
+        }
+
+        if ($enquiry['status'] === 'converted') {
+            $this->redirectWith(url('enquiries/' . $id), 'warning', 'Enquiry already converted.');
+            return;
+        }
+
+        // Create admission record directly from enquiry
+        $admissionModel = new \App\Models\Admission();
+        $admissionNumber = $admissionModel->generateAdmissionNumber($this->institutionId);
+
+        $admissionId = $this->db->insert('admissions', [
+            'institution_id'         => $this->institutionId,
+            'admission_number'       => $admissionNumber,
+            'first_name'             => $enquiry['first_name'],
+            'last_name'              => $enquiry['last_name'] ?? '',
+            'email'                  => $enquiry['email'] ?? '',
+            'phone'                  => $enquiry['phone'],
+            'gender'                 => $enquiry['gender'] ?? null,
+            'course_id'              => $enquiry['course_id'] ?? null,
+            'nationality'            => 'Indian',
+            'admission_type'         => 'regular',
+            'application_date'       => date('Y-m-d'),
+            'status'                 => 'applied',
+            'source'                 => $enquiry['source'] ?? null,
+            'remarks'                => $enquiry['message'] ?? '',
+            'created_by'             => $this->user['id'],
+        ]);
+
+        if ($admissionId) {
+            // Mark enquiry as converted
+            $this->db->query(
+                "UPDATE enquiries SET status = 'converted', updated_at = NOW() WHERE id = ?",
+                [$id]
+            );
+            $this->logAudit('enquiry_to_admission', 'enquiry', $id, ['admission_id' => $admissionId]);
+            $this->redirectWith(url('admissions/' . $admissionId), 'success', 'Enquiry converted to admission successfully. Admission #' . $admissionNumber);
+        } else {
+            $this->redirectWith(url('enquiries/' . $id), 'error', 'Failed to create admission from enquiry.');
+        }
+    }
 }
