@@ -33,8 +33,9 @@ class TimetableController extends BaseController
     // ──────────────────────────────────────────────────────────────
     // VIEW — read-only weekly timetable grid
     // ──────────────────────────────────────────────────────────────
-    public function viewTimetable(int $sectionId): void
+    public function viewTimetable(int $id): void
     {
+        $sectionId = $id;
         $this->db->query(
             "SELECT s.*, b.program_name, b.batch_term, b.id AS batch_id
              FROM academic_sections s JOIN academic_batches b ON b.id=s.batch_id
@@ -134,23 +135,20 @@ class TimetableController extends BaseController
         );
         $subjects = $this->db->fetchAll();
 
-        // Faculty — try faculty roles first, fallback to all users
+        // Faculty — try users assigned to this institution via user_roles first
         $this->db->query(
-            "SELECT u.id, u.first_name, u.last_name
-             FROM users u LEFT JOIN roles r ON r.id=u.role_id
-             WHERE u.institution_id=? AND u.is_active=1
-               AND (r.role_name LIKE '%faculty%' OR r.role_name LIKE '%teacher%'
-                    OR r.role_name LIKE '%lecturer%' OR r.role_name LIKE '%professor%'
-                    OR r.role_name LIKE '%hod%' OR r.role_name LIKE '%staff%'
-                    OR r.role_name LIKE '%instructor%')
+            "SELECT DISTINCT u.id, u.first_name, u.last_name
+             FROM users u
+             JOIN user_roles ur ON ur.user_id = u.id
+             WHERE ur.institution_id = ? AND u.is_active = 1
              ORDER BY u.first_name",
             [$this->institutionId]
         );
         $faculty = $this->db->fetchAll();
         if (empty($faculty)) {
+            // Fallback: all active users in the system
             $this->db->query(
-                "SELECT id, first_name, last_name FROM users WHERE institution_id=? AND is_active=1 ORDER BY first_name",
-                [$this->institutionId]
+                "SELECT id, first_name, last_name FROM users WHERE is_active=1 ORDER BY first_name"
             );
             $faculty = $this->db->fetchAll();
         }

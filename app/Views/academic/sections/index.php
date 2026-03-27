@@ -22,7 +22,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if(!empty($sections)): foreach($sections as $s): ?>
+                    <?php foreach($sections as $s): ?>
                     <tr>
                         <td>
                             <div class="fw-bold text-primary"><?= e($s['program_name']) ?></div>
@@ -62,9 +62,7 @@
                             <a href="<?= url('academic/sections/edit/' . $s['id']) ?>" class="btn btn-sm btn-light border" title="Edit"><i class="fas fa-edit text-secondary"></i></a>
                         </td>
                     </tr>
-                    <?php endforeach; else: ?>
-                    <tr><td colspan="7" class="text-center text-muted py-4">No sections defined yet.</td></tr>
-                    <?php endif; ?>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
@@ -74,7 +72,11 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     if(typeof jQuery !== 'undefined' && $.fn.DataTable) {
-        $('#sectionsTable').DataTable({ order: [[0, 'asc'], [1, 'asc']], pageLength: 25 });
+        $('#sectionsTable').DataTable({
+            order: [[0, 'asc'], [1, 'asc']],
+            pageLength: 25,
+            language: { emptyTable: 'No sections defined yet.' }
+        });
     }
 });
 </script>

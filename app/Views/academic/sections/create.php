@@ -59,29 +59,31 @@
 </div>
 
 <script>
-$('#frmAddSection').submit(function(e) {
-    e.preventDefault();
-    let btn = $('#btnSaveSection');
-    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Processing...');
-    
-    $.ajax({
-        url: $(this).attr('action'),
-        method: 'POST',
-        data: $(this).serialize(),
-        success: function(res) {
-            let data = typeof res === 'string' ? JSON.parse(res) : res;
-            if(data.status === 'success') {
-                toastr.success(data.message);
-                setTimeout(() => window.location.href = APP_URL + '/academic/sections/' + data.id, 1000);
-            } else {
-                toastr.error(data.message || 'Validation failed');
+document.addEventListener('DOMContentLoaded', function() {
+    $('#frmAddSection').submit(function(e) {
+        e.preventDefault();
+        let btn = $('#btnSaveSection');
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Processing...');
+
+        $.ajax({
+            url: $(this).attr('action'),
+            method: 'POST',
+            data: $(this).serialize(),
+            success: function(res) {
+                let data = typeof res === 'string' ? JSON.parse(res) : res;
+                if(data.status === 'success') {
+                    toastr.success(data.message);
+                    setTimeout(() => window.location.href = APP_URL + '/academic/sections/' + data.id, 1000);
+                } else {
+                    toastr.error(data.message || 'Validation failed');
+                    btn.prop('disabled', false).html('<i class="fas fa-plus me-1"></i> Create Section');
+                }
+            },
+            error: function() {
+                toastr.error('An error occurred. Check inputs.');
                 btn.prop('disabled', false).html('<i class="fas fa-plus me-1"></i> Create Section');
             }
-        },
-        error: function(xhr) {
-            toastr.error('An error occurred. Check inputs.');
-            btn.prop('disabled', false).html('<i class="fas fa-plus me-1"></i> Create Section');
-        }
+        });
     });
 });
 </script>

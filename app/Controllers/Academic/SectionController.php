@@ -114,7 +114,7 @@ class SectionController extends BaseController
         $params = [$this->institutionId];
         if (!empty($enrolledIds)) {
             $placeholders = implode(',', array_fill(0, count($enrolledIds), '?'));
-            $excludeClause = "AND st.id NOT IN ($placeholders)";
+            $excludeClause = "AND id NOT IN ($placeholders)";
             $params = array_merge($params, $enrolledIds);
         }
         $this->db->query(
