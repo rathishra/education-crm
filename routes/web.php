@@ -351,4 +351,64 @@ $router->group(['middleware' => 'auth'], function ($router) {
 
     // Audit Logs
     $router->get('/audit-logs', 'Admin\AuditController@index', 'audit.index');
+    // ============================================================
+    // NEW ACADEMIC MODULE (Namespace: Academic)
+    // ============================================================
+    
+    // Academic Subjects
+    $router->get('/academic/subjects', 'Academic\SubjectController@index', 'academic.subjects.index');
+    $router->get('/academic/subjects/create', 'Academic\SubjectController@create', 'academic.subjects.create');
+    $router->post('/academic/subjects/store', 'Academic\SubjectController@store', 'academic.subjects.store');
+    $router->get('/academic/subjects/edit/{id}', 'Academic\SubjectController@edit', 'academic.subjects.edit');
+    $router->post('/academic/subjects/update/{id}', 'Academic\SubjectController@update', 'academic.subjects.update');
+    $router->post('/academic/subjects/delete/{id}', 'Academic\SubjectController@delete', 'academic.subjects.delete');
+
+    // Academic Classrooms
+    $router->get('/academic/classrooms', 'Academic\ClassroomController@index', 'academic.classrooms.index');
+    $router->post('/academic/classrooms/store', 'Academic\ClassroomController@store', 'academic.classrooms.store');
+
+    // Academic Batches
+    $router->get('/academic/batches', 'Academic\BatchController@index', 'academic.batches.index');
+    $router->get('/academic/batches/create', 'Academic\BatchController@create', 'academic.batches.create');
+    $router->post('/academic/batches/store', 'Academic\BatchController@store', 'academic.batches.store');
+    
+    // Academic Sections
+    $router->get('/academic/sections', 'Academic\SectionController@index', 'academic.sections.index');
+    $router->get('/academic/sections/create', 'Academic\SectionController@create', 'academic.sections.create');
+    $router->post('/academic/sections/store', 'Academic\SectionController@store', 'academic.sections.store');
+
+    // Academic Timetable
+    $router->get('/academic/timetable', 'Academic\TimetableController@index', 'academic.timetable.index');
+    $router->get('/academic/timetable/generator', 'Academic\TimetableController@generator', 'academic.timetable.generator');
+    $router->post('/academic/timetable/store', 'Academic\TimetableController@store', 'academic.timetable.store');
+
+    // Academic Attendance
+    $router->get('/academic/attendance', 'Academic\AttendanceController@index', 'academic.attendance.index');
+    $router->get('/academic/attendance/mark', 'Academic\AttendanceController@mark', 'academic.attendance.mark');
+    $router->post('/academic/attendance/store', 'Academic\AttendanceController@store', 'academic.attendance.store');
+
+    // Academic Assessments
+    $router->get('/academic/assessments', 'Academic\AssessmentController@index', 'academic.assessments.index');
+    $router->get('/academic/assessments/create', 'Academic\AssessmentController@create', 'academic.assessments.create');
+    $router->post('/academic/assessments/store', 'Academic\AssessmentController@store', 'academic.assessments.store');
+    $router->get('/academic/assessments/marks', 'Academic\AssessmentController@marks', 'academic.assessments.marks');
+    $router->post('/academic/assessments/marks/store', 'Academic\AssessmentController@storeMarks', 'academic.assessments.marks.store');
+
+    // Faculty Allocation — static routes BEFORE {id}
+    $router->get('/academic/faculty-allocation', 'Academic\FacultyAllocationController@index', 'academic.faculty.index');
+    $router->get('/academic/faculty-allocation/create', 'Academic\FacultyAllocationController@create', 'academic.faculty.create');
+    $router->post('/academic/faculty-allocation/store', 'Academic\FacultyAllocationController@store', 'academic.faculty.store');
+    $router->get('/academic/faculty-allocation/ajax/sections', 'Academic\FacultyAllocationController@ajaxSections', 'academic.faculty.ajax.sections');
+    $router->post('/academic/faculty-allocation/{id}/delete', 'Academic\FacultyAllocationController@destroy', 'academic.faculty.delete');
+
+    // LMS — static routes BEFORE {id}
+    $router->get('/academic/lms', 'Academic\LmsController@index', 'academic.lms.index');
+    $router->get('/academic/lms/create', 'Academic\LmsController@create', 'academic.lms.create');
+    $router->post('/academic/lms/store', 'Academic\LmsController@store', 'academic.lms.store');
+    $router->get('/academic/lms/{id}/download', 'Academic\LmsController@download', 'academic.lms.download');
+    $router->post('/academic/lms/{id}/delete', 'Academic\LmsController@destroy', 'academic.lms.delete');
+
+    // Subject AJAX
+    $router->get('/academic/subjects/ajax/by-course', 'Academic\SubjectController@ajaxByCourse', 'academic.subjects.ajax.bycourse');
+
 });

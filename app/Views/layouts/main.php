@@ -293,6 +293,45 @@
                     <?php endif; ?>
                     <?php endif; ?>
 
+                    <!-- NEW ACADEMIC MODULE -->
+                    <div class="sb-sidenav-menu-heading">Academic Management</div>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/batches') !== false ? 'active' : '' ?>" href="<?= url('academic/batches') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-layer-group"></i></div>
+                        Batches & Cohorts
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/sections') !== false ? 'active' : '' ?>" href="<?= url('academic/sections') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-object-group"></i></div>
+                        Class Sections
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/timetable') !== false ? 'active' : '' ?>" href="<?= url('academic/timetable') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-calendar-alt"></i></div>
+                        Timetable Generator
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/attendance') !== false ? 'active' : '' ?>" href="<?= url('academic/attendance') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-user-check"></i></div>
+                        Attendance Manager
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/assessments') !== false ? 'active' : '' ?>" href="<?= url('academic/assessments') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-clipboard-list"></i></div>
+                        Examination Settings
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/subjects') !== false ? 'active' : '' ?>" href="<?= url('academic/subjects') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-book"></i></div>
+                        Academic Subjects
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/classrooms') !== false ? 'active' : '' ?>" href="<?= url('academic/classrooms') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-door-open"></i></div>
+                        Classrooms
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/faculty-allocation') !== false ? 'active' : '' ?>" href="<?= url('academic/faculty-allocation') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                        Faculty Allocation
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/lms') !== false ? 'active' : '' ?>" href="<?= url('academic/lms') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-graduation-cap"></i></div>
+                        LMS / Materials
+                    </a>
+
                     <!-- EXAMS -->
                     <?php if (hasPermission('exams.view')): ?>
                     <div class="sb-sidenav-menu-heading">Exams</div>
