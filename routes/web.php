@@ -355,13 +355,19 @@ $router->group(['middleware' => 'auth'], function ($router) {
     // NEW ACADEMIC MODULE (Namespace: Academic)
     // ============================================================
     
-    // Academic Subjects
-    $router->get('/academic/subjects', 'Academic\SubjectController@index', 'academic.subjects.index');
-    $router->get('/academic/subjects/create', 'Academic\SubjectController@create', 'academic.subjects.create');
-    $router->post('/academic/subjects/store', 'Academic\SubjectController@store', 'academic.subjects.store');
-    $router->get('/academic/subjects/edit/{id}', 'Academic\SubjectController@edit', 'academic.subjects.edit');
-    $router->post('/academic/subjects/update/{id}', 'Academic\SubjectController@update', 'academic.subjects.update');
-    $router->post('/academic/subjects/delete/{id}', 'Academic\SubjectController@delete', 'academic.subjects.delete');
+    // Academic Subjects — static routes BEFORE {id} parameterized routes
+    $router->get('/academic/subjects',                   'Academic\SubjectController@index',        'academic.subjects.index');
+    $router->get('/academic/subjects/create',            'Academic\SubjectController@create',       'academic.subjects.create');
+    $router->post('/academic/subjects/store',            'Academic\SubjectController@store',        'academic.subjects.store');
+    $router->post('/academic/subjects/bulk',             'Academic\SubjectController@bulkAction',   'academic.subjects.bulk');
+    $router->get('/academic/subjects/export',            'Academic\SubjectController@export',       'academic.subjects.export');
+    $router->get('/academic/subjects/ajax/by-course',    'Academic\SubjectController@ajaxByCourse', 'academic.subjects.ajax.bycourse');
+    $router->get('/academic/subjects/{id}',              'Academic\SubjectController@show',         'academic.subjects.show');
+    $router->get('/academic/subjects/edit/{id}',         'Academic\SubjectController@edit',         'academic.subjects.edit');
+    $router->post('/academic/subjects/update/{id}',      'Academic\SubjectController@update',       'academic.subjects.update');
+    $router->post('/academic/subjects/delete/{id}',      'Academic\SubjectController@delete',       'academic.subjects.delete');
+    $router->post('/academic/subjects/{id}/toggle-status','Academic\SubjectController@toggleStatus','academic.subjects.toggle');
+    $router->post('/academic/subjects/{id}/duplicate',   'Academic\SubjectController@duplicate',    'academic.subjects.duplicate');
 
     // Academic Classrooms
     $router->get('/academic/classrooms', 'Academic\ClassroomController@index', 'academic.classrooms.index');
