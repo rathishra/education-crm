@@ -400,6 +400,27 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->get('/academic/assessments/marks', 'Academic\AssessmentController@marks', 'academic.assessments.marks');
     $router->post('/academic/assessments/marks/store', 'Academic\AssessmentController@storeMarks', 'academic.assessments.marks.store');
 
+    // Grading Schemas — all static paths BEFORE {id} params
+    $router->get('/academic/grading-schemas', 'Academic\GradingSchemaController@index', 'academic.grading.index');
+    $router->post('/academic/grading-schemas/store', 'Academic\GradingSchemaController@store', 'academic.grading.store');
+    // Category
+    $router->post('/academic/grading-schemas/categories/store', 'Academic\GradingSchemaController@storeCategory', 'academic.grading.cat.store');
+    $router->post('/academic/grading-schemas/categories/delete/{id}', 'Academic\GradingSchemaController@destroyCategory', 'academic.grading.cat.delete');
+    // Component
+    $router->post('/academic/grading-schemas/components/store', 'Academic\GradingSchemaController@storeComponent', 'academic.grading.comp.store');
+    $router->post('/academic/grading-schemas/components/update/{id}', 'Academic\GradingSchemaController@updateComponent', 'academic.grading.comp.update');
+    $router->post('/academic/grading-schemas/components/delete/{id}', 'Academic\GradingSchemaController@destroyComponent', 'academic.grading.comp.delete');
+    // Sub-component
+    $router->post('/academic/grading-schemas/sub-components/store', 'Academic\GradingSchemaController@storeSubComponent', 'academic.grading.sub.store');
+    $router->post('/academic/grading-schemas/sub-components/delete/{id}', 'Academic\GradingSchemaController@destroySubComponent', 'academic.grading.sub.delete');
+    // Grade rules
+    $router->post('/academic/grading-schemas/rules/store', 'Academic\GradingSchemaController@storeRule', 'academic.grading.rule.store');
+    $router->post('/academic/grading-schemas/rules/delete/{id}', 'Academic\GradingSchemaController@destroyRule', 'academic.grading.rule.delete');
+    // Parameterised — LAST
+    $router->get('/academic/grading-schemas/{id}/detail', 'Academic\GradingSchemaController@detail', 'academic.grading.detail');
+    $router->post('/academic/grading-schemas/update/{id}', 'Academic\GradingSchemaController@update', 'academic.grading.update');
+    $router->post('/academic/grading-schemas/delete/{id}', 'Academic\GradingSchemaController@destroy', 'academic.grading.delete');
+
     // Faculty Allocation — static routes BEFORE {id}
     $router->get('/academic/faculty-allocation', 'Academic\FacultyAllocationController@index', 'academic.faculty.index');
     $router->get('/academic/faculty-allocation/create', 'Academic\FacultyAllocationController@create', 'academic.faculty.create');

@@ -315,6 +315,10 @@
                         <div class="sb-nav-link-icon"><i class="fas fa-clipboard-list"></i></div>
                         Examination Settings
                     </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/grading-schemas') !== false ? 'active' : '' ?>" href="<?= url('academic/grading-schemas') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-layer-group"></i></div>
+                        Exam Schemes
+                    </a>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/subjects') !== false ? 'active' : '' ?>" href="<?= url('academic/subjects') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-book"></i></div>
                         Academic Subjects
