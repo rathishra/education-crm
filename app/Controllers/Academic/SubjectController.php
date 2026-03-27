@@ -115,7 +115,8 @@ class SubjectController extends BaseController
         }
 
         if (!empty($errors)) {
-            return $this->backWithErrors($errors);
+            $this->backWithErrors($errors);
+            return;
         }
 
         $this->db->insert('subjects', $data);
@@ -172,7 +173,8 @@ class SubjectController extends BaseController
         }
 
         if (!empty($errors)) {
-            return $this->backWithErrors($errors);
+            $this->backWithErrors($errors);
+            return;
         }
 
         $this->db->update('subjects', [

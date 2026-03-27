@@ -72,10 +72,11 @@ class LmsController extends BaseController
         $title     = trim($this->input('title', ''));
 
         if (!$subjectId || empty($title)) {
-            return $this->backWithErrors([
+            $this->backWithErrors([
                 'subject_id' => !$subjectId ? 'Subject is required.' : '',
                 'title'      => empty($title) ? 'Title is required.' : '',
             ]);
+            return;
         }
 
         $filePath         = null;
@@ -90,10 +91,12 @@ class LmsController extends BaseController
             $ext     = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
             if (!in_array($ext, $allowed)) {
-                return $this->backWithErrors(['file' => 'File type not allowed. Allowed: ' . implode(', ', $allowed)]);
+                $this->backWithErrors(['file' => 'File type not allowed. Allowed: ' . implode(', ', $allowed)]);
+                return;
             }
             if ($file['size'] > 50 * 1024 * 1024) {
-                return $this->backWithErrors(['file' => 'File too large. Max 50MB.']);
+                $this->backWithErrors(['file' => 'File too large. Max 50MB.']);
+                return;
             }
 
             $uploadPath = BASE_PATH . '/' . $this->uploadDir;

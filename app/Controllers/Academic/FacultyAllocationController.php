@@ -94,7 +94,8 @@ class FacultyAllocationController extends BaseController
         $hours     = (int)$this->input('hours_per_week', 0);
 
         if (!$facultyId || !$subjectId) {
-            return $this->backWithErrors(['faculty_id' => 'Faculty and Subject are required.']);
+            $this->backWithErrors(['faculty_id' => 'Faculty and Subject are required.']);
+            return;
         }
 
         // Duplicate check
@@ -104,7 +105,8 @@ class FacultyAllocationController extends BaseController
             [$facultyId, $subjectId, $batchId, $sectionId, $type]
         );
         if ($this->db->fetch()) {
-            return $this->backWithErrors(['faculty_id' => 'This allocation already exists.']);
+            $this->backWithErrors(['faculty_id' => 'This allocation already exists.']);
+            return;
         }
 
         $this->db->insert('faculty_subject_allocations', [
