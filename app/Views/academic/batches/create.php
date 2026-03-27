@@ -78,7 +78,7 @@ $('#frmAddBatch').submit(function(e) {
             let data = typeof res === 'string' ? JSON.parse(res) : res;
             if(data.status === 'success') {
                 toastr.success(data.message);
-                setTimeout(() => window.location.href = APP_URL + '/academic/batches', 1000);
+                setTimeout(() => window.location.href = APP_URL + '/academic/batches/' + data.id, 1000);
             } else {
                 toastr.error(data.message || 'Validation failed');
                 btn.prop('disabled', false).html('<i class="fas fa-save me-1"></i> Initialize Cohort');

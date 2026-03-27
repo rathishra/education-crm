@@ -397,6 +397,7 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->get('/academic/timetable', 'Academic\TimetableController@index', 'academic.timetable.index');
     $router->get('/academic/timetable/generator', 'Academic\TimetableController@generator', 'academic.timetable.generator');
     $router->post('/academic/timetable/store', 'Academic\TimetableController@store', 'academic.timetable.store');
+    $router->get('/academic/timetable/{id}/view', 'Academic\TimetableController@viewTimetable', 'academic.timetable.view');
 
     // Academic Attendance — static routes BEFORE {id} parameterized routes
     $router->get('/academic/attendance', 'Academic\AttendanceController@index', 'academic.attendance.index');

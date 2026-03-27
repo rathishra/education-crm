@@ -72,7 +72,7 @@ $('#frmAddSection').submit(function(e) {
             let data = typeof res === 'string' ? JSON.parse(res) : res;
             if(data.status === 'success') {
                 toastr.success(data.message);
-                setTimeout(() => window.location.href = APP_URL + '/academic/sections', 1000);
+                setTimeout(() => window.location.href = APP_URL + '/academic/sections/' + data.id, 1000);
             } else {
                 toastr.error(data.message || 'Validation failed');
                 btn.prop('disabled', false).html('<i class="fas fa-plus me-1"></i> Create Section');
