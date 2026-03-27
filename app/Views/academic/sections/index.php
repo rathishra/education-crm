@@ -13,10 +13,10 @@
                 <thead class="table-light">
                     <tr>
                         <th>Batch / Cohort</th>
-                        <th>Term</th>
-                        <th>Section Name</th>
+                        <th>Section</th>
                         <th>Default Classroom</th>
-                        <th>Max Capacity</th>
+                        <th class="text-center">Enrolled</th>
+                        <th class="text-center">Timetable</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -24,9 +24,15 @@
                 <tbody>
                     <?php if(!empty($sections)): foreach($sections as $s): ?>
                     <tr>
-                        <td class="fw-bold text-primary"><?= e($s['program_name']) ?></td>
-                        <td><span class="badge bg-secondary"><?= e($s['batch_term']) ?></span></td>
-                        <td><span class="badge bg-dark fw-bold px-3 py-2"><?= e($s['section_name']) ?></span></td>
+                        <td>
+                            <div class="fw-bold text-primary"><?= e($s['program_name']) ?></div>
+                            <small class="text-muted"><?= e($s['batch_term']) ?></small>
+                        </td>
+                        <td>
+                            <a href="<?= url('academic/sections/' . $s['id']) ?>" class="text-decoration-none">
+                                <span class="badge bg-dark fw-bold px-3 py-2"><?= e($s['section_name']) ?></span>
+                            </a>
+                        </td>
                         <td>
                             <?php if($s['room_number']): ?>
                                 <i class="fas fa-door-open text-muted me-1"></i> <?= e($s['room_number']) ?>
@@ -34,17 +40,26 @@
                                 <span class="text-muted fst-italic">Not Assigned</span>
                             <?php endif; ?>
                         </td>
-                        <td><i class="fas fa-users text-muted me-1"></i> <?= e($s['capacity']) ?> Students</td>
+                        <td class="text-center">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                <i class="fas fa-users me-1"></i><?= (int)($s['enrolled_count'] ?? 0) ?>
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                <?= (int)($s['timetable_slots'] ?? 0) ?> slots
+                            </span>
+                        </td>
                         <td>
-                            <?php if($s['status'] == 'active'): ?>
+                            <?php if($s['status'] === 'active'): ?>
                                 <span class="badge bg-success">Active</span>
                             <?php else: ?>
                                 <span class="badge bg-danger">Inactive</span>
                             <?php endif; ?>
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-light border" title="Edit"><i class="fas fa-edit text-primary"></i></button>
-                            <button class="btn btn-sm btn-light border text-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                            <a href="<?= url('academic/sections/' . $s['id']) ?>" class="btn btn-sm btn-light border me-1" title="View"><i class="fas fa-eye text-primary"></i></a>
+                            <a href="<?= url('academic/sections/edit/' . $s['id']) ?>" class="btn btn-sm btn-light border" title="Edit"><i class="fas fa-edit text-secondary"></i></a>
                         </td>
                     </tr>
                     <?php endforeach; else: ?>
@@ -56,14 +71,10 @@
     </div>
 </div>
 
-<?php $extraJs[] = asset('js/academic.js'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     if(typeof jQuery !== 'undefined' && $.fn.DataTable) {
-        $('#sectionsTable').DataTable({
-            "order": [[ 0, "asc" ], [ 2, "asc" ]],
-            "pageLength": 25
-        });
+        $('#sectionsTable').DataTable({ order: [[0, 'asc'], [1, 'asc']], pageLength: 25 });
     }
 });
 </script>

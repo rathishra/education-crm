@@ -15,8 +15,8 @@
                         <th>Program Name</th>
                         <th>Term/Session</th>
                         <th>Timeline</th>
-                        <th>Max Intake</th>
-                        <th>Total Semesters</th>
+                        <th>Sections</th>
+                        <th>Enrolled</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -24,7 +24,12 @@
                 <tbody>
                     <?php if(!empty($batches)): foreach($batches as $b): ?>
                     <tr>
-                        <td class="fw-bold text-primary"><?= e($b['program_name']) ?></td>
+                        <td>
+                            <a href="<?= url('academic/batches/' . $b['id']) ?>" class="fw-bold text-primary text-decoration-none">
+                                <?= e($b['program_name']) ?>
+                            </a>
+                            <small class="d-block text-muted"><?= $b['total_semesters'] ?> Semesters · Max <?= $b['max_intake'] ?> students</small>
+                        </td>
                         <td><span class="badge bg-secondary"><?= e($b['batch_term']) ?></span></td>
                         <td>
                             <small class="text-muted d-block"><i class="far fa-calendar-alt me-1"></i>Start: <?= date('d M Y', strtotime($b['start_date'])) ?></small>
@@ -32,19 +37,28 @@
                             <small class="text-muted d-block"><i class="far fa-flag me-1"></i>End: <?= date('d M Y', strtotime($b['end_date'])) ?></small>
                             <?php endif; ?>
                         </td>
-                        <td><?= e($b['max_intake']) ?> Students</td>
-                        <td><?= e($b['total_semesters']) ?> Semesters</td>
                         <td>
-                            <?php if($b['status'] == 'active'): ?>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                <i class="fas fa-layer-group me-1"></i><?= (int)($b['section_count'] ?? 0) ?> Sections
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                <i class="fas fa-users me-1"></i><?= (int)($b['enrolled_count'] ?? 0) ?> Students
+                            </span>
+                        </td>
+                        <td>
+                            <?php if($b['status'] === 'active'): ?>
                                 <span class="badge bg-success">Active</span>
-                            <?php elseif($b['status'] == 'graduated'): ?>
+                            <?php elseif($b['status'] === 'graduated'): ?>
                                 <span class="badge bg-info">Graduated</span>
                             <?php else: ?>
                                 <span class="badge bg-danger">Inactive</span>
                             <?php endif; ?>
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-light border" title="Edit"><i class="fas fa-edit text-primary"></i></button>
+                            <a href="<?= url('academic/batches/' . $b['id']) ?>" class="btn btn-sm btn-light border me-1" title="View"><i class="fas fa-eye text-primary"></i></a>
+                            <a href="<?= url('academic/batches/edit/' . $b['id']) ?>" class="btn btn-sm btn-light border" title="Edit"><i class="fas fa-edit text-secondary"></i></a>
                         </td>
                     </tr>
                     <?php endforeach; else: ?>
@@ -56,14 +70,10 @@
     </div>
 </div>
 
-<?php $extraJs[] = asset('js/academic.js'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     if(typeof jQuery !== 'undefined' && $.fn.DataTable) {
-        $('#batchesTable').DataTable({
-            "order": [[ 2, "desc" ]],
-            "pageLength": 25
-        });
+        $('#batchesTable').DataTable({ order: [[2, 'desc']], pageLength: 25 });
     }
 });
 </script>

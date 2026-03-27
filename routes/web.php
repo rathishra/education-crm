@@ -373,25 +373,37 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->get('/academic/classrooms', 'Academic\ClassroomController@index', 'academic.classrooms.index');
     $router->post('/academic/classrooms/store', 'Academic\ClassroomController@store', 'academic.classrooms.store');
 
-    // Academic Batches
+    // Academic Batches — static routes BEFORE {id} parameterized routes
     $router->get('/academic/batches', 'Academic\BatchController@index', 'academic.batches.index');
     $router->get('/academic/batches/create', 'Academic\BatchController@create', 'academic.batches.create');
     $router->post('/academic/batches/store', 'Academic\BatchController@store', 'academic.batches.store');
-    
-    // Academic Sections
+    $router->get('/academic/batches/{id}', 'Academic\BatchController@show', 'academic.batches.show');
+    $router->get('/academic/batches/edit/{id}', 'Academic\BatchController@edit', 'academic.batches.edit');
+    $router->post('/academic/batches/update/{id}', 'Academic\BatchController@update', 'academic.batches.update');
+    $router->post('/academic/batches/delete/{id}', 'Academic\BatchController@destroy', 'academic.batches.delete');
+
+    // Academic Sections — static routes BEFORE {id} parameterized routes
     $router->get('/academic/sections', 'Academic\SectionController@index', 'academic.sections.index');
     $router->get('/academic/sections/create', 'Academic\SectionController@create', 'academic.sections.create');
     $router->post('/academic/sections/store', 'Academic\SectionController@store', 'academic.sections.store');
+    $router->get('/academic/sections/{id}', 'Academic\SectionController@show', 'academic.sections.show');
+    $router->get('/academic/sections/edit/{id}', 'Academic\SectionController@edit', 'academic.sections.edit');
+    $router->post('/academic/sections/update/{id}', 'Academic\SectionController@update', 'academic.sections.update');
+    $router->post('/academic/sections/delete/{id}', 'Academic\SectionController@destroy', 'academic.sections.delete');
+    $router->post('/academic/sections/{id}/enroll', 'Academic\SectionController@enroll', 'academic.sections.enroll');
+    $router->post('/academic/sections/unenroll/{enrollId}', 'Academic\SectionController@unenroll', 'academic.sections.unenroll');
 
     // Academic Timetable
     $router->get('/academic/timetable', 'Academic\TimetableController@index', 'academic.timetable.index');
     $router->get('/academic/timetable/generator', 'Academic\TimetableController@generator', 'academic.timetable.generator');
     $router->post('/academic/timetable/store', 'Academic\TimetableController@store', 'academic.timetable.store');
 
-    // Academic Attendance
+    // Academic Attendance — static routes BEFORE {id} parameterized routes
     $router->get('/academic/attendance', 'Academic\AttendanceController@index', 'academic.attendance.index');
     $router->get('/academic/attendance/mark', 'Academic\AttendanceController@mark', 'academic.attendance.mark');
     $router->post('/academic/attendance/store', 'Academic\AttendanceController@store', 'academic.attendance.store');
+    $router->get('/academic/attendance/history', 'Academic\AttendanceController@history', 'academic.attendance.history');
+    $router->get('/academic/attendance/report', 'Academic\AttendanceController@report', 'academic.attendance.report');
 
     // Academic Assessments
     $router->get('/academic/assessments', 'Academic\AssessmentController@index', 'academic.assessments.index');
