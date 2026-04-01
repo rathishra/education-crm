@@ -1,5 +1,5 @@
 -- ============================================================
--- MULTI-INSTITUTION EDUCATION CRM - SEED DATA
+-- MULTI-INSTITUTION MEDU MATRIX - SEED DATA
 -- Default roles, permissions, lead statuses, sources, and admin user
 -- ============================================================
 
@@ -276,7 +276,7 @@ VALUES (1, 1, NULL, NULL);
 -- DEFAULT SETTINGS
 -- ============================================================
 INSERT INTO `settings` (`institution_id`, `group`, `key`, `value`, `type`) VALUES
-(NULL, 'general', 'app_name', 'Education CRM', 'string'),
+(NULL, 'general', 'app_name', 'Edu Matrix', 'string'),
 (NULL, 'general', 'app_logo', '/assets/images/logo.png', 'string'),
 (NULL, 'general', 'date_format', 'd-m-Y', 'string'),
 (NULL, 'general', 'time_format', 'h:i A', 'string'),

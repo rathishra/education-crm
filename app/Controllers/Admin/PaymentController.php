@@ -11,7 +11,7 @@ class PaymentController extends BaseController
 
         $where = "1=1";
         $params = [];
-        $institutionId = session('institution_id');
+        $institutionId = $this->institutionId;
         if ($institutionId) { $where .= " AND p.institution_id = ?"; $params[] = $institutionId; }
 
         $search = $this->input('search');
@@ -26,10 +26,11 @@ class PaymentController extends BaseController
         }
         if ($dateFrom) { $where .= " AND DATE(p.payment_date) >= ?"; $params[] = $dateFrom; }
         if ($dateTo)   { $where .= " AND DATE(p.payment_date) <= ?"; $params[] = $dateTo; }
-        if ($mode)     { $where .= " AND p.payment_mode = ?"; $params[] = $mode; }
+        if ($mode)     { $where .= " AND p.payment_method = ?"; $params[] = $mode; }
 
         $page = (int)($this->input('page') ?: 1);
         $sql = "SELECT p.*,
+                       p.payment_method AS payment_mode,
                        CONCAT(s.first_name, ' ', s.last_name) as student_name,
                        s.student_id_number,
                        c.name as course_name,
@@ -44,8 +45,11 @@ class PaymentController extends BaseController
         $payments = db()->paginate($sql, $params, $page, config('app.per_page', 15));
 
         // Today's collection
-        $todayWhere = $institutionId ? "institution_id = {$institutionId} AND" : "";
-        db()->query("SELECT COALESCE(SUM(amount),0) as total FROM payments WHERE {$todayWhere} DATE(payment_date) = CURDATE() AND status = 'success'");
+        if ($institutionId) {
+            db()->query("SELECT COALESCE(SUM(amount),0) as total FROM payments WHERE institution_id = ? AND DATE(payment_date) = CURDATE() AND status = 'success'", [$institutionId]);
+        } else {
+            db()->query("SELECT COALESCE(SUM(amount),0) as total FROM payments WHERE DATE(payment_date) = CURDATE() AND status = 'success'");
+        }
         $todayCollection = db()->fetch()['total'] ?? 0;
 
         $this->view('payments/index', compact('payments', 'search', 'dateFrom', 'dateTo', 'mode', 'todayCollection'));
@@ -62,7 +66,7 @@ class PaymentController extends BaseController
             [$studentId]
         );
         $student = db()->fetch();
-        if (!$student) { $this->redirectWith('payments', 'Student not found.', 'error'); return; }
+        if (!$student) { $this->redirectWith(url('payments'), 'error', 'Student not found.'); return; }
 
         // Get pending installments
         db()->query(
@@ -89,7 +93,7 @@ class PaymentController extends BaseController
         ]);
         if ($errors) { $this->backWithErrors($errors); return; }
 
-        $institutionId = session('institution_id');
+        $institutionId = $this->institutionId;
         $user = auth();
 
         // Generate receipt number
@@ -129,7 +133,7 @@ class PaymentController extends BaseController
         }
 
         $this->logAudit('payment_collected', 'payment', $paymentId);
-        $this->redirectWith('payments/' . $paymentId . '/receipt', 'Payment recorded. Receipt #' . $receiptNumber, 'success');
+        $this->redirectWith(url('payments/' . $paymentId . '/receipt'), 'success', 'Payment recorded. Receipt #' . $receiptNumber);
     }
 
     public function receipt(int $id): void
@@ -155,7 +159,7 @@ class PaymentController extends BaseController
             [$id]
         );
         $payment = db()->fetch();
-        if (!$payment) { $this->redirectWith('payments', 'Payment not found.', 'error'); return; }
+        if (!$payment) { $this->redirectWith(url('payments'), 'error', 'Payment not found.'); return; }
 
         $this->view('payments/receipt', compact('payment'));
     }
@@ -166,7 +170,7 @@ class PaymentController extends BaseController
 
         $where = "s.deleted_at IS NULL";
         $params = [];
-        $institutionId = session('institution_id');
+        $institutionId = $this->institutionId;
         if ($institutionId) { $where .= " AND s.institution_id = ?"; $params[] = $institutionId; }
 
         db()->query(

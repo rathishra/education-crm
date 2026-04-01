@@ -28,7 +28,7 @@ class UserController extends BaseController
         $filters = [
             'search'         => $this->input('search'),
             'role_id'        => $this->input('role_id'),
-            'is_active'      => $this->input('status') !== null ? (int)$this->input('status') : null,
+            'is_active'      => $this->input('status') !== null ? $this->input('status') : null,
             'institution_id' => $this->institutionId,
         ];
 
@@ -40,11 +40,52 @@ class UserController extends BaseController
         $users = $this->userModel->getListPaginated($page, 15, $filters);
         $roles = $this->roleModel->getAllRoles();
 
+        // Stats
+        $this->db->query("SELECT COUNT(*) AS total, SUM(is_active) AS active, SUM(1 - is_active) AS inactive FROM users");
+        $sc = $this->db->fetch();
+        $overrideCount = 0;
+        $overrideUsers = [];
+        try {
+            $this->db->query("SELECT COUNT(DISTINCT user_id) AS cnt FROM user_permission_overrides WHERE (expires_at IS NULL OR expires_at >= CURDATE())");
+            $overrideCount = (int)($this->db->fetch()['cnt'] ?? 0);
+            $this->db->query("SELECT DISTINCT user_id FROM user_permission_overrides WHERE (expires_at IS NULL OR expires_at >= CURDATE())");
+            $overrideUsers = array_column($this->db->fetchAll(), 'user_id');
+        } catch (\Exception $e) {
+            // user_permission_overrides table not yet migrated — run database/19_rbac_enterprise.sql
+        }
+        $stats = [
+            'total'          => (int)($sc['total'] ?? 0),
+            'active'         => (int)($sc['active'] ?? 0),
+            'inactive'       => (int)($sc['inactive'] ?? 0),
+            'with_overrides' => $overrideCount,
+        ];
+
+        // Add role color/icon and override flags to each user row
+        $roleColors = [];
+        try {
+            $this->db->query("SELECT r.id, r.color, r.icon FROM roles r");
+            foreach ($this->db->fetchAll() as $r) {
+                $roleColors[$r['id']] = ['color' => $r['color'] ?? 'secondary', 'icon' => $r['icon'] ?? 'user'];
+            }
+        } catch (\Exception $e) {
+            // color/icon columns not yet migrated — run database/19_rbac_enterprise.sql
+        }
+
+        foreach ($users['data'] as &$u) {
+            $rid = $u['role_id'] ?? null;
+            $u['role_color']    = $rid && isset($roleColors[$rid]) ? $roleColors[$rid]['color'] : 'secondary';
+            $u['role_icon']     = $rid && isset($roleColors[$rid]) ? $roleColors[$rid]['icon']  : 'user';
+            $u['has_overrides'] = in_array($u['id'], $overrideUsers);
+        }
+        unset($u);
+
         $this->view('users.index', [
-            'pageTitle' => 'User Management',
-            'users'     => $users,
-            'roles'     => $roles,
-            'filters'   => $filters,
+            'pageTitle'   => 'User Management',
+            'users'       => $users,
+            'roles'       => $roles,
+            'filters'     => $filters,
+            'stats'       => $stats,
+            'currentUser' => $this->user,
         ]);
     }
 
@@ -142,22 +183,157 @@ class UserController extends BaseController
             return;
         }
 
-        // Get user's institutions
+        // Role visuals (color/icon added by migration 19_rbac_enterprise.sql)
+        $user['role_color'] = 'secondary';
+        $user['role_icon']  = 'user';
+        if ($user['role_id'] ?? null) {
+            try {
+                $this->db->query("SELECT color, icon FROM roles WHERE id = ?", [$user['role_id']]);
+                $rv = $this->db->fetch();
+                $user['role_color'] = $rv['color'] ?? 'secondary';
+                $user['role_icon']  = $rv['icon']  ?? 'user';
+            } catch (\Exception $e) { /* columns not yet migrated */ }
+        }
+
         $userInstitutions = $this->userModel->getUserInstitutions((int)$id);
 
-        // Get recent audit logs for this user
+        // Detailed permissions with override info
+        $userPermissions   = [];
+        $deniedPermissions = [];
+        try {
+            $permData = $this->userModel->getUserPermissionsDetailed((int)$id);
+            $userPermissions   = $permData['permissions'];
+            $deniedPermissions = $permData['denied'];
+        } catch (\Exception $e) { /* overrides table not yet migrated */ }
+
+        $userOverrideCount = 0;
+        try {
+            $this->db->query(
+                "SELECT COUNT(*) AS cnt FROM user_permission_overrides WHERE user_id = ? AND (expires_at IS NULL OR expires_at >= CURDATE())",
+                [(int)$id]
+            );
+            $userOverrideCount = (int)($this->db->fetch()['cnt'] ?? 0);
+        } catch (\Exception $e) { /* overrides table not yet migrated */ }
+
         $this->db->query(
-            "SELECT * FROM audit_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 20",
+            "SELECT * FROM audit_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 30",
             [(int)$id]
         );
         $auditLogs = $this->db->fetchAll();
 
         $this->view('users.show', [
-            'pageTitle'        => 'User Details',
-            'user'             => $user,
-            'userInstitutions' => $userInstitutions,
-            'auditLogs'        => $auditLogs,
+            'pageTitle'         => 'User Details',
+            'user'              => $user,
+            'userInstitutions'  => $userInstitutions,
+            'userPermissions'   => $userPermissions,
+            'deniedPermissions' => $deniedPermissions,
+            'userOverrideCount' => $userOverrideCount,
+            'auditLogs'         => $auditLogs,
         ]);
+    }
+
+    /**
+     * Per-user permission overrides page
+     */
+    public function permissions(string $id): void
+    {
+        $this->authorize('users.manage_permissions');
+
+        $user = $this->userModel->findWithRole((int)$id);
+        if (!$user) {
+            $this->redirectWith(url('users'), 'error', 'User not found.');
+            return;
+        }
+
+        // Role visuals (color/icon added by migration 19_rbac_enterprise.sql)
+        $user['role_color'] = 'secondary';
+        $user['role_icon']  = 'user';
+        if ($user['role_id'] ?? null) {
+            try {
+                $this->db->query("SELECT color, icon FROM roles WHERE id = ?", [$user['role_id']]);
+                $rv = $this->db->fetch();
+                $user['role_color'] = $rv['color'] ?? 'secondary';
+                $user['role_icon']  = $rv['icon']  ?? 'user';
+            } catch (\Exception $e) { /* columns not yet migrated */ }
+        }
+
+        // All permissions grouped by module
+        $allPermissions = $this->roleModel->getAllPermissionsGrouped();
+
+        // Role permissions
+        $rolePermissions = [];
+        if ($user['role_id'] ?? null) {
+            $this->db->query(
+                "SELECT p.id, p.name, p.slug, p.module FROM role_permissions rp JOIN permissions p ON p.id = rp.permission_id WHERE rp.role_id = ?",
+                [$user['role_id']]
+            );
+            $rolePermissions = $this->db->fetchAll();
+        }
+
+        // Current overrides (requires migration 19_rbac_enterprise.sql)
+        $overrides = [];
+        try {
+            $this->db->query(
+                "SELECT * FROM user_permission_overrides WHERE user_id = ? AND (expires_at IS NULL OR expires_at >= CURDATE())",
+                [(int)$id]
+            );
+            $overrides = $this->db->fetchAll();
+        } catch (\Exception $e) { /* table not yet migrated */ }
+
+        $this->view('users.permissions', [
+            'pageTitle'       => 'Permission Overrides',
+            'user'            => $user,
+            'allPermissions'  => $allPermissions,
+            'rolePermissions' => $rolePermissions,
+            'overrides'       => $overrides,
+        ]);
+    }
+
+    /**
+     * Save per-user permission overrides (AJAX)
+     */
+    public function savePermissions(string $id): void
+    {
+        $this->authorize('users.manage_permissions');
+
+        $user = $this->userModel->find((int)$id);
+        if (!$user) {
+            $this->json(['status' => 'error', 'message' => 'User not found.'], 404);
+            return;
+        }
+
+        $overridesInput = (array)($_POST['overrides'] ?? []);
+
+        try {
+            $this->db->beginTransaction();
+
+            // Remove all existing overrides for this user
+            $this->db->delete('user_permission_overrides', 'user_id = ?', [(int)$id]);
+
+            $count = 0;
+            foreach ($overridesInput as $permId => $data) {
+                $type = $data['type'] ?? 'none';
+                if ($type === 'none') continue;
+
+                $this->db->insert('user_permission_overrides', [
+                    'user_id'       => (int)$id,
+                    'permission_id' => (int)$permId,
+                    'type'          => $type,
+                    'reason'        => trim($data['reason'] ?? '') ?: null,
+                    'expires_at'    => !empty($data['expires_at']) ? $data['expires_at'] : null,
+                    'granted_by'    => $this->user['id'] ?? null,
+                ]);
+                $count++;
+            }
+
+            $this->logAudit('update_permissions', 'user', (int)$id);
+            $this->db->commit();
+
+            $this->json(['status' => 'success', 'message' => "$count override(s) saved successfully."]);
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            $this->json(['status' => 'error', 'message' => 'Failed to save overrides.'], 500);
+        }
     }
 
     /**

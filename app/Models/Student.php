@@ -152,15 +152,17 @@ class Student extends BaseModel
     {
         $sql = "SELECT s.*, c.name as course_name, c.code as course_code,
                        b.name as batch_name, b.start_date as batch_start, b.end_date as batch_end,
+                       sec.name as section_name, sec.code as section_code,
                        d.name as department_name,
                        i.name as institution_name, i.code as institution_code,
                        CONCAT(uc.first_name, ' ', uc.last_name) as created_by_name
                 FROM students s
-                LEFT JOIN courses      c  ON c.id  = s.course_id
-                LEFT JOIN batches       b  ON b.id  = s.batch_id
-                LEFT JOIN departments  d  ON d.id  = s.department_id
-                LEFT JOIN institutions i  ON i.id  = s.institution_id
-                LEFT JOIN users        uc ON uc.id = s.created_by
+                LEFT JOIN courses      c   ON c.id   = s.course_id
+                LEFT JOIN batches       b   ON b.id   = s.batch_id
+                LEFT JOIN sections     sec ON sec.id  = s.section_id
+                LEFT JOIN departments  d   ON d.id   = s.department_id
+                LEFT JOIN institutions i   ON i.id   = s.institution_id
+                LEFT JOIN users        uc  ON uc.id  = s.created_by
                 WHERE s.id = ? AND s.deleted_at IS NULL";
         $this->db->query($sql, [$id]);
         $student = $this->db->fetch();

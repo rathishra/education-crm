@@ -91,6 +91,9 @@
                         </td>
                         <td class="text-center"><?= e($batch['student_count'] ?? 0) ?></td>
                         <td class="text-end">
+                            <a href="<?= url('batches/' . $batch['id'] . '/subjects') ?>" class="btn btn-sm btn-outline-info" title="Manage Subjects">
+                                <i class="fas fa-book"></i>
+                            </a>
                             <?php if (hasPermission('batches.edit')): ?>
                             <a href="<?= url('batches/' . $batch['id'] . '/edit') ?>" class="btn btn-sm btn-outline-primary" title="Edit">
                                 <i class="fas fa-edit"></i>

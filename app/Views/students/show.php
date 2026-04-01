@@ -32,10 +32,42 @@
                 <div class="mb-2"><small class="text-muted d-block">Email</small><?= e($student['email']??'-') ?></div>
                 <div class="mb-2"><small class="text-muted d-block">Course</small><?= e($student['course_name']??'-') ?></div>
                 <div class="mb-2"><small class="text-muted d-block">Batch</small><?= e($student['batch_name']??'-') ?></div>
+                <div class="mb-2">
+                    <small class="text-muted d-block">Section</small>
+                    <?= e($student['section_name']??'-') ?>
+                </div>
                 <div class="mb-2"><small class="text-muted d-block">Department</small><?= e($student['department_name']??'-') ?></div>
                 <div><small class="text-muted d-block">Admission Date</small><?= $student['admission_date'] ? formatDate($student['admission_date']) : '-' ?></div>
             </div>
         </div>
+        <!-- Section Allotment -->
+        <?php if (hasPermission('students.edit') && !empty($sections)): ?>
+        <div class="card mb-3">
+            <div class="card-header bg-light"><i class="fas fa-object-group me-2"></i>Section Allotment</div>
+            <div class="card-body">
+                <?php if (!empty($student['section_name'])): ?>
+                <div class="alert alert-success py-2 mb-2">
+                    <i class="fas fa-check-circle me-1"></i>
+                    Currently in <strong><?= e($student['section_name']) ?></strong>
+                </div>
+                <?php endif; ?>
+                <form method="POST" action="<?= url('students/' . $student['id'] . '/assign-section') ?>">
+                    <?= csrfField() ?>
+                    <div class="input-group">
+                        <select class="form-select form-select-sm" name="section_id" required>
+                            <option value="">Select Section</option>
+                            <?php foreach ($sections as $sec): ?>
+                            <option value="<?= $sec['id'] ?>" <?= ($student['section_id'] ?? 0) == $sec['id'] ? 'selected' : '' ?>>
+                                <?= e($sec['name']) ?> (Cap: <?= $sec['capacity'] ?>)
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button class="btn btn-sm btn-primary" type="submit">Assign</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <?php endif; ?>
         <!-- Fee Summary -->
         <?php 
            $feeSql = "SELECT SUM(net_amount) as total_net, SUM(paid_amount) as total_paid FROM student_fees WHERE student_id = ? AND status != 'waived'";

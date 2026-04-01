@@ -81,10 +81,11 @@ class User extends BaseModel
     }
 
     /**
-     * Get permissions for user at a specific institution
+     * Get permissions for user at a specific institution (with override support)
      */
     public function getUserPermissions(int $userId, ?int $institutionId = null): array
     {
+        // Base role permissions
         $sql = "SELECT DISTINCT p.slug
                 FROM user_roles ur
                 JOIN role_permissions rp ON rp.role_id = ur.role_id
@@ -98,8 +99,73 @@ class User extends BaseModel
         }
 
         $this->db->query($sql, $params);
-        $results = $this->db->fetchAll();
-        return array_column($results, 'slug');
+        $slugs = array_column($this->db->fetchAll(), 'slug');
+        $slugSet = array_flip($slugs);
+
+        // Apply overrides (non-expired) — requires migration 19_rbac_enterprise.sql
+        try {
+            $this->db->query(
+                "SELECT upo.type, p.slug
+                 FROM user_permission_overrides upo
+                 JOIN permissions p ON p.id = upo.permission_id
+                 WHERE upo.user_id = ?
+                   AND (upo.expires_at IS NULL OR upo.expires_at >= CURDATE())",
+                [$userId]
+            );
+            foreach ($this->db->fetchAll() as $ov) {
+                if ($ov['type'] === 'grant') {
+                    $slugSet[$ov['slug']] = true;
+                } else {
+                    unset($slugSet[$ov['slug']]);
+                }
+            }
+        } catch (\Exception $e) { /* table not yet migrated */ }
+
+        return array_keys($slugSet);
+    }
+
+    /**
+     * Get full permission details for a user including override flags
+     */
+    public function getUserPermissionsDetailed(int $userId): array
+    {
+        // Role permissions
+        $this->db->query(
+            "SELECT DISTINCT p.id, p.name, p.slug, p.module, NULL as is_override, NULL as override_type
+             FROM user_roles ur
+             JOIN role_permissions rp ON rp.role_id = ur.role_id
+             JOIN permissions p ON p.id = rp.permission_id
+             WHERE ur.user_id = ?
+             ORDER BY p.module, p.name",
+            [$userId]
+        );
+        $byId = [];
+        foreach ($this->db->fetchAll() as $p) {
+            $byId[$p['id']] = $p;
+        }
+
+        // Overrides — requires migration 19_rbac_enterprise.sql
+        $denied = [];
+        try {
+            $this->db->query(
+                "SELECT upo.permission_id, upo.type, p.id, p.name, p.slug, p.module
+                 FROM user_permission_overrides upo
+                 JOIN permissions p ON p.id = upo.permission_id
+                 WHERE upo.user_id = ?
+                   AND (upo.expires_at IS NULL OR upo.expires_at >= CURDATE())",
+                [$userId]
+            );
+            foreach ($this->db->fetchAll() as $ov) {
+                if ($ov['type'] === 'grant') {
+                    $byId[$ov['id']] = array_merge($ov, ['is_override' => true, 'override_type' => 'grant']);
+                } else {
+                    $denied[$ov['id']] = array_merge($ov, ['is_override' => true, 'override_type' => 'deny']);
+                    unset($byId[$ov['id']]);
+                }
+            }
+        } catch (\Exception $e) { /* table not yet migrated */ }
+
+        return ['permissions' => array_values($byId), 'denied' => array_values($denied)];
     }
 
     /**

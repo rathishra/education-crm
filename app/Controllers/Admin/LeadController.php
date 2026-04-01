@@ -4,36 +4,41 @@ namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
 use App\Models\Lead;
 use App\Models\User;
-use App\Models\Student;
 
 class LeadController extends BaseController
 {
     private Lead $leadModel;
     private User $userModel;
-    private Student $studentModel;
 
     public function __construct()
     {
         parent::__construct();
         $this->leadModel = new Lead();
         $this->userModel = new User();
-        $this->studentModel = new Student();
+        $this->leadModel->setInstitutionScope($this->institutionId);
     }
+
+    // =========================================================
+    // INDEX
+    // =========================================================
 
     public function index(): void
     {
         $this->authorize('leads.view');
 
-        $page = (int)($this->input('page') ?? 1);
+        $page = max(1, (int)($this->input('page') ?? 1));
+
         $filters = [
-            'search'      => $this->input('search'),
-            'status_id'   => $this->input('status_id'),
-            'source_id'   => $this->input('source_id'),
-            'assigned_to' => $this->input('assigned_to'),
-            'priority'    => $this->input('priority'),
-            'course_id'   => $this->input('course_id'),
-            'date_from'   => $this->input('date_from'),
-            'date_to'     => $this->input('date_to'),
+            'search'              => $this->input('search'),
+            'status_id'           => $this->input('status_id'),
+            'source_id'           => $this->input('source_id'),
+            'assigned_to'         => $this->input('assigned_to'),
+            'priority'            => $this->input('priority'),
+            'course_id'           => $this->input('course_id'),
+            'department_id'       => $this->input('department_id'),
+            'date_from'           => $this->input('date_from'),
+            'date_to'             => $this->input('date_to'),
+            'next_followup_overdue' => $this->input('followup_overdue'),
         ];
 
         // Counselors see only their leads unless they have view_all
@@ -41,251 +46,402 @@ class LeadController extends BaseController
             $filters['only_mine'] = $this->user['id'];
         }
 
-        $leads = $this->leadModel->getListPaginated($page, 15, $filters);
         $statuses = $this->leadModel->getStatuses();
-        $sources = $this->leadModel->getSources();
-        $counselors = $this->userModel->getCounselors($this->institutionId);
+        $sources  = $this->leadModel->getSources();
+        $stats    = $this->leadModel->getStats($this->institutionId);
 
-        $this->view('leads.index', [
-            'pageTitle'  => 'Lead Management',
-            'leads'      => $leads,
-            'statuses'   => $statuses,
-            'sources'    => $sources,
-            'counselors' => $counselors,
-            'filters'    => $filters,
+        // Counselors list via raw query
+        $this->db->query(
+            "SELECT DISTINCT u.id, CONCAT(u.first_name, ' ', u.last_name) AS name
+             FROM users u
+             INNER JOIN user_roles ur ON ur.user_id = u.id AND ur.institution_id = ?
+             WHERE u.is_active = 1
+             ORDER BY u.first_name",
+            [$this->institutionId]
+        );
+        $counselors = $this->db->fetchAll();
+
+        // Courses
+        $this->db->query(
+            "SELECT id, name FROM courses WHERE status = 'active' ORDER BY name"
+        );
+        $courses = $this->db->fetchAll();
+
+        // Departments
+        $this->db->query(
+            "SELECT id, name FROM departments WHERE institution_id = ? ORDER BY name",
+            [$this->institutionId]
+        );
+        $departments = $this->db->fetchAll();
+
+        $leads = $this->leadModel->getListPaginated($page, 15, $filters);
+
+        $this->view('leads/index', [
+            'pageTitle'   => 'Lead Management',
+            'leads'       => $leads,
+            'statuses'    => $statuses,
+            'sources'     => $sources,
+            'stats'       => $stats,
+            'counselors'  => $counselors,
+            'courses'     => $courses,
+            'departments' => $departments,
+            'filters'     => $filters,
         ]);
     }
+
+    // =========================================================
+    // CREATE
+    // =========================================================
 
     public function create(): void
     {
         $this->authorize('leads.create');
 
-        $statuses = $this->leadModel->getStatuses();
-        $sources = $this->leadModel->getSources();
-        $counselors = $this->userModel->getCounselors($this->institutionId);
+        [$institutions, $departments, $courses, $counselors, $sources, $statuses] =
+            $this->loadFormDropdowns();
 
-        // Get courses for current institution
-        $this->db->query(
-            "SELECT id, name, code FROM courses WHERE institution_id = ? AND status = 'active' ORDER BY name",
-            [$this->institutionId]
-        );
-        $courses = $this->db->fetchAll();
-
-        $this->view('leads.create', [
-            'pageTitle'  => 'Add Lead',
-            'statuses'   => $statuses,
-            'sources'    => $sources,
-            'counselors' => $counselors,
-            'courses'    => $courses,
+        $this->view('leads/create', [
+            'pageTitle'    => 'Add Lead',
+            'institutions' => $institutions,
+            'departments'  => $departments,
+            'courses'      => $courses,
+            'counselors'   => $counselors,
+            'sources'      => $sources,
+            'statuses'     => $statuses,
         ]);
     }
+
+    // =========================================================
+    // STORE
+    // =========================================================
 
     public function store(): void
     {
         $this->authorize('leads.create');
-        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
 
-        $data = $this->postData([
-            'first_name', 'last_name', 'email', 'phone', 'alternate_phone',
-            'date_of_birth', 'gender', 'address_line1', 'address_line2',
-            'city', 'state', 'pincode', 'country',
-            'qualification', 'percentage', 'passing_year', 'school_college',
-            'lead_source_id', 'lead_status_id', 'assigned_to',
-            'course_interested_id', 'priority', 'notes'
-        ]);
+        if (!verifyCsrf()) {
+            $this->backWithErrors(['Session expired. Please try again.']);
+            return;
+        }
 
-        $errors = $this->validate($data, [
+        $errors = $this->validate($_POST, [
             'first_name' => 'required|max:100',
-            'phone'      => 'required|phone',
+            'phone'      => 'required',
             'email'      => 'email',
         ]);
 
         if (!empty($errors)) {
-            $this->backWithErrors(array_values($errors), $data);
+            $this->backWithErrors(array_values($errors), $_POST);
             return;
         }
 
-        // Check duplicates
-        $duplicate = $this->leadModel->checkDuplicate($data['phone'], $data['email'] ?: null);
+        $phone = sanitize(trim($_POST['phone'] ?? ''));
+        $email = sanitize(trim($_POST['email'] ?? ''));
+
+        // Non-blocking duplicate check
+        $duplicate = $this->leadModel->checkDuplicateAjax(
+            $phone,
+            $email,
+            $this->institutionId
+        );
         if ($duplicate) {
-            $dupMsg = "Possible duplicate found: {$duplicate['first_name']} {$duplicate['last_name']} ({$duplicate['lead_number']})";
-            flash('warning', $dupMsg);
-            // Mark but still allow creation
-            $data['is_duplicate'] = 1;
-            $data['duplicate_of'] = $duplicate['id'];
+            flash('warning', 'Possible duplicate: ' . $duplicate['first_name'] . ' '
+                . $duplicate['last_name'] . ' (' . $duplicate['lead_number'] . ')');
         }
 
-        // Set defaults
-        $data['institution_id'] = $this->institutionId;
-        $data['lead_number'] = $this->leadModel->generateLeadNumber($this->institutionId);
-        $data['lead_status_id'] = $data['lead_status_id'] ?: $this->leadModel->getDefaultStatusId();
-        $data['created_by'] = $this->user['id'];
+        // Generate lead number
+        $leadNumber = $this->leadModel->generateLeadNumber($this->institutionId);
 
-        // Clean empty values
-        foreach (['lead_source_id', 'assigned_to', 'course_interested_id', 'percentage', 'passing_year', 'duplicate_of'] as $field) {
-            if (empty($data[$field])) $data[$field] = null;
-        }
-        if (empty($data['date_of_birth'])) $data['date_of_birth'] = null;
-        if (empty($data['country'])) $data['country'] = 'India';
+        // Resolve default status
+        $leadStatusId = (int)($_POST['lead_status_id'] ?? 0)
+            ?: $this->leadModel->getDefaultStatusId();
+
+        // Assigned counselor (form field is counselor_id)
+        $assignedTo = (int)($_POST['counselor_id'] ?? $_POST['assigned_to'] ?? 0) ?: null;
+
+        $insertData = [
+            // Auto fields
+            'institution_id'   => $this->institutionId,
+            'lead_number'      => $leadNumber,
+            'lead_status_id'   => $leadStatusId,
+            'created_by'       => $this->user['id'],
+
+            // Personal
+            'first_name'       => sanitize(trim($_POST['first_name'] ?? '')),
+            'last_name'        => sanitize(trim($_POST['last_name'] ?? '')) ?: null,
+            'email'            => $email ?: null,
+            'phone'            => $phone,
+            'gender'           => sanitize($_POST['gender'] ?? '') ?: null,
+            'date_of_birth'    => ($_POST['date_of_birth'] ?? '') ?: null,
+
+            // Academic interest
+            'course_interested_id' => (int)($_POST['course_interested_id'] ?? 0) ?: null,
+            'department_id'        => (int)($_POST['department_id'] ?? 0) ?: null,
+            'academic_year'        => sanitize(trim($_POST['academic_year'] ?? '')) ?: null,
+            'preferred_mode'       => sanitize($_POST['preferred_mode'] ?? '') ?: null,
+
+            // Lead meta
+            'priority'         => sanitize($_POST['priority'] ?? 'warm') ?: 'warm',
+            'lead_score'       => isset($_POST['lead_score']) && $_POST['lead_score'] !== ''
+                                    ? (int)$_POST['lead_score'] : null,
+            'expected_join_date' => ($_POST['expected_join_date'] ?? '') ?: null,
+            'budget'           => isset($_POST['budget']) && $_POST['budget'] !== ''
+                                    ? (float)$_POST['budget'] : null,
+
+            // Source tracking
+            'lead_source_id'   => (int)($_POST['lead_source_id'] ?? 0) ?: null,
+            'campaign_name'    => sanitize(trim($_POST['campaign_name'] ?? '')) ?: null,
+            'reference_name'   => sanitize(trim($_POST['reference_name'] ?? '')) ?: null,
+
+            // Assignment
+            'assigned_to'      => $assignedTo,
+
+            // Notes & followup
+            'notes'            => sanitize(trim($_POST['notes'] ?? '')) ?: null,
+            'next_followup_date' => ($_POST['next_followup_date'] ?? '') ?: null,
+            'followup_mode'    => sanitize($_POST['followup_mode'] ?? '') ?: null,
+
+            // Preferences
+            'hostel_required'      => isset($_POST['hostel_required']) ? 1 : 0,
+            'transport_required'   => isset($_POST['transport_required']) ? 1 : 0,
+            'scholarship_required' => isset($_POST['scholarship_required']) ? 1 : 0,
+
+            // Link to enquiry if converted
+            'enquiry_id'       => (int)($_POST['enquiry_id'] ?? 0) ?: null,
+        ];
 
         try {
-            $leadId = $this->leadModel->withoutScope()->create($data);
+            $leadId = $this->leadModel->withoutScope()->create($insertData);
 
-            // Log activity
-            $this->leadModel->addActivity($leadId, 'system', 'Lead created', null, $this->user['id']);
+            $this->leadModel->addActivity(
+                $leadId,
+                'system',
+                'Lead created',
+                null,
+                $this->user['id']
+            );
 
-            // If assigned, log and notify
-            if (!empty($data['assigned_to'])) {
-                $this->leadModel->assignTo($leadId, (int)$data['assigned_to'], $this->user['id']);
+            if ($assignedTo) {
+                $this->leadModel->assignTo($leadId, $assignedTo, $this->user['id']);
             }
 
             $this->logAudit('create', 'lead', $leadId);
-            $this->redirectWith(url('leads/' . $leadId), 'success', 'Lead created successfully. Number: ' . $data['lead_number']);
+            $this->redirectWith(
+                url('leads/' . $leadId),
+                'success',
+                'Lead created. Number: ' . $leadNumber
+            );
         } catch (\Exception $e) {
-            appLog("Lead create failed: " . $e->getMessage(), 'error');
-            $this->backWithErrors(['Failed to create lead.'], $data);
+            appLog('Lead create failed: ' . $e->getMessage(), 'error');
+            $this->backWithErrors(['Failed to create lead. Please try again.'], $_POST);
         }
     }
 
-    public function show(string $id): void
+    // =========================================================
+    // SHOW
+    // =========================================================
+
+    public function show(int $id): void
     {
         $this->authorize('leads.view');
 
-        $lead = $this->leadModel->findWithDetails((int)$id);
+        $lead = $this->leadModel->findWithDetails($id);
         if (!$lead) {
             $this->redirectWith(url('leads'), 'error', 'Lead not found.');
             return;
         }
 
-        $statuses = $this->leadModel->getStatuses();
-        $sources = $this->leadModel->getSources();
-        $counselors = $this->userModel->getCounselors($this->institutionId);
+        $statuses   = $this->leadModel->getStatuses();
+        $sources    = $this->leadModel->getSources();
 
-        $this->view('leads.show', [
-            'pageTitle'  => 'Lead Details - ' . $lead['lead_number'],
-            'lead'       => $lead,
-            'statuses'   => $statuses,
-            'sources'    => $sources,
-            'counselors' => $counselors,
-        ]);
+        $this->db->query(
+            "SELECT DISTINCT u.id, CONCAT(u.first_name, ' ', u.last_name) AS name
+             FROM users u
+             INNER JOIN user_roles ur ON ur.user_id = u.id AND ur.institution_id = ?
+             WHERE u.is_active = 1
+             ORDER BY u.first_name",
+            [$this->institutionId]
+        );
+        $counselors = $this->db->fetchAll();
+
+        $this->view('leads/show', compact('lead', 'statuses', 'sources', 'counselors'));
     }
 
-    public function edit(string $id): void
+    // =========================================================
+    // EDIT
+    // =========================================================
+
+    public function edit(int $id): void
     {
         $this->authorize('leads.edit');
 
-        $lead = $this->leadModel->find((int)$id);
+        $lead = $this->leadModel->findWithDetails($id);
         if (!$lead) {
             $this->redirectWith(url('leads'), 'error', 'Lead not found.');
             return;
         }
 
-        $statuses = $this->leadModel->getStatuses();
-        $sources = $this->leadModel->getSources();
-        $counselors = $this->userModel->getCounselors($this->institutionId);
-        $this->db->query("SELECT id, name FROM courses WHERE institution_id = ? AND status = 'active' ORDER BY name", [$lead['institution_id']]);
-        $courses = $this->db->fetchAll();
+        [$institutions, $departments, $courses, $counselors, $sources, $statuses] =
+            $this->loadFormDropdowns();
 
-        $this->view('leads.edit', [
-            'pageTitle'  => 'Edit Lead',
-            'lead'       => $lead,
-            'statuses'   => $statuses,
-            'sources'    => $sources,
-            'counselors' => $counselors,
-            'courses'    => $courses,
+        $this->view('leads/edit', [
+            'pageTitle'    => 'Edit Lead — ' . $lead['lead_number'],
+            'lead'         => $lead,
+            'institutions' => $institutions,
+            'departments'  => $departments,
+            'courses'      => $courses,
+            'counselors'   => $counselors,
+            'sources'      => $sources,
+            'statuses'     => $statuses,
         ]);
     }
 
-    public function update(string $id): void
+    // =========================================================
+    // UPDATE
+    // =========================================================
+
+    public function update(int $id): void
     {
         $this->authorize('leads.edit');
-        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
 
-        $lead = $this->leadModel->find((int)$id);
+        if (!verifyCsrf()) {
+            $this->backWithErrors(['Session expired. Please try again.']);
+            return;
+        }
+
+        $lead = $this->leadModel->findWithDetails($id);
         if (!$lead) {
             $this->redirectWith(url('leads'), 'error', 'Lead not found.');
             return;
         }
 
-        $data = $this->postData([
-            'first_name', 'last_name', 'email', 'phone', 'alternate_phone',
-            'date_of_birth', 'gender', 'address_line1', 'address_line2',
-            'city', 'state', 'pincode', 'country',
-            'qualification', 'percentage', 'passing_year', 'school_college',
-            'lead_source_id', 'lead_status_id', 'assigned_to',
-            'course_interested_id', 'priority', 'notes'
-        ]);
-
-        $errors = $this->validate($data, [
+        $errors = $this->validate($_POST, [
             'first_name' => 'required|max:100',
-            'phone'      => 'required|phone',
+            'phone'      => 'required',
+            'email'      => 'email',
         ]);
 
         if (!empty($errors)) {
-            $this->backWithErrors(array_values($errors), $data);
+            $this->backWithErrors(array_values($errors), $_POST);
             return;
         }
 
-        $data['updated_by'] = $this->user['id'];
-        foreach (['lead_source_id', 'assigned_to', 'course_interested_id', 'percentage', 'passing_year'] as $field) {
-            if (empty($data[$field])) $data[$field] = null;
-        }
-        if (empty($data['date_of_birth'])) $data['date_of_birth'] = null;
+        $newStatusId  = (int)($_POST['lead_status_id'] ?? 0) ?: null;
+        $newAssigned  = (int)($_POST['counselor_id'] ?? $_POST['assigned_to'] ?? 0) ?: null;
 
         // Detect status change
-        if ($data['lead_status_id'] != $lead['lead_status_id']) {
-            $this->leadModel->updateStatus((int)$id, (int)$data['lead_status_id'], $this->user['id']);
-            unset($data['lead_status_id']); // already updated
+        if ($newStatusId && $newStatusId !== (int)$lead['lead_status_id']) {
+            $this->leadModel->updateStatus($id, $newStatusId, $this->user['id']);
         }
 
         // Detect assignment change
-        if (($data['assigned_to'] ?? null) != $lead['assigned_to'] && !empty($data['assigned_to'])) {
-            $this->leadModel->assignTo((int)$id, (int)$data['assigned_to'], $this->user['id']);
-            unset($data['assigned_to']);
+        if ($newAssigned && $newAssigned !== (int)($lead['assigned_to'] ?? 0)) {
+            $this->leadModel->assignTo($id, $newAssigned, $this->user['id']);
         }
 
-        $this->leadModel->update((int)$id, $data);
-        $this->leadModel->addActivity((int)$id, 'system', 'Lead details updated', null, $this->user['id']);
-        $this->logAudit('update', 'lead', (int)$id, $lead, $data);
-        $this->redirectWith(url('leads/' . $id), 'success', 'Lead updated successfully.');
+        $updateData = [
+            // Personal
+            'first_name'       => sanitize(trim($_POST['first_name'] ?? '')),
+            'last_name'        => sanitize(trim($_POST['last_name'] ?? '')) ?: null,
+            'email'            => sanitize(trim($_POST['email'] ?? '')) ?: null,
+            'phone'            => sanitize(trim($_POST['phone'] ?? '')),
+            'gender'           => sanitize($_POST['gender'] ?? '') ?: null,
+            'date_of_birth'    => ($_POST['date_of_birth'] ?? '') ?: null,
+
+            // Academic interest
+            'course_interested_id' => (int)($_POST['course_interested_id'] ?? 0) ?: null,
+            'department_id'        => (int)($_POST['department_id'] ?? 0) ?: null,
+            'academic_year'        => sanitize(trim($_POST['academic_year'] ?? '')) ?: null,
+            'preferred_mode'       => sanitize($_POST['preferred_mode'] ?? '') ?: null,
+
+            // Lead meta
+            'priority'         => sanitize($_POST['priority'] ?? 'warm') ?: 'warm',
+            'lead_score'       => isset($_POST['lead_score']) && $_POST['lead_score'] !== ''
+                                    ? (int)$_POST['lead_score'] : null,
+            'expected_join_date' => ($_POST['expected_join_date'] ?? '') ?: null,
+            'budget'           => isset($_POST['budget']) && $_POST['budget'] !== ''
+                                    ? (float)$_POST['budget'] : null,
+
+            // Source tracking
+            'lead_source_id'   => (int)($_POST['lead_source_id'] ?? 0) ?: null,
+            'campaign_name'    => sanitize(trim($_POST['campaign_name'] ?? '')) ?: null,
+            'reference_name'   => sanitize(trim($_POST['reference_name'] ?? '')) ?: null,
+
+            // Notes & followup
+            'notes'            => sanitize(trim($_POST['notes'] ?? '')) ?: null,
+            'next_followup_date' => ($_POST['next_followup_date'] ?? '') ?: null,
+            'followup_mode'    => sanitize($_POST['followup_mode'] ?? '') ?: null,
+
+            // Preferences
+            'hostel_required'      => isset($_POST['hostel_required']) ? 1 : 0,
+            'transport_required'   => isset($_POST['transport_required']) ? 1 : 0,
+            'scholarship_required' => isset($_POST['scholarship_required']) ? 1 : 0,
+
+            'updated_by' => $this->user['id'],
+        ];
+
+        $this->leadModel->update($id, $updateData);
+        $this->leadModel->addActivity(
+            $id,
+            'system',
+            'Lead details updated',
+            null,
+            $this->user['id']
+        );
+        $this->logAudit('update', 'lead', $id, $lead, $updateData);
+        $this->redirectWith(url('leads/' . $id), 'success', 'Lead updated.');
     }
 
-    public function destroy(string $id): void
+    // =========================================================
+    // DESTROY
+    // =========================================================
+
+    public function destroy(int $id): void
     {
         $this->authorize('leads.delete');
 
-        $lead = $this->leadModel->find((int)$id);
+        $lead = $this->leadModel->find($id);
         if (!$lead) {
             $this->redirectWith(url('leads'), 'error', 'Lead not found.');
             return;
         }
 
-        $this->leadModel->delete((int)$id); // soft delete
-        $this->logAudit('delete', 'lead', (int)$id);
+        $this->leadModel->delete($id); // soft delete
+        $this->logAudit('delete', 'lead', $id);
         $this->redirectWith(url('leads'), 'success', 'Lead deleted successfully.');
     }
 
-    /**
-     * Quick status update (AJAX)
-     */
-    public function updateStatus(string $id): void
+    // =========================================================
+    // UPDATE STATUS (AJAX-aware)
+    // =========================================================
+
+    public function updateStatus(int $id): void
     {
         $this->authorize('leads.edit');
+
         $statusId = (int)($_POST['status_id'] ?? 0);
 
         if (!$statusId) {
-            $this->error('Invalid status.');
+            if (isAjax()) {
+                $this->error('Invalid status ID.');
+                return;
+            }
+            $this->redirectWith(url('leads/' . $id), 'error', 'Invalid status.');
             return;
         }
 
-        $lead = $this->leadModel->find((int)$id);
+        $lead = $this->leadModel->find($id);
         if (!$lead) {
-            $this->error('Lead not found.', 404);
+            if (isAjax()) {
+                $this->error('Lead not found.', 404);
+                return;
+            }
+            $this->redirectWith(url('leads'), 'error', 'Lead not found.');
             return;
         }
 
-        $this->leadModel->updateStatus((int)$id, $statusId, $this->user['id']);
-        $this->logAudit('update_status', 'lead', (int)$id);
+        $this->leadModel->updateStatus($id, $statusId, $this->user['id']);
+        $this->logAudit('update_status', 'lead', $id);
 
         if (isAjax()) {
             $this->success('Status updated successfully.');
@@ -294,27 +450,37 @@ class LeadController extends BaseController
         $this->redirectWith(url('leads/' . $id), 'success', 'Status updated.');
     }
 
-    /**
-     * Assign lead (AJAX)
-     */
-    public function assign(string $id): void
+    // =========================================================
+    // ASSIGN (AJAX-aware)
+    // =========================================================
+
+    public function assign(int $id): void
     {
-        $this->authorize('leads.assign');
+        $this->authorize('leads.edit');
+
         $counselorId = (int)($_POST['assigned_to'] ?? 0);
 
         if (!$counselorId) {
-            $this->error('Select a counselor.');
+            if (isAjax()) {
+                $this->error('Please select a counselor.');
+                return;
+            }
+            $this->redirectWith(url('leads/' . $id), 'error', 'Please select a counselor.');
             return;
         }
 
-        $lead = $this->leadModel->find((int)$id);
+        $lead = $this->leadModel->find($id);
         if (!$lead) {
-            $this->error('Lead not found.', 404);
+            if (isAjax()) {
+                $this->error('Lead not found.', 404);
+                return;
+            }
+            $this->redirectWith(url('leads'), 'error', 'Lead not found.');
             return;
         }
 
-        $this->leadModel->assignTo((int)$id, $counselorId, $this->user['id']);
-        $this->logAudit('assign', 'lead', (int)$id);
+        $this->leadModel->assignTo($id, $counselorId, $this->user['id']);
+        $this->logAudit('assign', 'lead', $id);
 
         if (isAjax()) {
             $this->success('Lead assigned successfully.');
@@ -323,32 +489,39 @@ class LeadController extends BaseController
         $this->redirectWith(url('leads/' . $id), 'success', 'Lead assigned.');
     }
 
-    /**
-     * Add activity note (AJAX)
-     */
-    public function addActivity(string $id): void
+    // =========================================================
+    // ADD ACTIVITY (AJAX-aware)
+    // =========================================================
+
+    public function addActivity(int $id): void
     {
         $this->authorize('leads.edit');
 
-        $type = $_POST['type'] ?? 'note';
-        $title = trim($_POST['title'] ?? '');
-        $description = trim($_POST['description'] ?? '');
+        $type        = sanitize($_POST['type'] ?? 'note');
+        $title       = sanitize(trim($_POST['title'] ?? ''));
+        $description = sanitize(trim($_POST['description'] ?? '')) ?: null;
 
         if (empty($title)) {
-            $this->error('Title is required.');
+            if (isAjax()) {
+                $this->error('Activity title is required.');
+                return;
+            }
+            $this->backWithErrors(['Activity title is required.']);
             return;
         }
 
-        $lead = $this->leadModel->find((int)$id);
+        $lead = $this->leadModel->find($id);
         if (!$lead) {
-            $this->error('Lead not found.', 404);
+            if (isAjax()) {
+                $this->error('Lead not found.', 404);
+                return;
+            }
+            $this->redirectWith(url('leads'), 'error', 'Lead not found.');
             return;
         }
 
-        $this->leadModel->addActivity((int)$id, $type, $title, $description, $this->user['id']);
-
-        // Update last contacted
-        $this->leadModel->update((int)$id, ['last_contacted_at' => date('Y-m-d H:i:s')]);
+        $this->leadModel->addActivity($id, $type, $title, $description, $this->user['id']);
+        $this->leadModel->update($id, ['last_contacted_at' => date('Y-m-d H:i:s')]);
 
         if (isAjax()) {
             $this->success('Activity added.');
@@ -357,105 +530,301 @@ class LeadController extends BaseController
         $this->redirectWith(url('leads/' . $id), 'success', 'Activity added.');
     }
 
-    /**
-     * Convert lead to student
-     */
-    public function convert(string $id): void
+    // =========================================================
+    // STORE FOLLOWUP
+    // =========================================================
+
+    public function storeFollowup(int $id): void
     {
         $this->authorize('leads.edit');
 
-        $lead = $this->leadModel->find((int)$id);
+        if (!verifyCsrf()) {
+            $this->backWithErrors(['Session expired. Please try again.']);
+            return;
+        }
+
+        $lead = $this->leadModel->find($id);
         if (!$lead) {
             $this->redirectWith(url('leads'), 'error', 'Lead not found.');
             return;
         }
 
-        // Mark as converted
-        $convertedStatus = $this->db->query(
-            "SELECT id FROM lead_statuses WHERE is_won = 1 LIMIT 1"
-        )->fetch();
+        $errors = $this->validate($_POST, [
+            'followup_date' => 'required',
+            'followup_mode' => 'required',
+        ]);
 
-        if ($convertedStatus) {
-            $this->leadModel->updateStatus((int)$id, (int)$convertedStatus['id'], $this->user['id']);
+        if (!empty($errors)) {
+            $this->backWithErrors(array_values($errors), $_POST);
+            return;
         }
 
-        // Create student record from lead data
-        $studentIdNumber = generateNumber('STD', (string)$this->institutionId);
-        $studentId = $this->studentModel->create([
-            'institution_id' => $lead['institution_id'],
-            'lead_id'        => $lead['id'],
-            'student_id_number' => $studentIdNumber,
-            'first_name'     => $lead['first_name'],
-            'last_name'      => $lead['last_name'],
-            'email'          => $lead['email'],
-            'phone'          => $lead['phone'],
-            'alternate_phone'=> $lead['alternate_phone'],
-            'date_of_birth'  => $lead['date_of_birth'],
-            'gender'         => $lead['gender'],
-            'address_line1'  => $lead['address_line1'],
-            'address_line2'  => $lead['address_line2'],
-            'city'           => $lead['city'],
-            'state'          => $lead['state'],
-            'pincode'        => $lead['pincode'],
-            'country'        => $lead['country'],
-            'course_id'      => $lead['course_interested_id'],
-            'admission_date' => date('Y-m-d'),
-            'created_by'     => $this->user['id'],
-            'status'         => 'active',
-        ]);
+        $followupData = [
+            'followup_date'      => sanitize($_POST['followup_date']),
+            'followup_mode'      => sanitize($_POST['followup_mode']),
+            'status'             => sanitize($_POST['status'] ?? 'completed'),
+            'outcome'            => sanitize($_POST['outcome'] ?? '') ?: null,
+            'notes'              => sanitize(trim($_POST['notes'] ?? '')) ?: null,
+            'next_followup_date' => ($_POST['next_followup_date'] ?? '') ?: null,
+            'next_followup_mode' => sanitize($_POST['next_followup_mode'] ?? '') ?: null,
+            'duration_minutes'   => isset($_POST['duration_minutes']) && $_POST['duration_minutes'] !== ''
+                                    ? (int)$_POST['duration_minutes'] : null,
+            'counselor_id'       => (int)($_POST['counselor_id'] ?? $this->user['id']),
+        ];
 
-        // Student timeline entry
-        $this->studentModel->addActivity($studentId, 'conversion', 'Converted from lead ' . $lead['lead_number'], $this->user['id'], [
-            'lead_id' => $lead['id'],
-            'source'  => $lead['lead_source_id'],
-        ]);
+        $this->leadModel->addFollowup($id, $followupData, $this->institutionId, $this->user['id']);
 
-        // Update lead converted_at timestamp
-        $this->leadModel->update((int)$id, ['converted_at' => date('Y-m-d H:i:s')]);
-
-        $this->logAudit('convert', 'lead', (int)$id);
-
-        // Redirect to student profile
-        redirect(url('students/' . $studentId));
+        $this->redirectWith(url('leads/' . $id), 'success', 'Follow-up recorded successfully.');
     }
 
-    /**
-     * Export leads to CSV
-     */
+    // =========================================================
+    // CONVERT LEAD TO ADMISSION
+    // =========================================================
+
+    public function convert(int $id): void
+    {
+        // Use leads.convert if it exists, fall back to leads.edit
+        if (hasPermission('leads.convert')) {
+            $this->authorize('leads.convert');
+        } else {
+            $this->authorize('leads.edit');
+        }
+
+        $lead = $this->leadModel->findWithDetails($id);
+        if (!$lead) {
+            $this->redirectWith(url('leads'), 'error', 'Lead not found.');
+            return;
+        }
+
+        // Look up source name for the admission record
+        $sourceName = null;
+        if (!empty($lead['lead_source_id'])) {
+            $this->db->query(
+                "SELECT name FROM lead_sources WHERE id = ?",
+                [$lead['lead_source_id']]
+            );
+            $src = $this->db->fetch();
+            $sourceName = $src['source_name'] ?? $src['name'] ?? null;
+        }
+
+        try {
+            $admissionModel = new \App\Models\Admission();
+            $admNumber = $admissionModel->generateAdmissionNumber($this->institutionId);
+
+            $admId = $admissionModel->create([
+                'institution_id'    => $this->institutionId,
+                'admission_number'  => $admNumber,
+                'first_name'        => $lead['first_name'],
+                'last_name'         => $lead['last_name'] ?? null,
+                'email'             => $lead['email'] ?? null,
+                'phone'             => $lead['phone'],
+                'gender'            => $lead['gender'] ?? null,
+                'date_of_birth'     => $lead['date_of_birth'] ?? null,
+                'course_id'         => $lead['course_interested_id'] ?? null,
+                'academic_year'     => $lead['academic_year'] ?? null,
+                'application_date'  => date('Y-m-d'),
+                'status'            => 'applied',
+                'source'            => $sourceName,
+                'remarks'           => $lead['notes'] ?? null,
+                'lead_id'           => $lead['id'],
+                'created_by'        => $this->user['id'],
+            ]);
+
+            // Mark lead as won/converted
+            $this->db->query(
+                "SELECT id FROM lead_statuses WHERE is_won = 1 LIMIT 1"
+            );
+            $wonStatus = $this->db->fetch();
+            if ($wonStatus) {
+                $this->leadModel->updateStatus($id, (int)$wonStatus['id'], $this->user['id']);
+            }
+
+            // Stamp converted_at
+            $this->leadModel->update($id, ['converted_at' => date('Y-m-d H:i:s')]);
+
+            $this->leadModel->addActivity(
+                $id,
+                'system',
+                'Converted to Admission #' . $admNumber,
+                null,
+                $this->user['id']
+            );
+
+            $this->logAudit('convert', 'lead', $id);
+
+            $this->redirectWith(
+                url('admissions/' . $admId),
+                'success',
+                'Lead converted to admission.'
+            );
+        } catch (\Exception $e) {
+            appLog('Lead convert failed: ' . $e->getMessage(), 'error');
+            $this->redirectWith(url('leads/' . $id), 'error', 'Conversion failed. Please try again.');
+        }
+    }
+
+    // =========================================================
+    // CHECK DUPLICATE (JSON)
+    // =========================================================
+
+    public function checkDuplicate(): void
+    {
+        header('Content-Type: application/json');
+
+        $phone         = sanitize(trim($this->input('phone') ?? ''));
+        $email         = sanitize(trim($this->input('email') ?? ''));
+        $institutionId = (int)($this->input('institution_id') ?? $this->institutionId);
+        $excludeId     = (int)($this->input('exclude_id') ?? 0);
+
+        if (empty($phone) && empty($email)) {
+            echo json_encode(['duplicate' => false]);
+            exit;
+        }
+
+        $found = $this->leadModel->checkDuplicateAjax(
+            $phone,
+            $email,
+            $institutionId,
+            $excludeId
+        );
+
+        if ($found) {
+            echo json_encode([
+                'duplicate'   => true,
+                'field'       => ($found['phone'] === $phone) ? 'phone' : 'email',
+                'lead_number' => $found['lead_number'],
+                'name'        => trim($found['first_name'] . ' ' . ($found['last_name'] ?? '')),
+                'id'          => (int)$found['id'],
+            ]);
+        } else {
+            echo json_encode(['duplicate' => false]);
+        }
+        exit;
+    }
+
+    // =========================================================
+    // AJAX DEPARTMENTS
+    // =========================================================
+
+    public function ajaxDepartments(): void
+    {
+        header('Content-Type: application/json');
+
+        $institutionId = (int)($this->input('institution_id') ?? $this->institutionId);
+
+        $this->db->query(
+            "SELECT id, name FROM departments WHERE institution_id = ? ORDER BY name",
+            [$institutionId]
+        );
+        $departments = $this->db->fetchAll();
+
+        echo json_encode($departments);
+        exit;
+    }
+
+    // =========================================================
+    // AJAX COURSES
+    // =========================================================
+
+    public function ajaxCourses(): void
+    {
+        header('Content-Type: application/json');
+
+        $departmentId  = (int)($this->input('department_id') ?? 0);
+        $institutionId = (int)($this->input('institution_id') ?? $this->institutionId);
+
+        if ($departmentId) {
+            $this->db->query(
+                "SELECT id, name, code FROM courses
+                 WHERE department_id = ? AND status = 'active'
+                 ORDER BY name",
+                [$departmentId]
+            );
+        } else {
+            $this->db->query(
+                "SELECT id, name, code FROM courses
+                 WHERE institution_id = ? AND status = 'active'
+                 ORDER BY name",
+                [$institutionId]
+            );
+        }
+        $courses = $this->db->fetchAll();
+
+        echo json_encode($courses);
+        exit;
+    }
+
+    // =========================================================
+    // EXPORT
+    // =========================================================
+
     public function export(): void
     {
         $this->authorize('leads.export');
 
         $filters = [
-            'status_id' => $this->input('status_id'),
-            'date_from' => $this->input('date_from'),
-            'date_to'   => $this->input('date_to'),
+            'status_id'   => $this->input('status_id'),
+            'source_id'   => $this->input('source_id'),
+            'assigned_to' => $this->input('assigned_to'),
+            'priority'    => $this->input('priority'),
+            'course_id'   => $this->input('course_id'),
+            'department_id' => $this->input('department_id'),
+            'date_from'   => $this->input('date_from'),
+            'date_to'     => $this->input('date_to'),
         ];
 
-        $leads = $this->leadModel->getExportData($filters);
-
+        $leads    = $this->leadModel->getExportData($filters);
         $filename = 'leads_export_' . date('Y-m-d_His') . '.csv';
-        header('Content-Type: text/csv');
+
+        header('Content-Type: text/csv; charset=UTF-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
 
         $output = fopen('php://output', 'w');
 
-        // Header row
+        // BOM for Excel UTF-8 compatibility
+        fwrite($output, "\xEF\xBB\xBF");
+
         fputcsv($output, [
             'Lead Number', 'First Name', 'Last Name', 'Email', 'Phone',
             'City', 'State', 'Qualification', 'Percentage', 'Passing Year',
-            'School/College', 'Course Interested', 'Source', 'Status',
-            'Assigned To', 'Priority', 'Notes', 'Created Date'
+            'School / College', 'Course Interested', 'Department', 'Source',
+            'Status', 'Assigned To', 'Priority', 'Lead Score', 'Budget',
+            'Expected Join Date', 'Campaign', 'Reference', 'Notes',
+            'Next Follow-up', 'Hostel', 'Transport', 'Scholarship', 'Created Date',
         ]);
 
         foreach ($leads as $lead) {
             fputcsv($output, [
-                $lead['lead_number'], $lead['first_name'], $lead['last_name'],
-                $lead['email'], $lead['phone'], $lead['city'], $lead['state'],
-                $lead['qualification'], $lead['percentage'], $lead['passing_year'],
-                $lead['school_college'], $lead['course_interested'], $lead['source'],
-                $lead['status'], $lead['assigned_to'], $lead['priority'],
-                $lead['notes'], $lead['created_at']
+                $lead['lead_number'],
+                $lead['first_name'],
+                $lead['last_name'] ?? '',
+                $lead['email'] ?? '',
+                $lead['phone'],
+                $lead['city'] ?? '',
+                $lead['state'] ?? '',
+                $lead['qualification'] ?? '',
+                $lead['percentage'] ?? '',
+                $lead['passing_year'] ?? '',
+                $lead['school_college'] ?? '',
+                $lead['course_interested'] ?? '',
+                $lead['department'] ?? '',
+                $lead['source'] ?? '',
+                $lead['status'] ?? '',
+                $lead['assigned_to'] ?? '',
+                $lead['priority'] ?? '',
+                $lead['lead_score'] ?? '',
+                $lead['budget'] ?? '',
+                $lead['expected_join_date'] ?? '',
+                $lead['campaign_name'] ?? '',
+                $lead['reference_name'] ?? '',
+                $lead['notes'] ?? '',
+                $lead['next_followup_date'] ?? '',
+                isset($lead['hostel_required']) ? ($lead['hostel_required'] ? 'Yes' : 'No') : '',
+                isset($lead['transport_required']) ? ($lead['transport_required'] ? 'Yes' : 'No') : '',
+                isset($lead['scholarship_required']) ? ($lead['scholarship_required'] ? 'Yes' : 'No') : '',
+                $lead['created_at'] ?? '',
             ]);
         }
 
@@ -463,62 +832,80 @@ class LeadController extends BaseController
         exit;
     }
 
-    /**
-     * Show import form
-     */
+    // =========================================================
+    // IMPORT — SHOW FORM
+    // =========================================================
+
     public function showImport(): void
     {
         $this->authorize('leads.import');
-        $this->view('leads.import', ['pageTitle' => 'Import Leads']);
+        $this->view('leads/import', ['pageTitle' => 'Import Leads']);
     }
 
-    /**
-     * Handle CSV import
-     */
+    // =========================================================
+    // IMPORT — PROCESS CSV
+    // =========================================================
+
     public function import(): void
     {
         $this->authorize('leads.import');
-        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
+
+        if (!verifyCsrf()) {
+            $this->backWithErrors(['Session expired. Please try again.']);
+            return;
+        }
 
         if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
             $this->backWithErrors(['Please upload a valid CSV file.']);
             return;
         }
 
-        $file = $_FILES['csv_file']['tmp_name'];
+        $file   = $_FILES['csv_file']['tmp_name'];
         $handle = fopen($file, 'r');
         if (!$handle) {
-            $this->backWithErrors(['Could not read the file.']);
+            $this->backWithErrors(['Could not read the uploaded file.']);
             return;
         }
 
-        $header = fgetcsv($handle);
-        $imported = 0;
-        $skipped = 0;
+        // Skip header row
+        fgetcsv($handle);
+
         $defaultStatusId = $this->leadModel->getDefaultStatusId();
+        $imported = 0;
+        $skipped  = 0;
 
         while (($row = fgetcsv($handle)) !== false) {
-            if (count($row) < 2) { $skipped++; continue; }
+            if (count($row) < 2) {
+                $skipped++;
+                continue;
+            }
 
             $firstName = trim($row[0] ?? '');
-            $phone = trim($row[3] ?? $row[1] ?? '');
+            // Column layout: first_name, last_name, email, phone, city, qualification
+            $phone     = trim($row[3] ?? $row[1] ?? '');
 
-            if (empty($firstName) || empty($phone)) { $skipped++; continue; }
+            if (empty($firstName) || empty($phone)) {
+                $skipped++;
+                continue;
+            }
 
-            // Check duplicate
-            if ($this->leadModel->checkDuplicate($phone)) { $skipped++; continue; }
+            // Skip duplicates
+            if ($this->leadModel->checkDuplicate($phone, null)) {
+                $skipped++;
+                continue;
+            }
 
             $data = [
                 'institution_id' => $this->institutionId,
                 'lead_number'    => $this->leadModel->generateLeadNumber($this->institutionId),
-                'first_name'     => $firstName,
-                'last_name'      => trim($row[1] ?? ''),
-                'email'          => trim($row[2] ?? '') ?: null,
-                'phone'          => $phone,
-                'city'           => trim($row[4] ?? '') ?: null,
-                'qualification'  => trim($row[5] ?? '') ?: null,
+                'first_name'     => sanitize($firstName),
+                'last_name'      => sanitize(trim($row[1] ?? '')) ?: null,
+                'email'          => sanitize(trim($row[2] ?? '')) ?: null,
+                'phone'          => sanitize($phone),
+                'city'           => sanitize(trim($row[4] ?? '')) ?: null,
+                'qualification'  => sanitize(trim($row[5] ?? '')) ?: null,
                 'lead_status_id' => $defaultStatusId,
-                'priority'       => 'medium',
+                'priority'       => 'warm',
                 'created_by'     => $this->user['id'],
             ];
 
@@ -526,11 +913,71 @@ class LeadController extends BaseController
                 $this->leadModel->withoutScope()->create($data);
                 $imported++;
             } catch (\Exception $e) {
+                appLog('Lead import row failed: ' . $e->getMessage(), 'warning');
                 $skipped++;
             }
         }
 
         fclose($handle);
-        $this->redirectWith(url('leads'), 'success', "Import complete: {$imported} imported, {$skipped} skipped.");
+
+        $this->redirectWith(
+            url('leads'),
+            'success',
+            "Import complete: {$imported} imported, {$skipped} skipped."
+        );
+    }
+
+    // =========================================================
+    // PRIVATE HELPERS
+    // =========================================================
+
+    /**
+     * Load all dropdown data needed for create/edit forms.
+     * Returns array: [institutions, departments, courses, counselors, sources, statuses]
+     */
+    private function loadFormDropdowns(): array
+    {
+        // Active institutions
+        $this->db->query(
+            "SELECT id, name, code FROM institutions
+             WHERE status = 'active' AND deleted_at IS NULL
+             ORDER BY name"
+        );
+        $institutions = $this->db->fetchAll();
+
+        // Departments for current institution
+        $this->db->query(
+            "SELECT id, name FROM departments WHERE institution_id = ? ORDER BY name",
+            [$this->institutionId]
+        );
+        $departments = $this->db->fetchAll();
+
+        // Active courses
+        $this->db->query(
+            "SELECT id, name FROM courses WHERE status = 'active' ORDER BY name"
+        );
+        $courses = $this->db->fetchAll();
+
+        // Counselors (users with a role in this institution)
+        $this->db->query(
+            "SELECT DISTINCT u.id, CONCAT(u.first_name, ' ', u.last_name) AS name
+             FROM users u
+             INNER JOIN user_roles ur ON ur.user_id = u.id AND ur.institution_id = ?
+             WHERE u.is_active = 1
+             ORDER BY u.first_name",
+            [$this->institutionId]
+        );
+        $counselors = $this->db->fetchAll();
+
+        // Lead sources
+        $this->db->query(
+            "SELECT id, name FROM lead_sources WHERE is_active = 1 ORDER BY name"
+        );
+        $sources = $this->db->fetchAll();
+
+        // Lead statuses
+        $statuses = $this->leadModel->getStatuses();
+
+        return [$institutions, $departments, $courses, $counselors, $sources, $statuses];
     }
 }

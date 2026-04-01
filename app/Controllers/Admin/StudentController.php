@@ -10,29 +10,13 @@ class StudentController extends BaseController
 
     public function __construct()
     {
+        parent::__construct();
         $this->student = new Student();
     }
 
     public function index(): void
     {
         $this->authorize('students.view');
-
-        $db = db();
-        // Self-healing for students table
-        try {
-            $db->query("SHOW COLUMNS FROM students LIKE 'aadhar_number'");
-            if (!$db->fetch()) {
-                $db->query("ALTER TABLE students ADD COLUMN aadhar_number VARCHAR(12) DEFAULT NULL AFTER gender");
-            }
-            $db->query("SHOW COLUMNS FROM students LIKE 'admission_type'");
-            if (!$db->fetch()) {
-                $db->query("ALTER TABLE students ADD COLUMN admission_type ENUM('regular','lateral','management','scholarship','other') DEFAULT 'regular' AFTER admission_date");
-            }
-            $db->query("SHOW COLUMNS FROM students LIKE 'roll_number'");
-            if (!$db->fetch()) {
-                $db->query("ALTER TABLE students ADD COLUMN roll_number VARCHAR(50) DEFAULT NULL AFTER student_id_number");
-            }
-        } catch (\Exception $e) {}
 
         $filters = [
             'search'        => $this->input('search'),
@@ -44,80 +28,112 @@ class StudentController extends BaseController
             'admission_year'=> $this->input('admission_year'),
         ];
 
-        $page = (int)($this->input('page') ?: 1);
+        $page     = max(1, (int)($this->input('page') ?: 1));
         $students = $this->student->getListPaginated($page, config('app.per_page', 15), $filters);
-        $stats = $this->student->getStats();
+        $stats    = $this->student->getStats();
 
-        $db = db();
-        $db->query("SELECT id, name FROM courses WHERE deleted_at IS NULL ORDER BY name");
+        $db = $this->db;
+        $db->query("SELECT id, name FROM courses WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
         $courses = $db->fetchAll();
-        $db->query("SELECT id, name FROM departments WHERE deleted_at IS NULL ORDER BY name");
+        $db->query("SELECT id, name FROM departments WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
         $departments = $db->fetchAll();
+        $db->query("SELECT id, name FROM batches WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
+        $batches = $db->fetchAll();
 
-        $this->view('students/index', compact('students', 'filters', 'stats', 'courses', 'departments'));
+        $this->view('students/index', compact('students', 'filters', 'stats', 'courses', 'departments', 'batches'));
     }
 
     public function create(): void
     {
         $this->authorize('students.create');
 
-        $db = db();
-        $db->query("SELECT id, name FROM courses WHERE deleted_at IS NULL ORDER BY name");
+        $db = $this->db;
+        $db->query("SELECT id, name FROM courses WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
         $courses = $db->fetchAll();
-        $db->query("SELECT id, name FROM departments WHERE deleted_at IS NULL ORDER BY name");
+        $db->query("SELECT id, name FROM departments WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
         $departments = $db->fetchAll();
+        $db->query("SELECT id, name FROM batches WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
+        $batches = $db->fetchAll();
+        $db->query("SELECT id, name FROM academic_years WHERE institution_id = ? ORDER BY is_current DESC, start_date DESC LIMIT 5", [$this->institutionId]);
+        $academicYears = $db->fetchAll();
 
-        $this->view('students/create', compact('courses', 'departments'));
+        $this->view('students/create', compact('courses', 'departments', 'batches', 'academicYears'));
     }
 
     public function store(): void
     {
         $this->authorize('students.create');
 
-        $data = $this->postData();
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired. Please try again.']); return; }
+
+        $data   = $this->postData();
         $errors = $this->validate($data, [
-            'first_name' => 'required',
-            'phone'      => 'required|phone',
-            'course_id'  => 'required',
+            'first_name' => 'required|max:100',
+            'gender'     => 'required',
+            'course_id'  => 'required|numeric',
         ]);
 
-        if ($errors) { $this->backWithErrors($errors); return; }
+        if ($errors) { $this->backWithErrors(array_values($errors), $data); return; }
 
-        $institutionId = session('institution_id');
+        $institutionId = $this->institutionId;
+        // Get organization_id from the institution record
+        $this->db->query("SELECT organization_id FROM institutions WHERE id = ? LIMIT 1", [$institutionId]);
+        $instRow = $this->db->fetch();
+        $orgId   = $instRow['organization_id'] ?? 1;
 
-        $id = $this->student->create([
-            'institution_id'          => $institutionId,
-            'student_id_number'       => $this->student->generateStudentId($institutionId),
-            'first_name'              => sanitize($data['first_name']),
-            'last_name'               => sanitize($data['last_name'] ?? ''),
-            'email'                   => sanitize($data['email'] ?? ''),
-            'phone'                   => sanitize($data['phone']),
-            'date_of_birth'           => $data['date_of_birth'] ?: null,
-            'gender'                  => $data['gender'] ?? null,
-            'category'                => $data['category'] ?? null,
-            'father_name'             => sanitize($data['father_name'] ?? ''),
-            'father_phone'            => sanitize($data['father_phone'] ?? ''),
-            'mother_name'             => sanitize($data['mother_name'] ?? ''),
-            'guardian_name'           => sanitize($data['guardian_name'] ?? ''),
-            'guardian_phone'          => sanitize($data['guardian_phone'] ?? ''),
-            'address_line1'           => sanitize($data['address_line1'] ?? ''),
-            'city'                    => sanitize($data['city'] ?? ''),
-            'state'                   => sanitize($data['state'] ?? ''),
-            'pincode'                 => sanitize($data['pincode'] ?? ''),
-            'previous_qualification'  => sanitize($data['previous_qualification'] ?? ''),
-            'previous_percentage'     => $data['previous_percentage'] ?: null,
-            'previous_institution'    => sanitize($data['previous_institution'] ?? ''),
-            'course_id'               => $data['course_id'],
-            'batch_id'                => $data['batch_id'] ?: null,
-            'department_id'           => $data['department_id'] ?: null,
-            'admission_date'          => $data['admission_date'] ?: date('Y-m-d'),
-            'admission_type'          => $data['admission_type'] ?? 'regular',
-            'status'                  => 'active',
-            'created_by'              => auth()['id'],
-        ]);
+        try {
+            $id = $this->student->withoutScope()->create([
+                'organization_id'        => $orgId,
+                'institution_id'         => $institutionId,
+                'student_id_number'      => $this->student->generateStudentId($institutionId),
+                'admission_number'       => $this->student->generateAdmissionNumber($institutionId),
+                'first_name'             => sanitize($data['first_name']),
+                'middle_name'            => sanitize($data['middle_name'] ?? ''),
+                'last_name'              => sanitize($data['last_name'] ?? ''),
+                'email'                  => sanitize($data['email'] ?? ''),
+                'phone'                  => sanitize($data['phone'] ?? ''),
+                'mobile_number'          => sanitize($data['mobile_number'] ?? $data['phone'] ?? ''),
+                'date_of_birth'          => $data['date_of_birth'] ?: null,
+                'gender'                 => $data['gender'],
+                'blood_group'            => $data['blood_group'] ?: null,
+                'category'               => $data['category'] ?: null,
+                'religion'               => sanitize($data['religion'] ?? ''),
+                'nationality'            => sanitize($data['nationality'] ?? 'Indian'),
+                'aadhar_number'          => sanitize($data['aadhar_number'] ?? ''),
+                'address_line1'          => sanitize($data['address_line1'] ?? ''),
+                'address_line2'          => sanitize($data['address_line2'] ?? ''),
+                'city'                   => sanitize($data['city'] ?? ''),
+                'state'                  => sanitize($data['state'] ?? ''),
+                'pincode'                => sanitize($data['pincode'] ?? ''),
+                'father_name'            => sanitize($data['father_name'] ?? ''),
+                'father_phone'           => sanitize($data['father_phone'] ?? ''),
+                'father_occupation'      => sanitize($data['father_occupation'] ?? ''),
+                'mother_name'            => sanitize($data['mother_name'] ?? ''),
+                'mother_phone'           => sanitize($data['mother_phone'] ?? ''),
+                'guardian_name'          => sanitize($data['guardian_name'] ?? ''),
+                'guardian_phone'         => sanitize($data['guardian_phone'] ?? ''),
+                'annual_income'          => $data['annual_income'] ?: null,
+                'previous_qualification' => sanitize($data['previous_qualification'] ?? ''),
+                'previous_percentage'    => $data['previous_percentage'] ?: null,
+                'previous_institution'   => sanitize($data['previous_institution'] ?? ''),
+                'course_id'              => (int)$data['course_id'],
+                'batch_id'               => $data['batch_id'] ? (int)$data['batch_id'] : null,
+                'department_id'          => $data['department_id'] ? (int)$data['department_id'] : null,
+                'academic_year_id'       => $data['academic_year_id'] ? (int)$data['academic_year_id'] : null,
+                'admission_date'         => $data['admission_date'] ?: date('Y-m-d'),
+                'admission_type'         => $data['admission_type'] ?? 'regular',
+                'student_type'           => $data['student_type'] ?? 'day_scholar',
+                'status'                 => 'active',
+                'notes'                  => sanitize($data['notes'] ?? ''),
+                'created_by'             => $this->user['id'] ?? null,
+            ]);
 
-        $this->logAudit('student_created', 'student', $id);
-        $this->redirectWith('students/' . $id, 'Student added successfully.', 'success');
+            $this->logAudit('create', 'student', $id);
+            $this->redirectWith(url('students/' . $id), 'success', 'Student added successfully.');
+        } catch (\Exception $e) {
+            appLog('Student create failed: ' . $e->getMessage(), 'error');
+            $this->backWithErrors(['Failed to create student: ' . $e->getMessage()], $data);
+        }
     }
 
     public function show(int $id): void
@@ -126,11 +142,22 @@ class StudentController extends BaseController
 
         $student = $this->student->getProfile360($id);
         if (!$student) {
-            $this->redirectWith('students', 'Student not found.', 'error');
+            $this->redirectWith(url('students'), 'error', 'Student not found.');
             return;
         }
 
-        $this->view('students/show', compact('student'));
+        // Load available sections for the student's batch (for section allotment)
+        $sections = [];
+        if (!empty($student['batch_id'])) {
+            $sections = $this->db->query(
+                "SELECT id, name, code, capacity FROM sections
+                 WHERE batch_id = ? AND status = 'active' AND deleted_at IS NULL
+                 ORDER BY name",
+                [(int)$student['batch_id']]
+            )->fetchAll();
+        }
+
+        $this->view('students/show', compact('student', 'sections'));
     }
 
     public function edit(int $id): void
@@ -139,110 +166,170 @@ class StudentController extends BaseController
 
         $student = $this->student->find($id);
         if (!$student) {
-            $this->redirectWith('students', 'Student not found.', 'error');
+            $this->redirectWith(url('students'), 'error', 'Student not found.');
             return;
         }
 
-        $db = db();
-        $db->query("SELECT id, name FROM courses WHERE deleted_at IS NULL ORDER BY name");
+        $db = $this->db;
+        $db->query("SELECT id, name FROM courses WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
         $courses = $db->fetchAll();
-        $db->query("SELECT id, name FROM batches WHERE course_id = ? AND deleted_at IS NULL ORDER BY name", [$student['course_id']]);
+        $db->query("SELECT id, name FROM batches WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
         $batches = $db->fetchAll();
-        $db->query("SELECT id, name FROM departments WHERE deleted_at IS NULL ORDER BY name");
+        $db->query("SELECT id, name FROM departments WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
         $departments = $db->fetchAll();
+        $db->query("SELECT id, name FROM academic_years WHERE institution_id = ? ORDER BY is_current DESC, start_date DESC LIMIT 5", [$this->institutionId]);
+        $academicYears = $db->fetchAll();
 
-        $this->view('students/edit', compact('student', 'courses', 'batches', 'departments'));
+        $this->view('students/edit', compact('student', 'courses', 'batches', 'departments', 'academicYears'));
     }
 
     public function update(int $id): void
     {
         $this->authorize('students.edit');
 
-        $student = $this->student->find($id);
-        if (!$student) { $this->redirectWith('students', 'Student not found.', 'error'); return; }
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
 
-        $data = $this->postData();
-        $errors = $this->validate($data, ['first_name' => 'required', 'phone' => 'required|phone']);
-        if ($errors) { $this->backWithErrors($errors); return; }
+        $student = $this->student->find($id);
+        if (!$student) { $this->redirectWith(url('students'), 'error', 'Student not found.'); return; }
+
+        $data   = $this->postData();
+        $errors = $this->validate($data, [
+            'first_name' => 'required|max:100',
+            'gender'     => 'required',
+        ]);
+        if ($errors) { $this->backWithErrors(array_values($errors), $data); return; }
 
         $this->student->update($id, [
-            'first_name'              => sanitize($data['first_name']),
-            'last_name'               => sanitize($data['last_name'] ?? ''),
-            'email'                   => sanitize($data['email'] ?? ''),
-            'phone'                   => sanitize($data['phone']),
-            'date_of_birth'           => $data['date_of_birth'] ?: null,
-            'gender'                  => $data['gender'] ?? null,
-            'aadhar_number'           => sanitize($data['aadhar_number'] ?? ''),
-            'category'                => $data['category'] ?? null,
-            'address_line1'           => sanitize($data['address_line1'] ?? ''),
-            'address_line2'           => sanitize($data['address_line2'] ?? ''),
-            'city'                    => sanitize($data['city'] ?? ''),
-            'state'                   => sanitize($data['state'] ?? ''),
-            'pincode'                 => sanitize($data['pincode'] ?? ''),
-            'father_name'             => sanitize($data['father_name'] ?? ''),
-            'father_phone'            => sanitize($data['father_phone'] ?? ''),
-            'mother_name'             => sanitize($data['mother_name'] ?? ''),
-            'guardian_name'           => sanitize($data['guardian_name'] ?? ''),
-            'guardian_phone'          => sanitize($data['guardian_phone'] ?? ''),
-            'previous_qualification'  => sanitize($data['previous_qualification'] ?? ''),
-            'previous_percentage'     => $data['previous_percentage'] ?: null,
-            'previous_institution'    => sanitize($data['previous_institution'] ?? ''),
-            'course_id'               => $data['course_id'] ?: null,
-            'batch_id'                => $data['batch_id'] ?: null,
-            'department_id'           => $data['department_id'] ?: null,
-            'status'                  => $data['status'] ?? $student['status'],
+            'first_name'             => sanitize($data['first_name']),
+            'middle_name'            => sanitize($data['middle_name'] ?? ''),
+            'last_name'              => sanitize($data['last_name'] ?? ''),
+            'email'                  => sanitize($data['email'] ?? ''),
+            'phone'                  => sanitize($data['phone'] ?? ''),
+            'mobile_number'          => sanitize($data['mobile_number'] ?? $data['phone'] ?? ''),
+            'date_of_birth'          => $data['date_of_birth'] ?: null,
+            'gender'                 => $data['gender'],
+            'blood_group'            => $data['blood_group'] ?: null,
+            'category'               => $data['category'] ?: null,
+            'religion'               => sanitize($data['religion'] ?? ''),
+            'aadhar_number'          => sanitize($data['aadhar_number'] ?? ''),
+            'address_line1'          => sanitize($data['address_line1'] ?? ''),
+            'address_line2'          => sanitize($data['address_line2'] ?? ''),
+            'city'                   => sanitize($data['city'] ?? ''),
+            'state'                  => sanitize($data['state'] ?? ''),
+            'pincode'                => sanitize($data['pincode'] ?? ''),
+            'father_name'            => sanitize($data['father_name'] ?? ''),
+            'father_phone'           => sanitize($data['father_phone'] ?? ''),
+            'father_occupation'      => sanitize($data['father_occupation'] ?? ''),
+            'mother_name'            => sanitize($data['mother_name'] ?? ''),
+            'mother_phone'           => sanitize($data['mother_phone'] ?? ''),
+            'guardian_name'          => sanitize($data['guardian_name'] ?? ''),
+            'guardian_phone'         => sanitize($data['guardian_phone'] ?? ''),
+            'annual_income'          => $data['annual_income'] ?: null,
+            'previous_qualification' => sanitize($data['previous_qualification'] ?? ''),
+            'previous_percentage'    => $data['previous_percentage'] ?: null,
+            'previous_institution'   => sanitize($data['previous_institution'] ?? ''),
+            'course_id'              => $data['course_id'] ? (int)$data['course_id'] : null,
+            'batch_id'               => $data['batch_id'] ? (int)$data['batch_id'] : null,
+            'department_id'          => $data['department_id'] ? (int)$data['department_id'] : null,
+            'academic_year_id'       => $data['academic_year_id'] ? (int)$data['academic_year_id'] : null,
+            'admission_type'         => $data['admission_type'] ?? $student['admission_type'],
+            'student_type'           => $data['student_type'] ?? $student['student_type'],
+            'status'                 => $data['status'] ?? $student['status'],
+            'notes'                  => sanitize($data['notes'] ?? ''),
         ]);
 
-        if (isset($data['status']) && $data['status'] !== $student['status']) {
-            $this->student->addActivity($id, 'status_change', "Status updated to {$data['status']}", auth()['id']);
-        }
-
-        $this->logAudit('student_updated', 'student', $id);
-        $this->redirectWith('students/' . $id, 'Student updated.', 'success');
+        $this->logAudit('update', 'student', $id);
+        $this->redirectWith(url('students/' . $id), 'success', 'Student updated successfully.');
     }
 
     public function destroy(int $id): void
     {
         $this->authorize('students.delete');
+
+        if (!verifyCsrf()) { $this->redirectWith(url('students'), 'error', 'Session expired.'); return; }
+
         $this->student->delete($id);
-        $this->logAudit('student_deleted', 'student', $id);
-        $this->redirectWith('students', 'Student deleted.', 'success');
+        $this->logAudit('delete', 'student', $id);
+        $this->redirectWith(url('students'), 'success', 'Student deleted.');
     }
 
     public function addNote(int $id): void
     {
         $this->authorize('students.edit');
-        
-        $note = sanitize($this->input('note'));
-        $type = $this->input('type', 'note');
 
-        if (empty($note)) {
-            $this->error('Note content is required.');
+        if (!verifyCsrf()) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Session expired.']);
             return;
         }
 
-        $this->student->addActivity($id, $type, $note, $this->user['id']);
-        
-        $this->success('Note added successfully.');
+        $note = sanitize($this->input('note') ?? '');
+        $type = $this->input('type') ?: 'note';
+
+        if (empty($note)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Note content is required.']);
+            return;
+        }
+
+        $this->student->addActivity($id, $type, $note, $this->user['id'] ?? null);
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'message' => 'Note added successfully.']);
+    }
+
+    public function assignSection(int $id): void
+    {
+        $this->authorize('students.edit');
+
+        if (!verifyCsrf()) {
+            $this->redirectWith(url('students/' . $id), 'error', 'Session expired.');
+            return;
+        }
+
+        $sectionId = (int)($this->postData()['section_id'] ?? 0);
+
+        // Verify section belongs to same institution
+        $this->db->query(
+            "SELECT id, batch_id, capacity FROM sections WHERE id = ? AND institution_id = ? AND deleted_at IS NULL",
+            [$sectionId, $this->institutionId]
+        );
+        $section = $this->db->fetch();
+
+        if (!$section) {
+            $this->redirectWith(url('students/' . $id), 'error', 'Section not found.');
+            return;
+        }
+
+        $this->db->query("UPDATE students SET section_id = ?, updated_at = NOW() WHERE id = ?", [$sectionId, $id]);
+        $this->logAudit('section_assigned', 'student', $id, ['section_id' => $sectionId]);
+        $this->redirectWith(url('students/' . $id), 'success', 'Section assigned successfully.');
     }
 
     public function export(): void
     {
-        $this->authorize('students.export');
+        $this->authorize('students.view');
 
         $rows = $this->student->getExportData([
-            'status'     => $this->input('status'),
-            'course_id'  => $this->input('course_id'),
-            'batch_id'   => $this->input('batch_id'),
-            'search'     => $this->input('search'),
+            'status'    => $this->input('status'),
+            'course_id' => $this->input('course_id'),
+            'batch_id'  => $this->input('batch_id'),
+            'search'    => $this->input('search'),
         ]);
 
         header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename=students_' . date('Ymd') . '.csv');
+        header('Content-Disposition: attachment; filename=students_' . date('Ymd_His') . '.csv');
         $out = fopen('php://output', 'w');
-        fputcsv($out, ['Student ID', 'First Name', 'Last Name', 'Email', 'Phone', 'Gender', 'Course', 'Batch', 'Department', 'Status', 'Admission Date']);
+        fputcsv($out, ['Student ID', 'Admission No', 'First Name', 'Last Name', 'Email', 'Phone', 'Gender', 'DOB', 'Course', 'Batch', 'Department', 'Status', 'Admission Date']);
         foreach ($rows as $r) {
-            fputcsv($out, [$r['student_id_number'], $r['first_name'], $r['last_name'], $r['email'], $r['phone'], $r['gender'], $r['course_name'], $r['batch_name'], $r['department_name'], $r['status'], $r['admission_date']]);
+            fputcsv($out, [
+                $r['student_id_number'], $r['admission_number'] ?? '',
+                $r['first_name'], $r['last_name'] ?? '',
+                $r['email'] ?? '', $r['phone'] ?? '',
+                $r['gender'], $r['date_of_birth'] ?? '',
+                $r['course_name'] ?? '', $r['batch_name'] ?? '',
+                $r['department_name'] ?? '', $r['status'],
+                $r['admission_date'] ?? '',
+            ]);
         }
         fclose($out);
     }

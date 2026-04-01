@@ -11,6 +11,14 @@
         </nav>
     </div>
     <div>
+        <div class="btn-group btn-group-sm me-2" role="group">
+            <button type="button" class="btn btn-outline-secondary" id="btnListView" title="List View">
+                <i class="fas fa-list"></i>
+            </button>
+            <button type="button" class="btn btn-outline-secondary" id="btnBoardView" title="Board View">
+                <i class="fas fa-columns"></i>
+            </button>
+        </div>
         <?php if (hasPermission('tasks.create')): ?>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#taskModal" id="btnNewTask">
             <i class="fas fa-plus me-1"></i>New Task
@@ -115,8 +123,119 @@
     </div>
 </div>
 
+<!-- Kanban Board View (hidden by default, toggle with JS) -->
+<div id="kanbanView" style="display:none;">
+    <div class="row g-3">
+        <?php
+        $kanbanCols = [
+            'pending'    => ['label'=>'Pending',    'color'=>'secondary', 'icon'=>'fa-clock'],
+            'in_progress'=> ['label'=>'In Progress','color'=>'primary',   'icon'=>'fa-spinner'],
+            'completed'  => ['label'=>'Completed',  'color'=>'success',   'icon'=>'fa-check-circle'],
+            'cancelled'  => ['label'=>'Cancelled',  'color'=>'dark',      'icon'=>'fa-ban'],
+        ];
+        $tasksByStatus = [];
+        foreach (($tasks['data'] ?? []) as $t) {
+            $tasksByStatus[$t['status']][] = $t;
+        }
+        foreach ($kanbanCols as $colStatus => $col):
+            $colTasks = $tasksByStatus[$colStatus] ?? [];
+        ?>
+        <div class="col-md-3">
+            <div class="card border-top border-<?= $col['color'] ?> border-3 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center py-2">
+                    <span class="fw-semibold small">
+                        <i class="fas <?= $col['icon'] ?> me-1 text-<?= $col['color'] ?>"></i>
+                        <?= $col['label'] ?>
+                    </span>
+                    <span class="badge bg-<?= $col['color'] ?>"><?= count($colTasks) ?></span>
+                </div>
+                <div class="card-body p-2" style="min-height:200px; max-height:65vh; overflow-y:auto;">
+                    <?php if (empty($colTasks)): ?>
+                    <div class="text-center text-muted py-3" style="font-size:.8rem;">No tasks</div>
+                    <?php else: ?>
+                    <?php foreach ($colTasks as $task):
+                        $isOverdue = !empty($task['due_date'])
+                            && $task['status'] !== 'completed'
+                            && $task['status'] !== 'cancelled'
+                            && strtotime($task['due_date']) < strtotime(date('Y-m-d'));
+                        $priorityColors = ['low'=>'secondary','medium'=>'info','high'=>'warning','urgent'=>'danger'];
+                    ?>
+                    <div class="card mb-2 border shadow-none <?= $isOverdue ? 'border-danger' : '' ?>"
+                         style="cursor:default;">
+                        <div class="card-body p-2">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <div class="fw-semibold" style="font-size:.8rem; line-height:1.3;">
+                                    <?= e($task['title']) ?>
+                                </div>
+                                <span class="badge bg-<?= $priorityColors[$task['priority']] ?? 'secondary' ?> ms-1" style="font-size:.6rem;">
+                                    <?= ucfirst(e($task['priority'])) ?>
+                                </span>
+                            </div>
+                            <?php if (!empty($task['description'])): ?>
+                            <p class="text-muted mb-1" style="font-size:.72rem; line-height:1.3;">
+                                <?= e(mb_strlen($task['description']) > 60 ? mb_substr($task['description'],0,60).'...' : $task['description']) ?>
+                            </p>
+                            <?php endif; ?>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <small class="text-muted" style="font-size:.7rem;">
+                                    <?php if (!empty($task['assigned_name'])): ?>
+                                    <i class="fas fa-user me-1"></i><?= e($task['assigned_name']) ?>
+                                    <?php endif; ?>
+                                </small>
+                                <small class="<?= $isOverdue ? 'text-danger fw-semibold' : 'text-muted' ?>" style="font-size:.7rem;">
+                                    <?php if (!empty($task['due_date'])): ?>
+                                    <i class="fas fa-calendar-alt me-1"></i><?= formatDate($task['due_date'], 'd M') ?>
+                                    <?php endif; ?>
+                                </small>
+                            </div>
+                            <?php if (hasPermission('tasks.edit')): ?>
+                            <div class="mt-1 pt-1 border-top d-flex gap-1">
+                                <button type="button" class="btn btn-xs btn-outline-secondary btn-edit-task flex-fill"
+                                        style="font-size:.65rem; padding:1px 4px;"
+                                        data-id="<?= $task['id'] ?>"
+                                        data-title="<?= e($task['title']) ?>"
+                                        data-description="<?= e($task['description'] ?? '') ?>"
+                                        data-priority="<?= e($task['priority']) ?>"
+                                        data-due_date="<?= e($task['due_date'] ?? '') ?>"
+                                        data-assigned_to="<?= e($task['assigned_to'] ?? '') ?>"
+                                        data-related_type="<?= e($task['related_type'] ?? '') ?>"
+                                        data-related_id="<?= e($task['related_id'] ?? '') ?>">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <div class="dropdown">
+                                    <button class="btn btn-xs btn-outline-info dropdown-toggle" type="button"
+                                            data-bs-toggle="dropdown"
+                                            style="font-size:.65rem; padding:1px 4px;">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:.8rem;">
+                                        <?php foreach (['pending'=>'Pending','in_progress'=>'In Progress','completed'=>'Completed','cancelled'=>'Cancelled'] as $sVal=>$sLabel): ?>
+                                        <?php if ($sVal !== $task['status']): ?>
+                                        <li>
+                                            <a class="dropdown-item btn-change-status" href="#"
+                                               data-id="<?= $task['id'] ?>" data-status="<?= $sVal ?>">
+                                                <?= $sLabel ?>
+                                            </a>
+                                        </li>
+                                        <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+
 <!-- Tasks Table -->
-<div class="card">
+<div class="card" id="tasksListView">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>Total: <strong><?= number_format($tasks['total'] ?? 0) ?></strong> tasks</span>
         <a href="<?= url('tasks') ?>" class="btn btn-sm btn-outline-secondary">Clear Filters</a>
@@ -460,5 +579,28 @@ $(document).ready(function() {
             e.preventDefault();
         }
     });
+
+    // Board/List view toggle
+    var viewMode = localStorage.getItem('tasksViewMode') || 'list';
+    function applyViewMode(mode) {
+        viewMode = mode;
+        localStorage.setItem('tasksViewMode', mode);
+        if (mode === 'board') {
+            document.getElementById('kanbanView').style.display = 'block';
+            var listView = document.getElementById('tasksListView');
+            if (listView) listView.style.display = 'none';
+            document.getElementById('btnBoardView').classList.add('active');
+            document.getElementById('btnListView').classList.remove('active');
+        } else {
+            document.getElementById('kanbanView').style.display = 'none';
+            var listView = document.getElementById('tasksListView');
+            if (listView) listView.style.display = '';
+            document.getElementById('btnListView').classList.add('active');
+            document.getElementById('btnBoardView').classList.remove('active');
+        }
+    }
+    document.getElementById('btnListView').addEventListener('click', function() { applyViewMode('list'); });
+    document.getElementById('btnBoardView').addEventListener('click', function() { applyViewMode('board'); });
+    applyViewMode(viewMode);
 });
 </script>

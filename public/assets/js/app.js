@@ -1,5 +1,5 @@
 /**
- * Education CRM - Main JavaScript
+ * Edu Matrix - Main JavaScript
  */
 
 (function($) {

@@ -9,35 +9,40 @@ class SubjectController extends BaseController
     {
         $this->authorize('subjects.view');
 
-        $institutionId = session('institution_id');
-        $where = "s.institution_id = ?";
-        $params = [$institutionId];
+        $where  = "s.institution_id = ?";
+        $params = [$this->institutionId];
 
         $search = $this->input('search');
+        $type   = $this->input('type');
+
         if ($search) {
             $where .= " AND (s.name LIKE ? OR s.code LIKE ?)";
             $s = '%' . $search . '%';
             $params = array_merge($params, [$s, $s]);
         }
+        if ($type) {
+            $where .= " AND s.type = ?";
+            $params[] = $type;
+        }
 
-        $page = (int)($this->input('page') ?: 1);
-        $sql = "SELECT s.*, d.name as department_name 
-                FROM subjects s 
-                LEFT JOIN departments d ON d.id = s.department_id 
-                WHERE {$where} 
-                ORDER BY s.name ASC";
+        $page = max(1, (int)($this->input('page') ?: 1));
+        $sql  = "SELECT s.*, d.name as department_name
+                 FROM subjects s
+                 LEFT JOIN departments d ON d.id = s.department_id
+                 WHERE {$where}
+                 ORDER BY s.name ASC";
 
-        $subjects = db()->paginate($sql, $params, $page, config('app.per_page', 15));
+        $subjects = $this->db->paginate($sql, $params, $page, config('app.per_page', 15));
 
-        $this->view('subjects/index', compact('subjects', 'search'));
+        $this->view('subjects/index', compact('subjects', 'search', 'type'));
     }
 
     public function create(): void
     {
         $this->authorize('subjects.manage');
 
-        $institutionId = session('institution_id');
-        $departments = db()->query("SELECT id, name FROM departments WHERE institution_id = ? AND status = 'active' ORDER BY name", [$institutionId])->fetchAll();
+        $this->db->query("SELECT id, name FROM departments WHERE institution_id = ? AND status = 'active' ORDER BY name", [$this->institutionId]);
+        $departments = $this->db->fetchAll();
 
         $this->view('subjects/create', compact('departments'));
     }
@@ -46,12 +51,12 @@ class SubjectController extends BaseController
     {
         $this->authorize('subjects.manage');
 
-        $data = $this->postData();
+        $data   = $this->postData();
         $errors = $this->validate($data, [
             'department_id' => 'required',
-            'code' => 'required',
-            'name' => 'required',
-            'type' => 'required'
+            'code'          => 'required',
+            'name'          => 'required',
+            'type'          => 'required',
         ]);
 
         if ($errors) {
@@ -59,31 +64,40 @@ class SubjectController extends BaseController
             return;
         }
 
-        $id = db()->insert('subjects', [
-            'institution_id' => session('institution_id'),
-            'department_id'  => $data['department_id'],
-            'code'           => sanitize($data['code']),
+        // Check for duplicate code within institution
+        $this->db->query("SELECT id FROM subjects WHERE institution_id = ? AND code = ?", [$this->institutionId, strtoupper(sanitize($data['code']))]);
+        if ($this->db->fetch()) {
+            $this->backWithErrors(['Subject code already exists for this institution.']);
+            return;
+        }
+
+        $id = $this->db->insert('subjects', [
+            'institution_id' => $this->institutionId,
+            'department_id'  => (int)$data['department_id'],
+            'code'           => strtoupper(sanitize($data['code'])),
             'name'           => sanitize($data['name']),
             'type'           => $data['type'],
             'credits'        => (float)($data['credits'] ?? 0),
-            'status'         => $data['status'] ?? 'active'
+            'status'         => $data['status'] ?? 'active',
         ]);
 
         $this->logAudit('subject_created', 'subject', $id);
-        $this->redirectWith('subjects', 'Subject created successfully.', 'success');
+        $this->redirectWith(url('subjects'), 'success', 'Subject created successfully.');
     }
 
     public function edit(int $id): void
     {
         $this->authorize('subjects.manage');
 
-        $subject = db()->query("SELECT * FROM subjects WHERE id = ? AND institution_id = ?", [$id, session('institution_id')])->fetch();
+        $this->db->query("SELECT * FROM subjects WHERE id = ? AND institution_id = ?", [$id, $this->institutionId]);
+        $subject = $this->db->fetch();
         if (!$subject) {
-            $this->redirectWith('subjects', 'Subject not found.', 'error');
+            $this->redirectWith(url('subjects'), 'error', 'Subject not found.');
             return;
         }
 
-        $departments = db()->query("SELECT id, name FROM departments WHERE institution_id = ? AND status = 'active' ORDER BY name", [session('institution_id')])->fetchAll();
+        $this->db->query("SELECT id, name FROM departments WHERE institution_id = ? AND status = 'active' ORDER BY name", [$this->institutionId]);
+        $departments = $this->db->fetchAll();
 
         $this->view('subjects/edit', compact('subject', 'departments'));
     }
@@ -92,12 +106,18 @@ class SubjectController extends BaseController
     {
         $this->authorize('subjects.manage');
 
-        $data = $this->postData();
+        $this->db->query("SELECT id FROM subjects WHERE id = ? AND institution_id = ?", [$id, $this->institutionId]);
+        if (!$this->db->fetch()) {
+            $this->redirectWith(url('subjects'), 'error', 'Subject not found.');
+            return;
+        }
+
+        $data   = $this->postData();
         $errors = $this->validate($data, [
             'department_id' => 'required',
-            'code' => 'required',
-            'name' => 'required',
-            'type' => 'required'
+            'code'          => 'required',
+            'name'          => 'required',
+            'type'          => 'required',
         ]);
 
         if ($errors) {
@@ -105,28 +125,35 @@ class SubjectController extends BaseController
             return;
         }
 
-        db()->update('subjects', [
-            'department_id'  => $data['department_id'],
-            'code'           => sanitize($data['code']),
-            'name'           => sanitize($data['name']),
-            'type'           => $data['type'],
-            'credits'        => (float)($data['credits'] ?? 0),
-            'status'         => $data['status'] ?? 'active'
+        $this->db->update('subjects', [
+            'department_id' => (int)$data['department_id'],
+            'code'          => strtoupper(sanitize($data['code'])),
+            'name'          => sanitize($data['name']),
+            'type'          => $data['type'],
+            'credits'       => (float)($data['credits'] ?? 0),
+            'status'        => $data['status'] ?? 'active',
         ], '`id` = ?', [$id]);
 
         $this->logAudit('subject_updated', 'subject', $id);
-        $this->redirectWith('subjects', 'Subject updated successfully.', 'success');
+        $this->redirectWith(url('subjects'), 'success', 'Subject updated successfully.');
     }
 
     public function destroy(int $id): void
     {
         $this->authorize('subjects.manage');
-        
-        // Soft delete not supported by schema, check if used in timetable?
-        // We'll just hard delete or we could do a status check
-        db()->query("DELETE FROM subjects WHERE id = ? AND institution_id = ?", [$id, session('institution_id')]);
-        
+
+        // Check if used in timetables or batch_subjects
+        $this->db->query("SELECT COUNT(*) as cnt FROM timetables WHERE subject_id = ?", [$id]);
+        $timetableUse = $this->db->fetch();
+        if (($timetableUse['cnt'] ?? 0) > 0) {
+            $this->redirectWith(url('subjects'), 'error', 'Cannot delete: subject is used in timetables.');
+            return;
+        }
+
+        $this->db->query("DELETE FROM batch_subjects WHERE subject_id = ?", [$id]);
+        $this->db->query("DELETE FROM subjects WHERE id = ? AND institution_id = ?", [$id, $this->institutionId]);
+
         $this->logAudit('subject_deleted', 'subject', $id);
-        $this->redirectWith('subjects', 'Subject deleted successfully.', 'success');
+        $this->redirectWith(url('subjects'), 'success', 'Subject deleted successfully.');
     }
 }
