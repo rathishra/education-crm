@@ -72,7 +72,7 @@
                         <th>Faculty</th>
                         <th>Published</th>
                         <th class="text-center">Downloads</th>
-                        <th class="text-center">Status</th>
+                        <th class="text-center">Publish</th>
                         <th class="text-end pe-4">Actions</th>
                     </tr>
                 </thead>
@@ -98,29 +98,35 @@
                             <span class="badge bg-light text-dark border"><?= number_format($m['download_count']) ?></span>
                         </td>
                         <td class="text-center">
-                            <span class="badge bg-<?= $m['is_published']?'success':'secondary' ?>-subtle text-<?= $m['is_published']?'success':'secondary' ?> border border-<?= $m['is_published']?'success':'secondary' ?>-subtle">
-                                <?= $m['is_published'] ? 'Published' : 'Draft' ?>
-                            </span>
+                            <button class="btn btn-sm <?= $m['is_published'] ? 'btn-success' : 'btn-secondary' ?> btn-toggle-publish px-2 py-0"
+                                    data-id="<?= $m['id'] ?>" title="Toggle Publish">
+                                <?= $m['is_published'] ? 'Live' : 'Draft' ?>
+                            </button>
                         </td>
                         <td class="text-end pe-4">
-                            <?php if($m['file_path']): ?>
-                            <a href="<?= url('academic/lms/'.$m['id'].'/download') ?>" class="btn btn-sm btn-light text-success" title="Download">
-                                <i class="fas fa-download"></i>
-                            </a>
-                            <?php elseif($m['video_link']): ?>
-                            <a href="<?= e($m['video_link']) ?>" target="_blank" class="btn btn-sm btn-light text-danger" title="Watch">
-                                <i class="fab fa-youtube"></i>
-                            </a>
-                            <?php elseif($m['external_link']): ?>
-                            <a href="<?= e($m['external_link']) ?>" target="_blank" class="btn btn-sm btn-light text-primary" title="Open Link">
-                                <i class="fas fa-external-link-alt"></i>
-                            </a>
-                            <?php endif; ?>
-                            <form method="POST" action="<?= url('academic/lms/'.$m['id'].'/delete') ?>" class="d-inline"
-                                  onsubmit="return confirm('Delete this material?')">
-                                <?= csrfField() ?>
-                                <button class="btn btn-sm btn-light text-danger"><i class="fas fa-trash"></i></button>
-                            </form>
+                            <div class="btn-group btn-group-sm">
+                                <?php if($m['file_path']): ?>
+                                <a href="<?= url('academic/lms/'.$m['id'].'/download') ?>" class="btn btn-outline-success" title="Download">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                <?php elseif($m['video_link']): ?>
+                                <a href="<?= e($m['video_link']) ?>" target="_blank" class="btn btn-outline-danger" title="Watch">
+                                    <i class="fab fa-youtube"></i>
+                                </a>
+                                <?php elseif($m['external_link']): ?>
+                                <a href="<?= e($m['external_link']) ?>" target="_blank" class="btn btn-outline-primary" title="Open Link">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                                <?php endif; ?>
+                                <a href="<?= url('academic/lms/'.$m['id'].'/edit') ?>" class="btn btn-outline-warning" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="POST" action="<?= url('academic/lms/'.$m['id'].'/delete') ?>" class="d-inline"
+                                      onsubmit="return confirm('Delete this material?')">
+                                    <?= csrfField() ?>
+                                    <button class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     <?php endforeach; endif; ?>
@@ -135,5 +141,25 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof $.fn.select2 !== 'undefined') {
         $('.select2').select2({ theme: 'bootstrap-5', width: '100%' });
     }
+
+    // Publish toggle
+    document.querySelectorAll('.btn-toggle-publish').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.dataset.id;
+            const self = this;
+            fetch(`<?= url('academic/lms') ?>/${id}/toggle`, { method: 'POST' })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        self.textContent = res.label;
+                        if (res.is_published) {
+                            self.className = 'btn btn-sm btn-success btn-toggle-publish px-2 py-0';
+                        } else {
+                            self.className = 'btn btn-sm btn-secondary btn-toggle-publish px-2 py-0';
+                        }
+                    }
+                });
+        });
+    });
 });
 </script>

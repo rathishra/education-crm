@@ -81,13 +81,19 @@ class Enquiry extends BaseModel
             $params[] = $filters['only_mine'];
         }
 
+        $where .= " AND e.deleted_at IS NULL";
+
         $sql = "SELECT e.*,
                        c.name  AS course_name,
                        CONCAT(au.first_name, ' ', au.last_name) AS assigned_to_name,
+                       CONCAT(cu.first_name, ' ', cu.last_name) AS counselor_name,
+                       d.name  AS department_name,
                        i.name  AS institution_name
                 FROM enquiries e
                 LEFT JOIN courses      c  ON c.id  = e.course_interested_id
+                LEFT JOIN departments  d  ON d.id  = e.department_id
                 LEFT JOIN users        au ON au.id = e.assigned_to
+                LEFT JOIN users        cu ON cu.id = e.counselor_id
                 LEFT JOIN institutions i  ON i.id  = e.institution_id
                 WHERE {$where}
                 ORDER BY e.created_at DESC";
@@ -102,26 +108,34 @@ class Enquiry extends BaseModel
     {
         $this->db->query(
             "SELECT
-                COUNT(*) AS total,
-                SUM(status = 'new')       AS new_count,
-                SUM(status = 'contacted') AS contacted,
-                SUM(status = 'converted') AS converted,
-                SUM(DATE(created_at) >= DATE_FORMAT(NOW(), '%Y-%m-01')) AS this_month
+                COUNT(*)                                                        AS total,
+                SUM(status = 'new')                                             AS new_count,
+                SUM(status = 'contacted')                                       AS contacted,
+                SUM(status = 'interested')                                      AS interested,
+                SUM(status = 'not_interested')                                  AS not_interested,
+                SUM(status = 'converted')                                       AS converted,
+                SUM(status = 'closed')                                          AS closed,
+                SUM(COALESCE(priority,'warm') = 'hot')                          AS hot,
+                SUM(COALESCE(priority,'warm') = 'warm')                         AS warm,
+                SUM(COALESCE(priority,'warm') = 'cold')                         AS cold,
+                SUM(DATE(created_at) >= DATE_FORMAT(NOW(), '%Y-%m-01'))         AS this_month
              FROM enquiries
-             WHERE institution_id = ?",
+             WHERE institution_id = ? AND deleted_at IS NULL",
             [$institutionId]
         );
         $row = $this->db->fetch();
         return array_merge([
-            'total'      => 0,
-            'new_count'  => 0,
-            'contacted'  => 0,
-            'interested' => 0,
-            'hot'        => 0,
-            'warm'       => 0,
-            'cold'       => 0,
-            'converted'  => 0,
-            'this_month' => 0,
+            'total'          => 0,
+            'new_count'      => 0,
+            'contacted'      => 0,
+            'interested'     => 0,
+            'not_interested' => 0,
+            'hot'            => 0,
+            'warm'           => 0,
+            'cold'           => 0,
+            'converted'      => 0,
+            'closed'         => 0,
+            'this_month'     => 0,
         ], $row ?: []);
     }
 
@@ -132,14 +146,18 @@ class Enquiry extends BaseModel
     {
         $sql = "SELECT e.*,
                        c.name  AS course_name,  c.code AS course_code,
+                       d.name  AS department_name,
                        CONCAT(au.first_name, ' ', au.last_name) AS assigned_to_name,
+                       CONCAT(cu.first_name, ' ', cu.last_name) AS counselor_name,
                        i.name  AS institution_name,
                        i.code  AS institution_code
                 FROM enquiries e
                 LEFT JOIN courses      c  ON c.id  = e.course_interested_id
+                LEFT JOIN departments  d  ON d.id  = e.department_id
                 LEFT JOIN users        au ON au.id = e.assigned_to
+                LEFT JOIN users        cu ON cu.id = e.counselor_id
                 LEFT JOIN institutions i  ON i.id  = e.institution_id
-                WHERE e.id = ?";
+                WHERE e.id = ? AND e.deleted_at IS NULL";
         $this->db->query($sql, [$id]);
         return $this->db->fetch() ?: null;
     }
@@ -252,6 +270,17 @@ class Enquiry extends BaseModel
         $priorityMap = ['hot' => 'high', 'warm' => 'medium', 'cold' => 'low'];
         $leadPriority = $priorityMap[$enquiry['priority'] ?? 'warm'] ?? 'medium';
 
+        // Resolve source name → lead_source_id
+        $leadSourceId = null;
+        if (!empty($enquiry['source'])) {
+            $this->db->query(
+                "SELECT id FROM lead_sources WHERE name = ? LIMIT 1",
+                [$enquiry['source']]
+            );
+            $src = $this->db->fetch();
+            $leadSourceId = $src ? (int)$src['id'] : null;
+        }
+
         $leadData = [
             'institution_id'       => $enquiry['institution_id'],
             'lead_number'          => $leadModel->generateLeadNumber($enquiry['institution_id']),
@@ -264,7 +293,7 @@ class Enquiry extends BaseModel
             'course_interested_id' => $enquiry['course_interested_id'] ?? null,
             'lead_status_id'       => $leadModel->getDefaultStatusId(),
             'priority'             => $leadPriority,
-            'source'               => $enquiry['source'] ?? null,
+            'lead_source_id'       => $leadSourceId,
             'notes'                => $enquiry['remarks'] ?? $enquiry['message'] ?? null,
             'assigned_to'          => $enquiry['counselor_id'] ?? $enquiry['assigned_to'] ?? null,
             'enquiry_id'           => $enquiryId,
@@ -291,7 +320,7 @@ class Enquiry extends BaseModel
      */
     public function softDelete(int $id): bool
     {
-        $this->db->query("DELETE FROM enquiries WHERE id = ?", [$id]);
+        $this->db->query("UPDATE enquiries SET deleted_at = NOW() WHERE id = ?", [$id]);
         return true;
     }
 }

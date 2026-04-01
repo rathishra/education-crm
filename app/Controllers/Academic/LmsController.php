@@ -178,4 +178,141 @@ class LmsController extends BaseController
         $this->logAudit('lms_delete', 'lms_materials', $id);
         $this->redirectWith(url('academic/lms'), 'success', 'Material deleted.');
     }
+
+    // ─── EDIT (GET) ────────────────────────────────────────────
+    public function edit(int $id): void
+    {
+        $this->db->query(
+            "SELECT * FROM lms_materials WHERE id=? AND institution_id=? AND deleted_at IS NULL",
+            [$id, $this->institutionId]
+        );
+        $material = $this->db->fetch();
+        if (!$material) {
+            $this->redirectWith(url('academic/lms'), 'error', 'Material not found.');
+            return;
+        }
+
+        $this->db->query(
+            "SELECT id, subject_code, subject_name FROM subjects WHERE institution_id=? AND status='active' AND deleted_at IS NULL ORDER BY subject_name",
+            [$this->institutionId]
+        );
+        $subjects = $this->db->fetchAll();
+
+        $this->db->query(
+            "SELECT id, program_name, batch_term FROM academic_batches WHERE institution_id=? AND status='active' ORDER BY program_name",
+            [$this->institutionId]
+        );
+        $batches = $this->db->fetchAll();
+
+        $this->view('academic/lms/edit', compact('material', 'subjects', 'batches'));
+    }
+
+    // ─── UPDATE (POST) ─────────────────────────────────────────
+    public function update(int $id): void
+    {
+        verifyCsrf();
+
+        $this->db->query(
+            "SELECT * FROM lms_materials WHERE id=? AND institution_id=? AND deleted_at IS NULL",
+            [$id, $this->institutionId]
+        );
+        $material = $this->db->fetch();
+        if (!$material) {
+            $this->redirectWith(url('academic/lms'), 'error', 'Material not found.');
+            return;
+        }
+
+        $subjectId = (int)$this->input('subject_id');
+        $title     = trim($this->input('title', ''));
+
+        if (!$subjectId || empty($title)) {
+            $this->backWithErrors(['Subject and Title are required.']);
+            return;
+        }
+
+        // Handle optional new file upload
+        $filePath         = $material['file_path'];
+        $originalFilename = $material['original_filename'];
+        $fileSize         = $material['file_size'];
+        $fileType         = $material['file_type'];
+
+        if (!empty($_FILES['file']['name'])) {
+            $file    = $_FILES['file'];
+            $allowed = ['pdf','doc','docx','ppt','pptx','xls','xlsx','zip','jpg','jpeg','png','mp4','avi','mkv'];
+            $ext     = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+            if (!in_array($ext, $allowed)) {
+                $this->backWithErrors(['File type not allowed.']);
+                return;
+            }
+            if ($file['size'] > 50 * 1024 * 1024) {
+                $this->backWithErrors(['File too large. Max 50MB.']);
+                return;
+            }
+
+            $uploadPath = BASE_PATH . '/' . $this->uploadDir;
+            if (!is_dir($uploadPath)) mkdir($uploadPath, 0755, true);
+
+            $fileName = time() . '_' . preg_replace('/[^a-z0-9._-]/i', '_', $file['name']);
+            if (move_uploaded_file($file['tmp_name'], $uploadPath . $fileName)) {
+                // Delete old file
+                if ($material['file_path'] && file_exists(BASE_PATH . '/' . $material['file_path'])) {
+                    @unlink(BASE_PATH . '/' . $material['file_path']);
+                }
+                $filePath         = $this->uploadDir . $fileName;
+                $originalFilename = $file['name'];
+                $fileSize         = $file['size'];
+                $fileType         = $file['type'];
+            }
+        }
+
+        $this->db->query(
+            "UPDATE lms_materials SET subject_id=?, batch_id=?, title=?, description=?,
+             material_type=?, file_path=?, original_filename=?, file_size=?, file_type=?,
+             video_link=?, external_link=?, publish_date=?, due_date=?,
+             is_published=?, unit_number=?, tags=?
+             WHERE id=? AND institution_id=?",
+            [
+                $subjectId,
+                (int)$this->input('batch_id') ?: null,
+                $title,
+                trim($this->input('description', '')) ?: null,
+                $this->input('material_type', 'notes'),
+                $filePath, $originalFilename, $fileSize, $fileType,
+                trim($this->input('video_link', '')) ?: null,
+                trim($this->input('external_link', '')) ?: null,
+                trim($this->input('publish_date', date('Y-m-d'))),
+                trim($this->input('due_date', '')) ?: null,
+                (int)(bool)$this->input('is_published', '1'),
+                (int)$this->input('unit_number') ?: null,
+                trim($this->input('tags', '')) ?: null,
+                $id, $this->institutionId,
+            ]
+        );
+
+        $this->logAudit('lms_update', 'lms_materials', $id);
+        $this->redirectWith(url('academic/lms'), 'success', 'Material updated successfully.');
+    }
+
+    // ─── TOGGLE PUBLISH (AJAX POST) ────────────────────────────
+    public function toggle(int $id): void
+    {
+        $this->db->query(
+            "SELECT is_published FROM lms_materials WHERE id=? AND institution_id=? AND deleted_at IS NULL",
+            [$id, $this->institutionId]
+        );
+        $m = $this->db->fetch();
+        if (!$m) {
+            echo json_encode(['status' => 'error', 'message' => 'Not found.']);
+            exit;
+        }
+        $new = $m['is_published'] ? 0 : 1;
+        $this->db->query("UPDATE lms_materials SET is_published=? WHERE id=?", [$new, $id]);
+        echo json_encode([
+            'status'       => 'success',
+            'is_published' => $new,
+            'label'        => $new ? 'Published' : 'Draft',
+        ]);
+        exit;
+    }
 }

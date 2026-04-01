@@ -2,7 +2,7 @@
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <form id="frmAddBatch" method="POST" action="<?= url('academic/batches/store') ?>">
-            
+
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="text-dark font-weight-bold mb-0">Setup Academic Cohort</h4>
                 <a href="<?= url('academic/batches') ?>" class="btn btn-light shadow-sm">
@@ -13,11 +13,23 @@
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-body p-4">
                     <h6 class="font-weight-bold text-primary mb-4 border-bottom pb-2">Cohort Blueprint</h6>
-                    
+
                     <div class="row mb-3">
                         <div class="col-md-7">
                             <label class="form-label text-muted small fw-bold">Degree / Program Name *</label>
+                            <?php if (!empty($courses)): ?>
+                            <select class="form-select" name="program_name" id="programSelect" required>
+                                <option value="">— Select Program —</option>
+                                <?php foreach ($courses as $c): ?>
+                                <option value="<?= e($c['name']) ?>" data-semesters="<?= (int)($c['total_semesters'] ?? 0) ?>">
+                                    <?= e($c['name']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <?php else: ?>
                             <input type="text" class="form-control" name="program_name" placeholder="E.g. B.Tech Computer Science" required>
+                            <div class="form-text text-warning"><i class="fas fa-exclamation-triangle me-1"></i>No active courses found. <a href="<?= url('courses/create') ?>">Add a course</a> to use a dropdown.</div>
+                            <?php endif; ?>
                         </div>
                         <div class="col-md-5">
                             <label class="form-label text-muted small fw-bold">Batch Term / Identifier *</label>
@@ -37,7 +49,7 @@
                     </div>
 
                     <h6 class="font-weight-bold text-success mb-4 border-bottom pb-2">Academic & Enrollment Targets</h6>
-                    
+
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label class="form-label text-muted small fw-bold">Max Intake Capacity</label>
@@ -45,7 +57,14 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label text-muted small fw-bold">Total Semesters / Terms</label>
-                            <input type="number" class="form-control" name="total_semesters" value="8" required>
+                            <div class="input-group">
+                                <select class="form-select" name="total_semesters" id="totalSemesters">
+                                    <?php for ($s = 1; $s <= 12; $s++): ?>
+                                    <option value="<?= $s ?>" <?= $s === 8 ? 'selected' : '' ?>><?= $s ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                                <span class="input-group-text text-muted" style="font-size:0.8rem;">sem</span>
+                            </div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label text-muted small fw-bold">Graduation Credits Min.</label>
@@ -65,6 +84,20 @@
 </div>
 
 <script>
+// Auto-fill Total Semesters when a program is selected
+const programSelect   = document.getElementById('programSelect');
+const semestersSelect = document.getElementById('totalSemesters');
+
+if (programSelect) {
+    programSelect.addEventListener('change', function () {
+        const opt      = this.options[this.selectedIndex];
+        const semCount = parseInt(opt.dataset.semesters || '0', 10);
+        if (semCount > 0 && semestersSelect) {
+            semestersSelect.value = semCount;
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     $('#frmAddBatch').submit(function(e) {
         e.preventDefault();

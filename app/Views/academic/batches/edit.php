@@ -25,7 +25,31 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-8">
                             <label class="form-label fw-bold">Program Name <span class="text-danger">*</span></label>
+                            <?php if (!empty($courses)): ?>
+                            <select class="form-select" name="program_name" id="programSelect" required>
+                                <option value="">— Select Program —</option>
+                                <?php foreach ($courses as $c): ?>
+                                <option value="<?= e($c['name']) ?>"
+                                        data-semesters="<?= (int)($c['total_semesters'] ?? 0) ?>"
+                                    <?= $batch['program_name'] === $c['name'] ? 'selected' : '' ?>>
+                                    <?= e($c['name']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                                <?php
+                                // If the saved name doesn't match any current course, add it as a fallback option
+                                $matchFound = false;
+                                foreach ($courses as $c) {
+                                    if ($c['name'] === $batch['program_name']) { $matchFound = true; break; }
+                                }
+                                if (!$matchFound && $batch['program_name'] !== ''):
+                                ?>
+                                <option value="<?= e($batch['program_name']) ?>" selected><?= e($batch['program_name']) ?> (current)</option>
+                                <?php endif; ?>
+                            </select>
+                            <?php else: ?>
                             <input type="text" class="form-control" name="program_name" value="<?= e($batch['program_name']) ?>" required>
+                            <div class="form-text text-warning"><i class="fas fa-exclamation-triangle me-1"></i>No active courses found. <a href="<?= url('courses/create') ?>">Add a course</a> to use a dropdown.</div>
+                            <?php endif; ?>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Term / Session <span class="text-danger">*</span></label>
@@ -51,7 +75,14 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Total Semesters</label>
-                            <input type="number" class="form-control" name="total_semesters" value="<?= (int)$batch['total_semesters'] ?>" min="1" max="12">
+                            <div class="input-group">
+                                <select class="form-select" name="total_semesters" id="totalSemesters">
+                                    <?php for ($s = 1; $s <= 12; $s++): ?>
+                                    <option value="<?= $s ?>" <?= (int)$batch['total_semesters'] === $s ? 'selected' : '' ?>><?= $s ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                                <span class="input-group-text text-muted" style="font-size:0.8rem;">sem</span>
+                            </div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Status</label>
@@ -76,6 +107,20 @@
 </div>
 
 <script>
+// Auto-fill Total Semesters when a program is selected
+const programSelect   = document.getElementById('programSelect');
+const semestersSelect = document.getElementById('totalSemesters');
+
+if (programSelect) {
+    programSelect.addEventListener('change', function () {
+        const opt      = this.options[this.selectedIndex];
+        const semCount = parseInt(opt.dataset.semesters || '0', 10);
+        if (semCount > 0 && semestersSelect) {
+            semestersSelect.value = semCount;
+        }
+    });
+}
+
 document.getElementById('frmEditBatch').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = document.getElementById('btnSave');

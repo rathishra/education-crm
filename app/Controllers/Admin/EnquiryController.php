@@ -497,7 +497,137 @@ class EnquiryController extends BaseController
     }
 
     // -------------------------------------------------------------------------
-    // 10. checkDuplicate — AJAX endpoint
+    // 10. export — CSV download
+    // -------------------------------------------------------------------------
+    public function export(): void
+    {
+        $this->authorize('enquiries.view');
+
+        $filters = [
+            'search'        => $this->input('search'),
+            'status'        => $this->input('status'),
+            'priority'      => $this->input('priority'),
+            'counselor_id'  => $this->input('counselor_id'),
+            'source'        => $this->input('source'),
+            'date_from'     => $this->input('date_from'),
+            'date_to'       => $this->input('date_to'),
+        ];
+        if (!hasPermission('enquiries.view_all')) {
+            $filters['only_mine'] = $this->user['id'];
+        }
+
+        $result = $this->enquiry->getListPaginated(1, 10000, $filters);
+        $rows   = $result['data'] ?? [];
+
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="enquiries_' . date('Y-m-d') . '.csv"');
+        $fh = fopen('php://output', 'w');
+        fputcsv($fh, ['Enquiry #', 'Name', 'Phone', 'Email', 'Course', 'Source', 'Priority', 'Status', 'Counselor', 'Date']);
+        foreach ($rows as $r) {
+            fputcsv($fh, [
+                $r['enquiry_number'] ?? '',
+                trim(($r['first_name'] ?? '') . ' ' . ($r['last_name'] ?? '')),
+                $r['phone'] ?? '',
+                $r['email'] ?? '',
+                $r['course_name'] ?? '',
+                $r['source'] ?? '',
+                $r['priority'] ?? '',
+                $r['status'] ?? '',
+                $r['counselor_name'] ?? $r['assigned_to_name'] ?? '',
+                $r['created_at'] ?? '',
+            ]);
+        }
+        fclose($fh);
+        exit;
+    }
+
+    // -------------------------------------------------------------------------
+    // 11. bulk — AJAX bulk actions (POST JSON)
+    // -------------------------------------------------------------------------
+    public function bulk(): void
+    {
+        header('Content-Type: application/json');
+        $this->authorize('enquiries.view');
+
+        $body   = json_decode(file_get_contents('php://input'), true) ?? [];
+        $action = $body['action'] ?? '';
+        $ids    = array_filter(array_map('intval', $body['ids'] ?? []));
+        $value  = $body['value'] ?? '';
+
+        if (empty($ids)) {
+            echo json_encode(['status' => 'error', 'message' => 'No records selected.']); exit;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+        switch ($action) {
+            case 'status':
+                $allowed = ['new','contacted','interested','not_interested','closed'];
+                if (!in_array($value, $allowed)) {
+                    echo json_encode(['status'=>'error','message'=>'Invalid status.']); exit;
+                }
+                $this->authorize('enquiries.edit');
+                $this->db->query(
+                    "UPDATE enquiries SET status=?, updated_at=NOW() WHERE id IN ($placeholders) AND institution_id=?",
+                    array_merge([$value], $ids, [$this->institutionId])
+                );
+                echo json_encode(['status'=>'success','message'=>count($ids).' enquiry(s) updated.']);
+                break;
+
+            case 'convert_to_lead':
+                $this->authorize('enquiries.convert');
+                $converted = 0;
+                foreach ($ids as $eid) {
+                    $this->db->query("SELECT * FROM enquiries WHERE id=? AND institution_id=? AND status!='converted' AND deleted_at IS NULL", [$eid, $this->institutionId]);
+                    $enq = $this->db->fetch();
+                    if ($enq && $this->enquiry->convertToLead($eid)) {
+                        $converted++;
+                    }
+                }
+                echo json_encode(['status'=>'success','message'=>"$converted enquiry(s) converted to leads."]);
+                break;
+
+            case 'delete':
+                $this->authorize('enquiries.delete');
+                $this->db->query(
+                    "UPDATE enquiries SET deleted_at=NOW() WHERE id IN ($placeholders) AND institution_id=?",
+                    array_merge($ids, [$this->institutionId])
+                );
+                echo json_encode(['status'=>'success','message'=>count($ids).' enquiry(s) deleted.']);
+                break;
+
+            default:
+                echo json_encode(['status'=>'error','message'=>'Unknown action.']);
+        }
+        exit;
+    }
+
+    // -------------------------------------------------------------------------
+    // 12. quickStatus — inline AJAX status change (POST JSON)
+    // -------------------------------------------------------------------------
+    public function quickStatus(int $id): void
+    {
+        header('Content-Type: application/json');
+        $this->authorize('enquiries.edit');
+
+        $body    = json_decode(file_get_contents('php://input'), true) ?? [];
+        $status  = $body['status'] ?? '';
+        $allowed = ['new','contacted','interested','not_interested','closed'];
+
+        if (!in_array($status, $allowed)) {
+            echo json_encode(['status'=>'error','message'=>'Invalid status.']); exit;
+        }
+
+        $this->db->query(
+            "UPDATE enquiries SET status=?, updated_at=NOW() WHERE id=? AND institution_id=?",
+            [$status, $id, $this->institutionId]
+        );
+        echo json_encode(['status'=>'success','message'=>'Status updated.']);
+        exit;
+    }
+
+    // -------------------------------------------------------------------------
+    // 13. checkDuplicate — AJAX endpoint
     // GET /enquiries/check-duplicate?phone=X&email=Y&institution_id=Z&exclude_id=N
     // -------------------------------------------------------------------------
     public function checkDuplicate(): void

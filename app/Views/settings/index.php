@@ -21,7 +21,7 @@
         <a class="nav-link" href="<?= url('settings/communication') ?>"><i class="fas fa-paper-plane me-1"></i>Communication</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" href="<?= url('settings/audit') ?>"><i class="fas fa-shield-alt me-1"></i>Audit Logs</a>
+        <a class="nav-link" href="<?= url('audit-logs') ?>"><i class="fas fa-shield-alt me-1"></i>Audit Logs</a>
     </li>
 </ul>
 
@@ -36,7 +36,7 @@
                         <div class="col-md-8">
                             <label class="form-label">Application Name</label>
                             <input type="text" class="form-control" name="app_name"
-                                   value="<?= e($settings['app_name'] ?? '') ?>" placeholder="My Education CRM">
+                                   value="<?= e($settings['app_name'] ?? '') ?>" placeholder="My Edu Matrix">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">System Email</label>
@@ -83,7 +83,7 @@
                         <a href="<?= url('settings/communication') ?>" class="list-group-item list-group-item-action">
                             <i class="fas fa-paper-plane me-2 text-primary"></i>Communication Settings
                         </a>
-                        <a href="<?= url('settings/audit') ?>" class="list-group-item list-group-item-action">
+                        <a href="<?= url('audit-logs') ?>" class="list-group-item list-group-item-action">
                             <i class="fas fa-shield-alt me-2 text-warning"></i>Audit Logs
                         </a>
                         <a href="<?= url('users') ?>" class="list-group-item list-group-item-action">

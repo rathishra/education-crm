@@ -68,7 +68,7 @@ foreach($timetable as $daySlots) $totalSlots += count($daySlots);
                     <tr class="table-dark">
                         <th style="width:90px" class="py-3">Day</th>
                         <?php foreach($periods as $p): ?>
-                        <th class="<?= $p['is_break'] ? 'bg-secondary' : '' ?>" style="width:<?= $p['is_break'] ? '70px' : '170px' ?>">
+                        <th class="<?= ($p['is_break'] ?? 0) ? 'bg-secondary' : '' ?>" style="width:<?= ($p['is_break'] ?? 0) ? '70px' : '170px' ?>">
                             <div class="fw-bold small"><?= e($p['period_name']) ?></div>
                             <div class="opacity-75" style="font-size:.65rem"><?= substr($p['start_time'],0,5) ?>–<?= substr($p['end_time'],0,5) ?></div>
                         </th>
@@ -79,7 +79,7 @@ foreach($timetable as $daySlots) $totalSlots += count($daySlots);
                     <?php foreach($days as $day):
                         $hasAnyClass = false;
                         foreach($periods as $p) {
-                            if(!$p['is_break'] && isset($timetable[$day][$p['id']])) { $hasAnyClass = true; break; }
+                            if(!($p['is_break'] ?? 0) && isset($timetable[$day][$p['id'] ?? $p['period_number'] ?? 0])) { $hasAnyClass = true; break; }
                         }
                     ?>
                     <tr <?= !$hasAnyClass ? 'class="opacity-50"' : '' ?>>
@@ -87,11 +87,12 @@ foreach($timetable as $daySlots) $totalSlots += count($daySlots);
                             <?= ucfirst($day) ?>
                         </td>
                         <?php foreach($periods as $p):
-                            $pid = $p['id'];
-                            $slot = $timetable[$day][$pid] ?? null;
-                            $color = $slot ? ($subjectColors[$slot['subject_code']] ?? '#6b7280') : '';
+                            $pid     = $p['id'] ?? $p['period_number'] ?? 0;
+                            $isBreak = (int)($p['is_break'] ?? 0);
+                            $slot    = $timetable[$day][$pid] ?? null;
+                            $color   = $slot ? ($subjectColors[$slot['subject_code']] ?? '#6b7280') : '';
                         ?>
-                        <?php if($p['is_break']): ?>
+                        <?php if($isBreak): ?>
                         <td class="bg-light" style="vertical-align:middle">
                             <div class="text-muted" style="font-size:.65rem">
                                 <i class="fas fa-mug-hot d-block mb-1 opacity-50"></i>

@@ -96,10 +96,14 @@
                         </td>
                         <td class="text-center fw-bold"><?= $a['hours_per_week'] ?>h</td>
                         <td class="text-end pe-4">
+                            <a href="<?= url('academic/faculty-allocation/'.$a['id'].'/edit') ?>"
+                               class="btn btn-sm btn-outline-warning me-1" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
                             <form method="POST" action="<?= url('academic/faculty-allocation/'.$a['id'].'/delete') ?>" class="d-inline"
                                   onsubmit="return confirm('Remove this allocation?')">
                                 <?= csrfField() ?>
-                                <button class="btn btn-sm btn-light text-danger"><i class="fas fa-trash"></i></button>
+                                <button class="btn btn-sm btn-outline-danger" title="Remove"><i class="fas fa-trash"></i></button>
                             </form>
                         </td>
                     </tr>

@@ -28,7 +28,12 @@ class BatchController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function create(): void
     {
-        $this->view('academic/batches/create');
+        $this->db->query(
+            "SELECT id, name, total_semesters FROM courses WHERE institution_id = ? AND status = 'active' ORDER BY name",
+            [$this->institutionId]
+        );
+        $courses = $this->db->fetchAll();
+        $this->view('academic/batches/create', compact('courses'));
     }
 
     public function store(): void
@@ -122,7 +127,13 @@ class BatchController extends BaseController
         $this->db->query("SELECT * FROM academic_batches WHERE id = ? AND institution_id = ?", [$id, $this->institutionId]);
         $batch = $this->db->fetch();
         if (!$batch) { $this->redirectWith(url('academic/batches'), 'error', 'Batch not found.'); return; }
-        $this->view('academic/batches/edit', compact('batch'));
+
+        $this->db->query(
+            "SELECT id, name, total_semesters FROM courses WHERE institution_id = ? AND status = 'active' ORDER BY name",
+            [$this->institutionId]
+        );
+        $courses = $this->db->fetchAll();
+        $this->view('academic/batches/edit', compact('batch', 'courses'));
     }
 
     public function update(int $id): void

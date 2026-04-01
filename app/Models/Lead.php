@@ -109,8 +109,7 @@ class Lead extends BaseModel
 
         // Extra SELECT columns and JOINs only available after migration 16
         $extraSelect = $this->isEnhanced()
-            ? ",\n                       d.name AS department_name,
-                       l.lead_score, l.next_followup_date, l.followup_mode, l.campaign_name"
+            ? ",\n                       d.name AS department_name"
             : '';
         $deptJoin = $this->isEnhanced()
             ? "LEFT JOIN departments    d    ON d.id    = l.department_id\n                "

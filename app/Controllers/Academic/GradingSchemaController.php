@@ -8,7 +8,7 @@ class GradingSchemaController extends BaseController
     // ──────────────────────────────────────────────────────────────
     // HELPERS
     // ──────────────────────────────────────────────────────────────
-    private function json(array $data, int $code = 200): void
+    protected function json(array $data, int $code = 200): void
     {
         http_response_code($code);
         header('Content-Type: application/json');

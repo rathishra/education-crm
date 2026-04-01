@@ -3,7 +3,7 @@
  * Application Configuration
  */
 return [
-    'name'     => env('APP_NAME', 'Education CRM'),
+    'name'     => env('APP_NAME', 'Edu Matrix'),
     'env'      => env('APP_ENV', 'production'),
     'debug'    => env('APP_DEBUG', false),
     'url'      => env('APP_URL', 'http://localhost/crm'),
@@ -12,7 +12,7 @@ return [
 
     // Session
     'session' => [
-        'name'     => 'educrm_session',
+        'name'     => 'edumatrix_session',
         'lifetime' => 120, // minutes
         'path'     => '/',
         'secure'   => false,

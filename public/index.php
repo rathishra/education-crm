@@ -1,6 +1,6 @@
 <?php
 /**
- * Education CRM - Entry Point
+ * Edu Matrix - Entry Point
  * All requests are routed through this file
  */
 

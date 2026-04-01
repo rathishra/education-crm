@@ -1,5 +1,5 @@
 -- ============================================================
--- Demo seed data for Education CRM - Client Demo
+-- Demo seed data for Edu Matrix - Client Demo
 -- Database: education_crm (MySQL/MariaDB)
 -- Safe to run multiple times (uses INSERT IGNORE where possible)
 -- Generated: 2026-03-26

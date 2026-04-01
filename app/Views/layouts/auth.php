@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= csrfToken() ?>">
-    <title><?= e($pageTitle ?? 'Sign In') ?> — <?= e(config('app.name', 'EduCRM')) ?></title>
+    <title><?= e($pageTitle ?? 'Sign In') ?> — <?= e(config('app.name', 'Edu Matrix')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="<?= asset('css/style.css') ?>" rel="stylesheet">
@@ -211,7 +211,7 @@
                 <div class="auth-brand-logo">
                     <i class="fas fa-graduation-cap"></i>
                 </div>
-                <h1 class="auth-brand-title"><?= e(config('app.name', 'EduCRM')) ?></h1>
+                <h1 class="auth-brand-title"><?= e(config('app.name', 'Edu Matrix')) ?></h1>
                 <p class="auth-brand-desc">
                     The complete enterprise platform for managing admissions, academics,
                     fees, and student lifecycle — all in one place.
@@ -225,7 +225,7 @@
                 </ul>
             </div>
             <div class="auth-brand-footer position-relative" style="z-index:1">
-                &copy; <?= date('Y') ?> <?= e(config('app.name', 'EduCRM')) ?>. Enterprise Edition.
+                &copy; <?= date('Y') ?> <?= e(config('app.name', 'Edu Matrix')) ?>. Enterprise Edition.
             </div>
         </div>
 
@@ -251,7 +251,7 @@
             <?= $content ?>
 
             <div class="auth-footer">
-                Multi-Institution Education CRM &bull; Enterprise Platform
+                Edu Matrix &bull; Enterprise Education Platform
             </div>
         </div>
     </div>

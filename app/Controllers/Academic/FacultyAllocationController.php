@@ -138,7 +138,142 @@ class FacultyAllocationController extends BaseController
         $this->redirectWith(url('academic/faculty-allocation'), 'success', 'Allocation removed.');
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // EDIT (GET)
+    // ─────────────────────────────────────────────────────────────
+    public function edit(int $id): void
+    {
+        $this->db->query(
+            "SELECT * FROM faculty_subject_allocations WHERE id=? AND institution_id=?",
+            [$id, $this->institutionId]
+        );
+        $allocation = $this->db->fetch();
+        if (!$allocation) {
+            $this->redirectWith(url('academic/faculty-allocation'), 'error', 'Allocation not found.');
+            return;
+        }
+
+        $this->db->query(
+            "SELECT u.id, CONCAT(u.first_name,' ',u.last_name) AS name, u.email
+             FROM users u
+             INNER JOIN user_roles ur ON ur.user_id = u.id AND ur.institution_id = ?
+             WHERE u.is_active = 1 ORDER BY u.first_name",
+            [$this->institutionId]
+        );
+        $faculty = $this->db->fetchAll();
+
+        $this->db->query(
+            "SELECT id, subject_code, subject_name, subject_type, credits FROM subjects WHERE institution_id=? AND status='active' AND deleted_at IS NULL ORDER BY subject_name",
+            [$this->institutionId]
+        );
+        $subjects = $this->db->fetchAll();
+
+        $this->db->query(
+            "SELECT id, program_name, batch_term, total_semesters FROM academic_batches WHERE institution_id=? AND status='active' ORDER BY program_name",
+            [$this->institutionId]
+        );
+        $batches = $this->db->fetchAll();
+
+        $this->db->query(
+            "SELECT id, section_name, batch_id FROM academic_sections WHERE institution_id=? AND status='active' ORDER BY section_name",
+            [$this->institutionId]
+        );
+        $sections = $this->db->fetchAll();
+
+        $this->view('academic/faculty-allocation/edit', compact('allocation','faculty','subjects','batches','sections'));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // UPDATE (POST)
+    // ─────────────────────────────────────────────────────────────
+    public function update(int $id): void
+    {
+        verifyCsrf();
+
+        $this->db->query(
+            "SELECT id FROM faculty_subject_allocations WHERE id=? AND institution_id=?",
+            [$id, $this->institutionId]
+        );
+        if (!$this->db->fetch()) {
+            $this->redirectWith(url('academic/faculty-allocation'), 'error', 'Allocation not found.');
+            return;
+        }
+
+        $facultyId = (int)$this->input('faculty_id');
+        $subjectId = (int)$this->input('subject_id');
+        $batchId   = (int)$this->input('batch_id') ?: null;
+        $sectionId = (int)$this->input('section_id') ?: null;
+        $semester  = (int)$this->input('semester') ?: null;
+        $type      = $this->input('allocation_type', 'theory');
+        $labBatch  = (int)$this->input('lab_batch_number') ?: null;
+        $hours     = (int)$this->input('hours_per_week', 0);
+
+        if (!$facultyId || !$subjectId) {
+            $this->backWithErrors(['Faculty and Subject are required.']);
+            return;
+        }
+
+        // Duplicate check (excluding self)
+        $this->db->query(
+            "SELECT id FROM faculty_subject_allocations
+             WHERE faculty_id=? AND subject_id=? AND batch_id<=>? AND section_id<=>?
+               AND allocation_type=? AND status='active' AND id != ?",
+            [$facultyId, $subjectId, $batchId, $sectionId, $type, $id]
+        );
+        if ($this->db->fetch()) {
+            $this->backWithErrors(['An identical allocation already exists.']);
+            return;
+        }
+
+        $this->db->query(
+            "UPDATE faculty_subject_allocations
+             SET faculty_id=?, subject_id=?, batch_id=?, section_id=?, semester=?,
+                 allocation_type=?, lab_batch_number=?, hours_per_week=?
+             WHERE id=? AND institution_id=?",
+            [$facultyId, $subjectId, $batchId, $sectionId, $semester,
+             $type, $labBatch, $hours, $id, $this->institutionId]
+        );
+
+        $this->logAudit('faculty_allocation_update', 'faculty_subject_allocations', $id);
+        $this->redirectWith(url('academic/faculty-allocation'), 'success', 'Allocation updated successfully.');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // WORKLOAD (GET — JSON)
+    // ─────────────────────────────────────────────────────────────
+    public function workload(): void
+    {
+        $facultyId = (int)($_GET['faculty_id'] ?? 0);
+        if (!$facultyId) {
+            echo json_encode([]);
+            exit;
+        }
+
+        $this->db->query(
+            "SELECT fa.id, fa.allocation_type, fa.hours_per_week, fa.semester,
+                    s.subject_code, s.subject_name,
+                    b.program_name, b.batch_term,
+                    sec.section_name
+             FROM faculty_subject_allocations fa
+             JOIN subjects s ON s.id = fa.subject_id
+             LEFT JOIN academic_batches b ON b.id = fa.batch_id
+             LEFT JOIN academic_sections sec ON sec.id = fa.section_id
+             WHERE fa.faculty_id=? AND fa.institution_id=? AND fa.status='active'
+             ORDER BY b.program_name, s.subject_name",
+            [$facultyId, $this->institutionId]
+        );
+        $rows = $this->db->fetchAll();
+
+        $totalHours = array_sum(array_column($rows, 'hours_per_week'));
+
+        header('Content-Type: application/json');
+        echo json_encode(['allocations' => $rows, 'total_hours' => $totalHours]);
+        exit;
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // AJAX: sections by batch
+    // ─────────────────────────────────────────────────────────────
     public function ajaxSections(): void
     {
         $batchId = (int)($_GET['batch_id'] ?? 0);

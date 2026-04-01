@@ -677,6 +677,160 @@ class AdmissionController extends BaseController
     }
 
     // ================================================================
+    // EXPORT CSV
+    // ================================================================
+
+    public function export(): void
+    {
+        $this->authorize('admissions.view');
+
+        $filters = [
+            'search'           => $this->input('search'),
+            'status'           => $this->input('status'),
+            'course_id'        => $this->input('course_id'),
+            'department_id'    => $this->input('department_id'),
+            'counselor_id'     => $this->input('counselor_id'),
+            'payment_status'   => $this->input('payment_status'),
+            'date_from'        => $this->input('date_from'),
+            'date_to'          => $this->input('date_to'),
+        ];
+
+        // Support exporting specific IDs from bulk-export
+        $idsParam = $this->input('ids');
+        if ($idsParam) {
+            $ids  = array_filter(array_map('intval', explode(',', $idsParam)));
+            $rows = [];
+            if (!empty($ids)) {
+                $ph = implode(',', array_fill(0, count($ids), '?'));
+                $this->db->query(
+                    "SELECT a.*, c.name AS course_name, d.name AS department_name,
+                            ay.name AS academic_year_name,
+                            CONCAT(counsel.first_name,' ',counsel.last_name) AS counselor_name
+                     FROM admissions a
+                     LEFT JOIN courses c ON c.id = a.course_id
+                     LEFT JOIN departments d ON d.id = a.department_id
+                     LEFT JOIN academic_years ay ON ay.id = a.academic_year_id
+                     LEFT JOIN users counsel ON counsel.id = a.counselor_id
+                     WHERE a.id IN ($ph) AND a.institution_id = ?",
+                    array_merge($ids, [$this->institutionId])
+                );
+                $rows = $this->db->fetchAll();
+            }
+        } else {
+            $all = $this->admission->getListPaginated(1, 5000, $filters);
+            $rows = $all['data'] ?? [];
+        }
+
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="admissions_' . date('Ymd_His') . '.csv"');
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['Admission #','First Name','Last Name','Phone','Email','Course','Department','Academic Year','Status','Payment Status','Counselor','Applied Date']);
+        foreach ($rows as $r) {
+            fputcsv($out, [
+                $r['admission_number'],
+                $r['first_name'],
+                $r['last_name'] ?? '',
+                $r['phone'],
+                $r['email'] ?? '',
+                $r['course_name'] ?? '',
+                $r['department_name'] ?? '',
+                $r['academic_year_name'] ?? '',
+                $r['status'],
+                $r['payment_status'] ?? '',
+                $r['counselor_name'] ?? '',
+                $r['application_date'] ?? $r['created_at'],
+            ]);
+        }
+        fclose($out);
+        exit;
+    }
+
+    // ================================================================
+    // BULK ACTIONS
+    // ================================================================
+
+    public function bulkAction(): void
+    {
+        $this->authorize('admissions.approve');
+        header('Content-Type: application/json');
+
+        $input  = json_decode(file_get_contents('php://input'), true) ?? [];
+        $ids    = array_map('intval', $input['ids'] ?? []);
+        $action = $input['action'] ?? '';
+
+        if (empty($ids)) {
+            echo json_encode(['status' => 'error', 'message' => 'No records selected']); exit;
+        }
+
+        $validStatuses = ['pending','document_pending','payment_pending','confirmed','cancelled','rejected'];
+
+        if ($action === 'delete') {
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $this->db->query(
+                "DELETE FROM admissions WHERE id IN ($placeholders) AND institution_id = ?",
+                array_merge($ids, [$this->institutionId])
+            );
+            echo json_encode(['status' => 'success', 'message' => count($ids) . ' application(s) deleted.']); exit;
+        }
+
+        if (in_array($action, $validStatuses, true)) {
+            foreach ($ids as $id) {
+                $this->db->query(
+                    "SELECT id, status FROM admissions WHERE id = ? AND institution_id = ?",
+                    [$id, $this->institutionId]
+                );
+                $adm = $this->db->fetch();
+                if ($adm && $adm['status'] !== 'enrolled') {
+                    $this->db->query(
+                        "UPDATE admissions SET status = ?, updated_at = NOW() WHERE id = ?",
+                        [$action, $id]
+                    );
+                }
+            }
+            $label = ucfirst(str_replace('_', ' ', $action));
+            echo json_encode(['status' => 'success', 'message' => count($ids) . " application(s) marked as {$label}."]); exit;
+        }
+
+        echo json_encode(['status' => 'error', 'message' => 'Unknown action']); exit;
+    }
+
+    // ================================================================
+    // QUICK STATUS  (AJAX inline change)
+    // ================================================================
+
+    public function quickStatus(int $id): void
+    {
+        $this->authorize('admissions.approve');
+        header('Content-Type: application/json');
+
+        $input  = json_decode(file_get_contents('php://input'), true) ?? [];
+        $status = $input['status'] ?? ($_POST['status'] ?? '');
+
+        $allowed = ['pending','document_pending','payment_pending','confirmed','cancelled','rejected'];
+        if (!in_array($status, $allowed, true)) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid status']); exit;
+        }
+
+        $this->db->query(
+            "SELECT id FROM admissions WHERE id = ? AND institution_id = ? AND status != 'enrolled'",
+            [$id, $this->institutionId]
+        );
+        if (!$this->db->fetch()) {
+            echo json_encode(['status' => 'error', 'message' => 'Not found or already enrolled']); exit;
+        }
+
+        $this->db->query(
+            "UPDATE admissions SET status = ?, updated_at = NOW() WHERE id = ?",
+            [$status, $id]
+        );
+        $this->admission->addTimeline($id, 'note_added', 'Status changed to ' . ucfirst(str_replace('_', ' ', $status)), null, null, $status, $this->user['id'] ?? 1);
+
+        $labels = \App\Models\Admission::STATUS_LABELS;
+        [$label, $badgeClass] = $labels[$status] ?? [ucfirst($status), 'bg-secondary'];
+        echo json_encode(['status' => 'success', 'label' => $label, 'badge_class' => $badgeClass]); exit;
+    }
+
+    // ================================================================
     // PRIVATE HELPERS
     // ================================================================
 
