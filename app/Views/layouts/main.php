@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= csrfToken() ?>">
-    <title><?= e($pageTitle ?? 'Dashboard') ?> — <?= e(config('app.name', 'EduCRM')) ?></title>
+    <title><?= e($pageTitle ?? 'Dashboard') ?> — <?= e(config('app.name', 'Edu Matrix')) ?></title>
 
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -35,7 +35,7 @@
             <i class="fas fa-graduation-cap text-white"></i>
         </div>
         <div class="brand-text d-none d-sm-block">
-            <span class="brand-name"><?= e(config('app.name', 'EduCRM')) ?></span>
+            <span class="brand-name"><?= e(config('app.name', 'Edu Matrix')) ?></span>
             <span class="brand-sub">Education Platform</span>
         </div>
     </a>
@@ -157,206 +157,175 @@
                 <div class="nav">
 
                     <!-- DASHBOARD -->
-                    <a class="nav-link <?= (parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH) === '/' || strpos($_SERVER['REQUEST_URI'],'dashboard') !== false) ? 'active' : '' ?>" href="<?= url('dashboard') ?>">
+                    <a class="nav-link <?= (parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH) === '/' || strpos($_SERVER['REQUEST_URI'],'/dashboard') !== false) && strpos($_SERVER['REQUEST_URI'],'/crm/dashboard') === false ? 'active' : '' ?>" href="<?= url('dashboard') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-th-large"></i></div>
                         Dashboard
                     </a>
 
-                    <!-- ORGANIZATION -->
-                    <?php if (hasPermission('organizations.view')): ?>
-                    <div class="sb-sidenav-menu-heading">Organization</div>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/organizations') !== false ? 'active' : '' ?>" href="<?= url('organizations') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-sitemap"></i></div>
-                        Organizations
-                    </a>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/institutions') !== false ? 'active' : '' ?>" href="<?= url('institutions') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-university"></i></div>
-                        Institutions
-                    </a>
-                    <?php if (hasPermission('departments.view')): ?>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/departments') !== false ? 'active' : '' ?>" href="<?= url('departments') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-project-diagram"></i></div>
-                        Departments
-                    </a>
-                    <?php endif; ?>
-                    <?php if (hasPermission('academic_years.view')): ?>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic-years') !== false ? 'active' : '' ?>" href="<?= url('academic-years') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-calendar-alt"></i></div>
-                        Academic Years
-                    </a>
-                    <?php endif; ?>
-                    <?php endif; ?>
-
                     <!-- CRM -->
                     <?php if (hasPermission('leads.view') || hasPermission('enquiries.view')): ?>
                     <div class="sb-sidenav-menu-heading">CRM</div>
+                    <?php if (hasPermission('leads.view')): ?>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/crm/dashboard') !== false ? 'active' : '' ?>" href="<?= url('crm/dashboard') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-chart-line"></i></div>
+                        Pipeline
+                    </a>
                     <?php endif; ?>
-
                     <?php if (hasPermission('enquiries.view')): ?>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/enquiries') !== false ? 'active' : '' ?>" href="<?= url('enquiries') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-comments"></i></div>
                         Enquiries
                     </a>
                     <?php endif; ?>
-
                     <?php if (hasPermission('leads.view')): ?>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/leads') !== false ? 'active' : '' ?>" href="<?= url('leads') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-funnel-dollar"></i></div>
                         Leads
                     </a>
                     <?php endif; ?>
-
                     <?php if (hasPermission('followups.view')): ?>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/followups') !== false ? 'active' : '' ?>" href="<?= url('followups') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-phone-volume"></i></div>
                         Follow-ups
                     </a>
                     <?php endif; ?>
-
                     <?php if (hasPermission('tasks.view')): ?>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/tasks') !== false ? 'active' : '' ?>" href="<?= url('tasks') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-check-square"></i></div>
                         Tasks
                     </a>
                     <?php endif; ?>
-
-                    <!-- ACADEMIC -->
-                    <?php if (hasPermission('admissions.view') || hasPermission('students.view') || hasPermission('courses.view')): ?>
-                    <div class="sb-sidenav-menu-heading">Academic</div>
                     <?php endif; ?>
 
+                    <!-- ADMISSIONS -->
+                    <?php if (hasPermission('admissions.view')): ?>
+                    <div class="sb-sidenav-menu-heading">Admissions</div>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/admissions') !== false ? 'active' : '' ?>" href="<?= url('admissions') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-user-plus"></i></div>
+                        Applications
+                    </a>
                     <?php if (hasPermission('courses.view')): ?>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/courses') !== false ? 'active' : '' ?>" href="<?= url('courses') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-book"></i></div>
-                        Courses
+                        Programs / Courses
                     </a>
                     <?php endif; ?>
+                    <?php endif; ?>
 
-                    <?php if (hasPermission('batches.view')): ?>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/batches') !== false && strpos($_SERVER['REQUEST_URI'],'/subjects') === false ? 'active' : '' ?>" href="<?= url('batches') ?>">
+                    <!-- ACADEMIC -->
+                    <div class="sb-sidenav-menu-heading">Academic Setup</div>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic-years') !== false ? 'active' : '' ?>" href="<?= url('academic-years') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-calendar-check"></i></div>
+                        Academic Years
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/batches') !== false ? 'active' : '' ?>" href="<?= url('academic/batches') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-layer-group"></i></div>
                         Batches
                     </a>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/sections') !== false ? 'active' : '' ?>" href="<?= url('sections') ?>">
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/sections') !== false ? 'active' : '' ?>" href="<?= url('academic/sections') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-object-group"></i></div>
                         Sections
                     </a>
-                    <?php endif; ?>
-
-                    <?php if (hasPermission('admissions.view')): ?>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/admissions') !== false ? 'active' : '' ?>" href="<?= url('admissions') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-clipboard-list"></i></div>
-                        Admissions
-                    </a>
-                    <?php endif; ?>
-
-                    <?php if (hasPermission('students.view')): ?>
-                    <a class="nav-link collapsed <?= strpos($_SERVER['REQUEST_URI'],'/students') !== false ? 'active' : '' ?>"
-                       href="#navStudents" data-bs-toggle="collapse" aria-expanded="<?= strpos($_SERVER['REQUEST_URI'],'/students') !== false ? 'true' : 'false' ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-user-graduate"></i></div>
-                        Students
-                        <div class="sb-sidenav-collapse-arrow"><i class="fas fa-chevron-down"></i></div>
-                    </a>
-                    <div class="collapse <?= strpos($_SERVER['REQUEST_URI'],'/students') !== false ? 'show' : '' ?>" id="navStudents" data-bs-parent="#sidenavAccordion">
-                        <nav class="sb-sidenav-menu-nested nav">
-                            <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/students/dashboard') !== false ? 'active' : '' ?>" href="<?= url('students/dashboard') ?>">Overview</a>
-                            <a class="nav-link <?= $_SERVER['REQUEST_URI'] === url('students') ? 'active' : '' ?>" href="<?= url('students') ?>">All Students</a>
-                            <?php if (hasPermission('students.create')): ?>
-                            <a class="nav-link" href="<?= url('students/create') ?>">Add Student</a>
-                            <?php endif; ?>
-                            <a class="nav-link" href="<?= url('students?status=passed_out') ?>">Alumni</a>
-                        </nav>
-                    </div>
-                    <?php endif; ?>
-
-                    <?php if (hasPermission('attendance.view')): ?>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/attendance') !== false ? 'active' : '' ?>" href="<?= url('attendance') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-calendar-check"></i></div>
-                        Attendance
-                    </a>
-                    <?php endif; ?>
-
-                    <!-- ACADEMICS (Subjects / Timetable) -->
-                    <?php if (hasPermission('subjects.view') || hasPermission('timetable.view')): ?>
-                    <div class="sb-sidenav-menu-heading">Academics</div>
-                    <?php if (hasPermission('subjects.view')): ?>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/subjects') !== false ? 'active' : '' ?>" href="<?= url('subjects') ?>">
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/subjects') !== false ? 'active' : '' ?>" href="<?= url('academic/subjects') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
                         Subjects
                     </a>
-                    <?php endif; ?>
-                    <?php if (hasPermission('timetable.view')): ?>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/timetable') !== false ? 'active' : '' ?>" href="<?= url('timetable') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-clock"></i></div>
-                        Timetable
-                    </a>
-                    <?php endif; ?>
-                    <?php endif; ?>
-
-                    <!-- NEW ACADEMIC MODULE -->
-                    <div class="sb-sidenav-menu-heading">Academic Management</div>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/batches') !== false ? 'active' : '' ?>" href="<?= url('academic/batches') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-layer-group"></i></div>
-                        Batches & Cohorts
-                    </a>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/sections') !== false ? 'active' : '' ?>" href="<?= url('academic/sections') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-object-group"></i></div>
-                        Class Sections
-                    </a>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/timetable') !== false ? 'active' : '' ?>" href="<?= url('academic/timetable') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-calendar-alt"></i></div>
-                        Timetable Generator
-                    </a>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/attendance') !== false ? 'active' : '' ?>" href="<?= url('academic/attendance') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-user-check"></i></div>
-                        Attendance Manager
-                    </a>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/assessments') !== false ? 'active' : '' ?>" href="<?= url('academic/assessments') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-clipboard-list"></i></div>
-                        Examination Settings
-                    </a>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/grading-schemas') !== false ? 'active' : '' ?>" href="<?= url('academic/grading-schemas') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-layer-group"></i></div>
-                        Exam Schemes
-                    </a>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/subjects') !== false ? 'active' : '' ?>" href="<?= url('academic/subjects') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-book"></i></div>
-                        Academic Subjects
-                    </a>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/classrooms') !== false ? 'active' : '' ?>" href="<?= url('academic/classrooms') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-door-open"></i></div>
-                        Classrooms
+                        Classrooms & Labs
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/periods') !== false ? 'active' : '' ?>" href="<?= url('academic/periods') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-clock"></i></div>
+                        Period Management
+                    </a>
+
+                    <!-- TEACHING -->
+                    <div class="sb-sidenav-menu-heading">Teaching</div>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/subject-allocation') !== false ? 'active' : '' ?>" href="<?= url('academic/subject-allocation') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-book-reader"></i></div>
+                        Subject Allocation
                     </a>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/faculty-allocation') !== false ? 'active' : '' ?>" href="<?= url('academic/faculty-allocation') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                         Faculty Allocation
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/timetable') !== false ? 'active' : '' ?>" href="<?= url('academic/timetable') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-calendar-alt"></i></div>
+                        Timetable
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/attendance') !== false ? 'active' : '' ?>" href="<?= url('academic/attendance') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-user-check"></i></div>
+                        Attendance
                     </a>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/lms') !== false ? 'active' : '' ?>" href="<?= url('academic/lms') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-graduation-cap"></i></div>
                         LMS / Materials
                     </a>
 
-                    <!-- EXAMS -->
+                    <!-- STUDENTS -->
+                    <?php if (hasPermission('students.view')): ?>
+                    <div class="sb-sidenav-menu-heading">Students</div>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/students/dashboard') !== false ? 'active' : '' ?>" href="<?= url('students/dashboard') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                        Overview
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/students') !== false && strpos($_SERVER['REQUEST_URI'],'/dashboard') === false ? 'active' : '' ?>" href="<?= url('students') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-user-graduate"></i></div>
+                        All Students
+                    </a>
+                    <?php endif; ?>
+
+                    <!-- EXAMINATIONS -->
+                    <div class="sb-sidenav-menu-heading">Examinations</div>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/grading-schemas') !== false ? 'active' : '' ?>" href="<?= url('academic/grading-schemas') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-star-half-alt"></i></div>
+                        Grading Schemes
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/assessments') !== false ? 'active' : '' ?>" href="<?= url('academic/assessments') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-clipboard-list"></i></div>
+                        Internal Assessment
+                    </a>
                     <?php if (hasPermission('exams.view')): ?>
-                    <div class="sb-sidenav-menu-heading">Exams</div>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/exams') !== false ? 'active' : '' ?>" href="<?= url('exams') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-file-signature"></i></div>
                         Exams & Marks
                     </a>
                     <?php endif; ?>
 
-                    <!-- FINANCE -->
-                    <?php if (hasPermission('fees.view')): ?>
-                    <div class="sb-sidenav-menu-heading">Finance</div>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/fees') !== false ? 'active' : '' ?>" href="<?= url('fees') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                    <!-- FEES MANAGEMENT -->
+                    <div class="sb-sidenav-menu-heading">Fees Management</div>
+                    <a class="nav-link <?= preg_match('#^/fees$#', parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH)) ? 'active' : '' ?>" href="<?= url('fees') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                        Fee Dashboard
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/fees/heads') !== false ? 'active' : '' ?>" href="<?= url('fees/heads') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-tags"></i></div>
+                        Fee Heads
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/fees/structures') !== false ? 'active' : '' ?>" href="<?= url('fees/structures') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-sitemap"></i></div>
                         Fee Structures
                     </a>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/payments') !== false ? 'active' : '' ?>" href="<?= url('payments') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-receipt"></i></div>
-                        Payments
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/fees/assignment') !== false ? 'active' : '' ?>" href="<?= url('fees/assignment') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-user-tag"></i></div>
+                        Fee Assignment
                     </a>
-                    <?php endif; ?>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/fees/collection') !== false ? 'active' : '' ?>" href="<?= url('fees/collection') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-cash-register"></i></div>
+                        Fee Collection
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/fees/concessions') !== false ? 'active' : '' ?>" href="<?= url('fees/concessions') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-percentage"></i></div>
+                        Concessions
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/fees/refunds') !== false ? 'active' : '' ?>" href="<?= url('fees/refunds') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-undo-alt"></i></div>
+                        Refunds
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/fees/reports') !== false ? 'active' : '' ?>" href="<?= url('fees/reports') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-chart-bar"></i></div>
+                        Fee Reports
+                    </a>
 
                     <!-- SERVICES -->
                     <?php if (hasPermission('hostel.view') || hasPermission('transport.view') || hasPermission('library.view')): ?>
@@ -381,22 +350,42 @@
                     <?php endif; ?>
                     <?php endif; ?>
 
-                    <!-- PLACEMENT -->
-                    <?php if (hasPermission('placements.view')): ?>
-                    <div class="sb-sidenav-menu-heading">Placement</div>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/placement') !== false ? 'active' : '' ?>" href="<?= url('placement/drives') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-briefcase"></i></div>
-                        Placement Cell
+                    <!-- FACULTY MANAGEMENT -->
+                    <?php if (hasPermission('staff.view')): ?>
+                    <div class="sb-sidenav-menu-heading">Faculty</div>
+                    <a class="nav-link <?= preg_match('#/faculty(/|$)(?!leave|perf|attend|create)#', $_SERVER['REQUEST_URI']) ? 'active' : '' ?>" href="<?= url('faculty') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                        Faculty Directory
+                    </a>
+                    <?php if (hasPermission('users.create')): ?>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/faculty/create') !== false ? 'active' : '' ?>" href="<?= url('faculty/create') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-user-plus"></i></div>
+                        Add Faculty
+                    </a>
+                    <?php endif; ?>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/faculty/leave') !== false ? 'active' : '' ?>" href="<?= url('faculty/leave') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-calendar-times"></i></div>
+                        Leave Management
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/faculty/attendance') !== false ? 'active' : '' ?>" href="<?= url('faculty/attendance') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-clipboard-check"></i></div>
+                        Attendance
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/faculty/performance') !== false ? 'active' : '' ?>" href="<?= url('faculty/performance') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-star"></i></div>
+                        Performance
                     </a>
                     <?php endif; ?>
 
                     <!-- HR & PAYROLL -->
                     <?php if (hasPermission('staff.view') || hasPermission('payroll.payslips')): ?>
                     <div class="sb-sidenav-menu-heading">HR & Payroll</div>
+                    <?php if (hasPermission('staff.view')): ?>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/hr/staff') !== false ? 'active' : '' ?>" href="<?= url('hr/staff') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-id-badge"></i></div>
                         Staff Directory
                     </a>
+                    <?php endif; ?>
                     <?php if (hasPermission('payroll.payslips')): ?>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/hr/payroll') !== false ? 'active' : '' ?>" href="<?= url('hr/payroll') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-money-check-alt"></i></div>
@@ -405,31 +394,31 @@
                     <?php endif; ?>
                     <?php endif; ?>
 
-                    <!-- COMMUNICATION -->
-                    <?php if (hasPermission('communication.send_email') || hasPermission('communication.send_sms')): ?>
-                    <div class="sb-sidenav-menu-heading">Communication</div>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/communication') !== false ? 'active' : '' ?>" href="<?= url('communication/templates') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-paper-plane"></i></div>
-                        Messages
-                    </a>
-                    <?php endif; ?>
-
-                    <!-- ANALYTICS -->
-                    <?php if (hasPermission('reports.view')): ?>
-                    <div class="sb-sidenav-menu-heading">Analytics</div>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/reports') !== false ? 'active' : '' ?>" href="<?= url('reports') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-chart-bar"></i></div>
-                        Reports
-                    </a>
-                    <?php endif; ?>
-
-                    <!-- ADMIN -->
+                    <!-- ADMINISTRATION -->
                     <?php if (hasPermission('users.view') || hasPermission('settings.manage')): ?>
                     <div class="sb-sidenav-menu-heading">Administration</div>
+                    <?php if (hasPermission('organizations.view')): ?>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/institutions') !== false ? 'active' : '' ?>" href="<?= url('institutions') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-university"></i></div>
+                        Institutions
+                    </a>
+                    <?php endif; ?>
+                    <?php if (hasPermission('departments.view')): ?>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/departments') !== false ? 'active' : '' ?>" href="<?= url('departments') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-project-diagram"></i></div>
+                        Departments
+                    </a>
+                    <?php endif; ?>
                     <?php if (hasPermission('users.view')): ?>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/users') !== false ? 'active' : '' ?>" href="<?= url('users') ?>">
+                    <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'],'/users') !== false && strpos($_SERVER['REQUEST_URI'],'/roles') === false) ? 'active' : '' ?>" href="<?= url('users') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-users-cog"></i></div>
-                        User Management
+                        Users
+                    </a>
+                    <?php endif; ?>
+                    <?php if (hasPermission('roles.view')): ?>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/roles') !== false ? 'active' : '' ?>" href="<?= url('roles') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-shield-alt"></i></div>
+                        Role Management
                     </a>
                     <?php endif; ?>
                     <?php if (hasPermission('settings.manage')): ?>
@@ -440,7 +429,7 @@
                     <?php endif; ?>
                     <?php if (hasPermission('audit.view')): ?>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/audit') !== false ? 'active' : '' ?>" href="<?= url('audit-logs') ?>">
-                        <div class="sb-nav-link-icon"><i class="fas fa-shield-alt"></i></div>
+                        <div class="sb-nav-link-icon"><i class="fas fa-history"></i></div>
                         Audit Logs
                     </a>
                     <?php endif; ?>
@@ -523,7 +512,7 @@
         <!-- Footer -->
         <footer class="mt-auto">
             <div class="d-flex justify-content-between align-items-center">
-                <span>&copy; <?= date('Y') ?> <?= e(config('app.name', 'EduCRM')) ?> &mdash; All rights reserved.</span>
+                <span>&copy; <?= date('Y') ?> <?= e(config('app.name', 'Edu Matrix')) ?> &mdash; All rights reserved.</span>
                 <span>Enterprise Edition v2.0</span>
             </div>
         </footer>
