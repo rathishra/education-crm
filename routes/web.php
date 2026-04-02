@@ -211,6 +211,10 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->post('/admissions/{id}/documents/verify', 'Admin\AdmissionController@verifyDocument', 'admissions.documents.verify');
     $router->post('/admissions/{id}/payments', 'Admin\AdmissionController@storePayment', 'admissions.payments.store');
     $router->post('/admissions/{id}/notes', 'Admin\AdmissionController@addNote', 'admissions.notes.store');
+    $router->get('/admissions/{id}/offer-letter', 'Admin\AdmissionController@offerLetter', 'admissions.offer_letter');
+    $router->get('/admissions/{id}/admission-letter', 'Admin\AdmissionController@admissionLetter', 'admissions.admission_letter');
+    $router->post('/admissions/{id}/interview', 'Admin\AdmissionController@scheduleInterview', 'admissions.interview.store');
+    $router->post('/admissions/{id}/interview-result', 'Admin\AdmissionController@recordInterviewResult', 'admissions.interview.result');
 
     // Students
     $router->get('/students/dashboard', 'Admin\StudentDashboardController@index', 'students.dashboard');

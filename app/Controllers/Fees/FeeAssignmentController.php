@@ -17,7 +17,7 @@ class FeeAssignmentController extends BaseController
         $params = [$this->institutionId];
 
         if ($search) {
-            $where   .= " AND (s.first_name LIKE ? OR s.last_name LIKE ? OR s.enrollment_number LIKE ?)";
+            $where   .= " AND (s.first_name LIKE ? OR s.last_name LIKE ? OR s.student_id_number LIKE ?)";
             $params[] = "%$search%"; $params[] = "%$search%"; $params[] = "%$search%";
         }
         if ($ayId)    { $where .= " AND fsa.academic_year_id = ?"; $params[] = $ayId; }
@@ -27,10 +27,10 @@ class FeeAssignmentController extends BaseController
         $this->db->query(
             "SELECT fsa.*,
                     CONCAT(s.first_name,' ',s.last_name) AS student_name,
-                    s.enrollment_number,
+                    s.student_id_number AS enrollment_number,
                     fh.head_name, fh.head_code, fh.category,
-                    ay.year_name,
-                    c.course_name
+                    ay.name AS year_name,
+                    c.name AS course_name
              FROM fee_student_assignments fsa
              JOIN students s  ON s.id  = fsa.student_id
              JOIN fee_heads fh ON fh.id = fsa.fee_head_id
@@ -53,15 +53,15 @@ class FeeAssignmentController extends BaseController
                SUM(balance_amount) AS total_balance,
                SUM(fine_amount)    AS total_fine
              FROM fee_student_assignments
-             WHERE institution_id = ?" . ($ayId ? " AND academic_year_id = $ayId" : ''),
-            [$this->institutionId]
+             WHERE institution_id = ?" . ($ayId ? " AND academic_year_id = ?" : ''),
+            $ayId ? [$this->institutionId, $ayId] : [$this->institutionId]
         );
         $summary = $this->db->fetch();
 
-        $this->db->query("SELECT id, year_name FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC", [$this->institutionId]);
+        $this->db->query("SELECT id, name AS year_name FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC", [$this->institutionId]);
         $academicYears = $this->db->fetchAll();
 
-        $this->db->query("SELECT id, course_name FROM courses WHERE institution_id = ? ORDER BY course_name", [$this->institutionId]);
+        $this->db->query("SELECT id, name AS course_name FROM courses WHERE institution_id = ? ORDER BY name", [$this->institutionId]);
         $courses = $this->db->fetchAll();
 
         $this->db->query("SELECT id, name, total_amount FROM fee_structures WHERE institution_id = ? AND status='active' ORDER BY name", [$this->institutionId]);
@@ -227,12 +227,12 @@ class FeeAssignmentController extends BaseController
         $this->db->query(
             "SELECT s.id,
                     CONCAT(s.first_name,' ',s.last_name) AS text,
-                    s.enrollment_number,
-                    c.course_name
+                    s.student_id_number AS enrollment_number,
+                    c.name AS course_name
              FROM students s
              LEFT JOIN courses c ON c.id = s.course_id
              WHERE s.institution_id = ?
-               AND (s.first_name LIKE ? OR s.last_name LIKE ? OR s.enrollment_number LIKE ?)
+               AND (s.first_name LIKE ? OR s.last_name LIKE ? OR s.student_id_number LIKE ?)
              ORDER BY s.first_name LIMIT 20",
             [$this->institutionId, "%$q%", "%$q%", "%$q%"]
         );
@@ -268,13 +268,12 @@ class FeeAssignmentController extends BaseController
     {
         $courseId = (int)$this->input('course_id', 0);
         $ayId     = (int)$this->input('academic_year_id', 0);
-        $this->db->query(
-            "SELECT fs.id, fs.name, fs.total_amount FROM fee_structures fs
+        $sql    = "SELECT fs.id, fs.name, fs.total_amount FROM fee_structures fs
              WHERE fs.institution_id = ? AND fs.course_id = ? AND fs.status='active'"
-            . ($ayId ? " AND fs.academic_year_id = $ayId" : "")
-            . " ORDER BY fs.name",
-            [$this->institutionId, $courseId]
-        );
+            . ($ayId ? " AND fs.academic_year_id = ?" : "")
+            . " ORDER BY fs.name";
+        $params = $ayId ? [$this->institutionId, $courseId, $ayId] : [$this->institutionId, $courseId];
+        $this->db->query($sql, $params);
         $this->json(['status' => 'success', 'data' => $this->db->fetchAll()]);
     }
 }

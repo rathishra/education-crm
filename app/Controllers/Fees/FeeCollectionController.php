@@ -12,7 +12,7 @@ class FeeCollectionController extends BaseController
         $this->db->query(
             "SELECT fr.*,
                     CONCAT(s.first_name,' ',s.last_name) AS student_name,
-                    s.enrollment_number,
+                    s.student_id_number AS enrollment_number,
                     CONCAT(u.first_name,' ',u.last_name) AS collected_by_name
              FROM fee_receipts fr
              JOIN students s ON s.id = fr.student_id
@@ -38,7 +38,7 @@ class FeeCollectionController extends BaseController
         );
         $todayStats = $this->db->fetch();
 
-        $this->db->query("SELECT id, year_name FROM academic_years WHERE institution_id = ? AND is_active=1 ORDER BY start_date DESC LIMIT 1", [$this->institutionId]);
+        $this->db->query("SELECT id, name AS year_name FROM academic_years WHERE institution_id = ? AND is_current=1 ORDER BY start_date DESC LIMIT 1", [$this->institutionId]);
         $currentAy = $this->db->fetch();
 
         $this->view('fees/collection/index', compact('todayReceipts', 'todayStats', 'currentAy'));
@@ -53,7 +53,7 @@ class FeeCollectionController extends BaseController
 
         // Student info
         $this->db->query(
-            "SELECT s.*, c.course_name, b.batch_name,
+            "SELECT s.*, c.name AS course_name, b.name AS batch_name,
                     CONCAT(s.first_name,' ',s.last_name) AS full_name
              FROM students s
              LEFT JOIN courses c ON c.id = s.course_id
@@ -67,7 +67,7 @@ class FeeCollectionController extends BaseController
         // Fee assignments
         $query = "SELECT fsa.*,
                          fh.head_name, fh.head_code, fh.category, fh.is_mandatory,
-                         ay.year_name
+                         ay.name AS year_name
                   FROM fee_student_assignments fsa
                   JOIN fee_heads fh ON fh.id = fsa.fee_head_id
                   LEFT JOIN academic_years ay ON ay.id = fsa.academic_year_id
@@ -296,9 +296,9 @@ class FeeCollectionController extends BaseController
         $this->db->query(
             "SELECT fr.*,
                     CONCAT(s.first_name,' ',s.last_name) AS student_name,
-                    s.enrollment_number, s.phone,
-                    c.course_name, b.batch_name,
-                    ay.year_name,
+                    s.student_id_number AS enrollment_number, s.phone,
+                    c.name AS course_name, b.name AS batch_name,
+                    ay.name AS year_name,
                     CONCAT(u.first_name,' ',u.last_name) AS collected_by_name,
                     i.name AS institution_name, i.address AS institution_address, i.phone AS institution_phone
              FROM fee_receipts fr

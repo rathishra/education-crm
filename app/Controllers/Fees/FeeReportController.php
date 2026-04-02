@@ -29,7 +29,7 @@ class FeeReportController extends BaseController
         );
         $pendingStats = $this->db->fetch();
 
-        $this->db->query("SELECT id, year_name FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC", [$this->institutionId]);
+        $this->db->query("SELECT id, name AS year_name FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC", [$this->institutionId]);
         $academicYears = $this->db->fetchAll();
 
         // Last 7 days for chart
@@ -82,7 +82,7 @@ class FeeReportController extends BaseController
         $pendingInfo = $this->db->fetch();
 
         $this->db->query(
-            "SELECT id, year_name FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC LIMIT 5",
+            "SELECT id, name AS year_name FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC LIMIT 5",
             [$this->institutionId]
         );
         $academicYears = $this->db->fetchAll();
@@ -122,7 +122,7 @@ class FeeReportController extends BaseController
 
         // Summary by group
         $groupExpr = match($groupBy) {
-            'course'    => "c.course_name",
+            'course'    => "c.name",
             'mode'      => "fr.payment_mode",
             'head'      => "fh.head_name",
             default     => "DATE(fr.receipt_date)",
@@ -143,7 +143,7 @@ class FeeReportController extends BaseController
             );
         } elseif ($groupBy === 'course') {
             $this->db->query(
-                "SELECT COALESCE(c.course_name,'Unknown') AS grp_label,
+                "SELECT COALESCE(c.name,'Unknown') AS grp_label,
                         COUNT(DISTINCT fr.id) AS receipt_count,
                         COALESCE(SUM(fr.net_amount),0) AS total_amount,
                         COALESCE(SUM(fr.fine_amount),0) AS fine_amount
@@ -183,8 +183,8 @@ class FeeReportController extends BaseController
         $this->db->query(
             "SELECT fr.*,
                     CONCAT(s.first_name,' ',s.last_name) AS student_name,
-                    s.enrollment_number,
-                    c.course_name,
+                    s.student_id_number AS enrollment_number,
+                    c.name AS course_name,
                     CONCAT(u.first_name,' ',u.last_name) AS collected_by_name
              FROM fee_receipts fr
              JOIN students s ON s.id = fr.student_id
@@ -202,7 +202,7 @@ class FeeReportController extends BaseController
             'count'  => count($receipts),
         ];
 
-        $this->db->query("SELECT id, year_name FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC", [$this->institutionId]);
+        $this->db->query("SELECT id, name AS year_name FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC", [$this->institutionId]);
         $academicYears = $this->db->fetchAll();
 
         $summary = [
@@ -254,10 +254,10 @@ class FeeReportController extends BaseController
         $this->db->query(
             "SELECT fsa.*,
                     CONCAT(s.first_name,' ',s.last_name) AS student_name,
-                    s.enrollment_number, s.phone,
+                    s.student_id_number AS enrollment_number, s.phone,
                     fh.head_name, fh.head_code, fh.category,
-                    c.course_name, b.batch_name,
-                    ay.year_name
+                    c.name AS course_name, b.name AS batch_name,
+                    ay.name AS year_name
              FROM fee_student_assignments fsa
              JOIN students s  ON s.id  = fsa.student_id
              JOIN fee_heads fh ON fh.id = fsa.fee_head_id
@@ -279,10 +279,10 @@ class FeeReportController extends BaseController
             'count'   => count($pending),
         ];
 
-        $this->db->query("SELECT id, year_name FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC", [$this->institutionId]);
+        $this->db->query("SELECT id, name AS year_name FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC", [$this->institutionId]);
         $academicYears = $this->db->fetchAll();
 
-        $this->db->query("SELECT id, course_name FROM courses WHERE institution_id = ? ORDER BY course_name", [$this->institutionId]);
+        $this->db->query("SELECT id, name AS course_name FROM courses WHERE institution_id = ? ORDER BY name", [$this->institutionId]);
         $courses = $this->db->fetchAll();
 
         $this->db->query("SELECT id, head_name FROM fee_heads WHERE institution_id = ? AND is_active=1 ORDER BY head_name", [$this->institutionId]);
@@ -313,7 +313,7 @@ class FeeReportController extends BaseController
     {
         $this->db->query(
             "SELECT s.*, CONCAT(s.first_name,' ',s.last_name) AS full_name,
-                    c.course_name, b.batch_name
+                    c.name AS course_name, b.name AS batch_name
              FROM students s
              LEFT JOIN courses c ON c.id = s.course_id
              LEFT JOIN batches b ON b.id = s.batch_id
@@ -325,7 +325,7 @@ class FeeReportController extends BaseController
 
         // All assignments
         $this->db->query(
-            "SELECT fsa.*, fh.head_name, fh.head_code, fh.category, ay.year_name
+            "SELECT fsa.*, fh.head_name, fh.head_code, fh.category, ay.name AS year_name
              FROM fee_student_assignments fsa
              JOIN fee_heads fh ON fh.id = fsa.fee_head_id
              LEFT JOIN academic_years ay ON ay.id = fsa.academic_year_id
@@ -337,7 +337,7 @@ class FeeReportController extends BaseController
 
         // All receipts
         $this->db->query(
-            "SELECT fr.*, ay.year_name
+            "SELECT fr.*, ay.name AS year_name
              FROM fee_receipts fr
              LEFT JOIN academic_years ay ON ay.id = fr.academic_year_id
              WHERE fr.student_id = ? AND fr.institution_id = ? AND fr.status='active'
@@ -398,8 +398,8 @@ class FeeReportController extends BaseController
 
         $this->db->query(
             "SELECT fr.receipt_number, fr.receipt_date, fr.payment_mode, fr.net_amount, fr.fine_amount,
-                    CONCAT(s.first_name,' ',s.last_name) AS student_name, s.enrollment_number,
-                    c.course_name,
+                    CONCAT(s.first_name,' ',s.last_name) AS student_name, s.student_id_number AS enrollment_number,
+                    c.name AS course_name,
                     CONCAT(u.first_name,' ',u.last_name) AS collected_by
              FROM fee_receipts fr
              JOIN students s ON s.id = fr.student_id
@@ -426,8 +426,8 @@ class FeeReportController extends BaseController
     public function exportPending(): void
     {
         $this->db->query(
-            "SELECT CONCAT(s.first_name,' ',s.last_name) AS student_name, s.enrollment_number,
-                    s.phone, c.course_name, fh.head_name,
+            "SELECT CONCAT(s.first_name,' ',s.last_name) AS student_name, s.student_id_number AS enrollment_number,
+                    s.phone, c.name AS course_name, fh.head_name,
                     fsa.gross_amount, fsa.concession_amount, fsa.net_amount, fsa.paid_amount,
                     fsa.balance_amount, fsa.due_date, fsa.status
              FROM fee_student_assignments fsa

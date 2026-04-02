@@ -15,9 +15,9 @@ class FeeConcessionController extends BaseController
         $this->db->query(
             "SELECT fc.*,
                     CONCAT(s.first_name,' ',s.last_name) AS student_name,
-                    s.enrollment_number,
+                    s.student_id_number AS enrollment_number,
                     fh.head_name,
-                    ay.year_name,
+                    ay.name AS year_name,
                     CONCAT(u.first_name,' ',u.last_name) AS approver_name
              FROM fee_concessions fc
              JOIN students s ON s.id = fc.student_id
@@ -41,7 +41,7 @@ class FeeConcessionController extends BaseController
         $this->db->query("SELECT id, head_name FROM fee_heads WHERE institution_id = ? AND is_active=1 ORDER BY head_name", [$this->institutionId]);
         $feeHeads = $this->db->fetchAll();
 
-        $this->db->query("SELECT id, year_name FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC", [$this->institutionId]);
+        $this->db->query("SELECT id, name AS year_name FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC", [$this->institutionId]);
         $academicYears = $this->db->fetchAll();
 
         $this->view('fees/concessions/index', compact('concessions', 'stats', 'feeHeads', 'academicYears'));
@@ -125,7 +125,7 @@ class FeeConcessionController extends BaseController
         if (!$reason) { $this->json(['status' => 'error', 'message' => 'Rejection reason is required.'], 422); }
 
         $this->db->query(
-            "UPDATE fee_concessions SET status='rejected', rejected_reason=?, approved_by=?, approved_at=NOW() WHERE id=? AND institution_id=?",
+            "UPDATE fee_concessions SET status='rejected', rejected_reason=?, rejected_by=?, rejected_at=NOW() WHERE id=? AND institution_id=?",
             [$reason, $this->user['id'] ?? null, $id, $this->institutionId]
         );
         $this->json(['status' => 'success', 'message' => 'Concession rejected.']);

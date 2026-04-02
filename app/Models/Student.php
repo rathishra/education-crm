@@ -159,7 +159,11 @@ class Student extends BaseModel
                 FROM students s
                 LEFT JOIN courses      c   ON c.id   = s.course_id
                 LEFT JOIN batches       b   ON b.id   = s.batch_id
-                LEFT JOIN sections     sec ON sec.id  = s.section_id
+                LEFT JOIN sections     sec ON sec.id  = (
+                    SELECT sse.section_id FROM student_section_enrollments sse
+                    WHERE sse.student_id = s.id AND sse.status = 'active'
+                    ORDER BY sse.created_at DESC LIMIT 1
+                )
                 LEFT JOIN departments  d   ON d.id   = s.department_id
                 LEFT JOIN institutions i   ON i.id   = s.institution_id
                 LEFT JOIN users        uc  ON uc.id  = s.created_by
@@ -298,7 +302,7 @@ class Student extends BaseModel
 
         // Payment history
         $this->db->query(
-            "SELECT p.*, CONCAT(u.first_name, ' ', u.last_name) as collected_by_name
+            "SELECT p.*, p.payment_method AS payment_mode, CONCAT(u.first_name, ' ', u.last_name) as collected_by_name
              FROM payments p
              LEFT JOIN users u ON u.id = p.collected_by
              WHERE p.student_id = ? AND p.status = 'success'
@@ -386,12 +390,14 @@ class Student extends BaseModel
      */
     public function getStats(): array
     {
-        $instWhere = '';
-        $params    = [];
+        $instWhere  = '';
+        $sInstWhere = '';
+        $params     = [];
 
         if ($this->institutionScope) {
-            $instWhere = ' AND institution_id = ?';
-            $params[]  = $this->institutionScope;
+            $instWhere  = ' AND institution_id = ?';
+            $sInstWhere = ' AND s.institution_id = ?';
+            $params[]   = $this->institutionScope;
         }
 
         // Status counts
@@ -419,7 +425,7 @@ class Student extends BaseModel
             "SELECT c.name as course_name, COUNT(s.id) as cnt
              FROM students s
              LEFT JOIN courses c ON c.id = s.course_id
-             WHERE s.deleted_at IS NULL {$instWhere}
+             WHERE s.deleted_at IS NULL {$sInstWhere}
              GROUP BY s.course_id, c.name
              ORDER BY cnt DESC",
             $params

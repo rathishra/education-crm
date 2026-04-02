@@ -196,7 +196,7 @@ $('#courseSelect').on('change', function() {
     if (!cid) return;
     $.getJSON(BASE + 'fees/structures/ajax/batches?course_id=' + cid, function(r) {
         const sel = $('#batchSelect').empty().append('<option value="">All Batches</option>');
-        (r.data || []).forEach(b => sel.append(`<option value="${b.id}">${b.batch_name}</option>`));
+        (r.data || []).forEach(b => sel.append(`<option value="${b.id}">${b.name}</option>`));
     });
 });
 

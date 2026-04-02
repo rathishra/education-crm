@@ -195,7 +195,7 @@
                                     <tr>
                                         <td><a href="<?= url('payments/'.$p['id'].'/receipt') ?>"><?= e($p['receipt_number']) ?></a></td>
                                         <td class="fw-semibold"><?= formatCurrency($p['amount']) ?></td>
-                                        <td><?= ucfirst($p['payment_mode']) ?></td>
+                                        <td><?= ucfirst($p['payment_mode'] ?? $p['payment_method'] ?? '-') ?></td>
                                         <td><?= formatDate($p['payment_date']) ?></td>
                                         <td><small><?= e($p['collected_by_name']??'-') ?></small></td>
                                     </tr>

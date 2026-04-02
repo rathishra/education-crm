@@ -15,7 +15,7 @@ class FeeRefundController extends BaseController
         $this->db->query(
             "SELECT fr.*,
                     CONCAT(s.first_name,' ',s.last_name) AS student_name,
-                    s.enrollment_number,
+                    s.student_id_number AS enrollment_number,
                     CONCAT(u.first_name,' ',u.last_name) AS approved_by_name,
                     rec.receipt_number
              FROM fee_refunds fr
@@ -64,14 +64,16 @@ class FeeRefundController extends BaseController
         }
 
         $this->db->insert('fee_refunds', [
-            'institution_id' => $this->institutionId,
-            'student_id'     => $studentId,
-            'receipt_id'     => $receiptId,
-            'refund_amount'  => $amount,
-            'reason'         => $reason,
-            'remarks'        => trim($this->input('remarks', '')),
-            'status'         => 'pending',
-            'created_by'     => $this->user['id'] ?? null,
+            'institution_id'   => $this->institutionId,
+            'student_id'       => $studentId,
+            'receipt_id'       => $receiptId,
+            'refund_amount'    => $amount,
+            'refund_mode'      => $this->input('refund_mode', 'cash'),
+            'reference_number' => trim($this->input('reference_number', '')) ?: null,
+            'reason'           => $reason,
+            'remarks'          => trim($this->input('remarks', '')),
+            'status'           => 'pending',
+            'created_by'       => $this->user['id'] ?? null,
         ]);
 
         $this->json(['status' => 'success', 'message' => 'Refund request submitted.']);
@@ -137,7 +139,7 @@ class FeeRefundController extends BaseController
         if (!$reason) { $this->json(['status' => 'error', 'message' => 'Reason required.'], 422); }
 
         $this->db->query(
-            "UPDATE fee_refunds SET status='rejected', rejected_reason=?, approved_by=?, approved_at=NOW() WHERE id=? AND institution_id=?",
+            "UPDATE fee_refunds SET status='rejected', rejected_reason=?, rejected_by=?, rejected_at=NOW() WHERE id=? AND institution_id=?",
             [$reason, $this->user['id'] ?? null, $id, $this->institutionId]
         );
         $this->json(['status' => 'success', 'message' => 'Refund rejected.']);

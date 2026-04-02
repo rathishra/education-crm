@@ -77,7 +77,7 @@ class CrmDashboardController extends BaseController
                     CONCAT(u.first_name,' ',u.last_name) AS assigned_name
              FROM leads l
              LEFT JOIN lead_statuses ls ON ls.id = l.lead_status_id
-             LEFT JOIN courses c ON c.id = l.course_id
+             LEFT JOIN courses c ON c.id = l.course_interested_id
              LEFT JOIN users u ON u.id = l.assigned_to
              WHERE l.institution_id=? AND l.priority='hot' AND (ls.is_won IS NULL OR ls.is_won=0)
              ORDER BY l.lead_score DESC, l.created_at DESC

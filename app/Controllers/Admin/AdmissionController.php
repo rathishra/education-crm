@@ -831,6 +831,115 @@ class AdmissionController extends BaseController
     }
 
     // ================================================================
+    // OFFER LETTER & ADMISSION LETTER (printable)
+    // ================================================================
+
+    public function offerLetter(int $id): void
+    {
+        $this->authorize('admissions.view');
+        $admission = $this->admission->findWithDetails($id);
+        if (!$admission) {
+            $this->redirectWith(url('admissions'), 'error', 'Admission not found.');
+            return;
+        }
+        // Mark offer letter as sent
+        $this->db->query(
+            "UPDATE admissions SET offer_letter_sent_at = COALESCE(offer_letter_sent_at, NOW()) WHERE id = ?",
+            [$id]
+        );
+        $this->db->query("SELECT * FROM institutions WHERE id = ?", [$this->institutionId]);
+        $institution = $this->db->fetch();
+        $this->view('admissions/offer-letter', compact('admission', 'institution'), 'blank');
+    }
+
+    public function admissionLetter(int $id): void
+    {
+        $this->authorize('admissions.view');
+        $admission = $this->admission->findWithDetails($id);
+        if (!$admission || !in_array($admission['status'], ['confirmed', 'enrolled'])) {
+            $this->redirectWith(url('admissions'), 'error', 'Admission must be confirmed first.');
+            return;
+        }
+        $this->db->query(
+            "UPDATE admissions SET admission_letter_sent_at = COALESCE(admission_letter_sent_at, NOW()) WHERE id = ?",
+            [$id]
+        );
+        $this->db->query("SELECT * FROM institutions WHERE id = ?", [$this->institutionId]);
+        $institution = $this->db->fetch();
+        $this->view('admissions/admission-letter', compact('admission', 'institution'), 'blank');
+    }
+
+    // ================================================================
+    // INTERVIEW SCHEDULING
+    // ================================================================
+
+    public function scheduleInterview(int $id): void
+    {
+        $this->authorize('admissions.approve');
+
+        $admission = $this->admission->find($id);
+        if (!$admission) {
+            $this->json(['status' => 'error', 'message' => 'Not found.'], 404);
+            return;
+        }
+
+        $date  = $this->input('interview_date', '');
+        $time  = $this->input('interview_time', '');
+        $mode  = $this->input('interview_mode', 'in_person');
+        $venue = trim($this->input('interview_venue', ''));
+        $panel = trim($this->input('interview_panel', ''));
+        $notes = trim($this->input('interview_notes', ''));
+
+        if (!$date) {
+            $this->redirectWith(url('admissions/' . $id), 'error', 'Interview date is required.');
+            return;
+        }
+
+        $this->db->query(
+            "UPDATE admissions SET
+                interview_date   = ?,
+                interview_time   = ?,
+                interview_mode   = ?,
+                interview_venue  = ?,
+                interview_panel  = ?,
+                interview_notes  = ?,
+                interview_result = 'pending',
+                updated_at       = NOW()
+             WHERE id = ? AND institution_id = ?",
+            [$date, $time ?: null, $mode, $venue ?: null, $panel ?: null, $notes ?: null, $id, $this->institutionId]
+        );
+
+        $detail = "Interview scheduled for " . date('d M Y', strtotime($date)) . ($time ? ' at ' . date('H:i', strtotime($time)) : '') . ($venue ? ' — ' . $venue : '');
+        $this->admission->addTimeline($id, 'note_added', $detail, null, null, null, $this->user['id']);
+        $this->logAudit('interview_scheduled', 'admission', $id);
+        $this->redirectWith(url('admissions/' . $id . '#tab-interview'), 'success', 'Interview scheduled successfully.');
+    }
+
+    public function recordInterviewResult(int $id): void
+    {
+        $this->authorize('admissions.approve');
+
+        $result = $this->input('interview_result', 'pending');
+        $score  = $this->input('interview_score', null);
+        $notes  = trim($this->input('interview_notes', ''));
+
+        if (!in_array($result, ['pending', 'passed', 'failed', 'on_hold'])) {
+            $this->redirectWith(url('admissions/' . $id), 'error', 'Invalid result.');
+            return;
+        }
+
+        $this->db->query(
+            "UPDATE admissions SET interview_result = ?, interview_score = ?, interview_notes = ?, updated_at = NOW()
+             WHERE id = ? AND institution_id = ?",
+            [$result, $score ?: null, $notes ?: null, $id, $this->institutionId]
+        );
+
+        $this->admission->addTimeline($id, 'note_added', 'Interview result recorded: ' . ucfirst($result), null, null, null, $this->user['id']);
+        $this->logAudit('interview_result_recorded', 'admission', $id);
+        $this->redirectWith(url('admissions/' . $id . '#tab-interview'), 'success', 'Interview result saved.');
+    }
+
+    // ================================================================
     // PRIVATE HELPERS
     // ================================================================
 

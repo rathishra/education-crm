@@ -49,9 +49,9 @@
             <?php foreach($ayStructures as $s): ?>
             <tr>
                 <td><div class="fw-semibold"><?= e($s['name']) ?></div></td>
-                <td><span class="badge bg-primary-subtle text-primary border"><?= e($s['course_code'] ?? $s['name']) ?></span></td>
+                <td><span class="badge bg-primary-subtle text-primary border"><?= e($s['course_name'] ?? '') ?> <small class="text-muted"><?= e($s['course_code'] ?? '') ?></small></span></td>
                 <td>
-                    <?php if($s['name']): ?><span class="badge bg-secondary-subtle text-secondary border me-1"><?= e($s['name']) ?></span><?php endif; ?>
+                    <?php if(!empty($s['batch_name'])): ?><span class="badge bg-secondary-subtle text-secondary border me-1"><?= e($s['batch_name']) ?></span><?php endif; ?>
                     <?php if($s['semester']): ?><span class="badge bg-info-subtle text-info border">Sem <?= $s['semester'] ?></span><?php endif; ?>
                 </td>
                 <td><span class="badge bg-warning-subtle text-warning border"><?= ucfirst($s['admission_type']) ?></span></td>
@@ -90,7 +90,7 @@ if(!empty($unassigned)): ?>
             <?php foreach($unassigned as $s): ?>
             <tr>
                 <td class="fw-semibold"><?= e($s['name']) ?></td>
-                <td><span class="badge bg-primary-subtle text-primary border"><?= e($s['name']) ?></span></td>
+                <td><span class="badge bg-primary-subtle text-primary border"><?= e($s['course_name'] ?? '') ?> <small class="text-muted"><?= e($s['course_code'] ?? '') ?></small></span></td>
                 <td class="text-end fw-bold">₹<?= number_format($s['total_amount'],2) ?></td>
                 <td class="text-center"><span class="badge <?= $s['status']==='active'?'bg-success':'bg-secondary' ?>"><?= ucfirst($s['status']) ?></span></td>
                 <td><div class="btn-group btn-group-sm">

@@ -27,9 +27,9 @@ class FeeStructureController extends BaseController
 
         $this->db->query(
             "SELECT fs.*,
-                    ay.name,
-                    c.name, c.code,
-                    b.name,
+                    ay.name AS ay_name,
+                    c.name AS course_name, c.code AS course_code,
+                    b.name AS batch_name,
                     (SELECT COUNT(*) FROM fee_structure_details WHERE structure_id = fs.id) AS head_count,
                     (SELECT COALESCE(SUM(amount),0) FROM fee_structure_details WHERE structure_id = fs.id) AS total_amount
              FROM fee_structures fs
@@ -133,10 +133,10 @@ class FeeStructureController extends BaseController
         $this->db->query("SELECT fsd.*, fh.head_name, fh.head_code, fh.category FROM fee_structure_details fsd JOIN fee_heads fh ON fh.id = fsd.fee_head_id WHERE fsd.structure_id = ? ORDER BY fsd.sort_order", [$id]);
         $details = $this->db->fetchAll();
 
-        $this->db->query("SELECT id, year_name AS name FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC", [$this->institutionId]);
+        $this->db->query("SELECT id, name FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC", [$this->institutionId]);
         $academicYears = $this->db->fetchAll();
 
-        $this->db->query("SELECT id, course_name AS name, course_code AS code FROM courses WHERE institution_id = ? ORDER BY course_name", [$this->institutionId]);
+        $this->db->query("SELECT id, name, code FROM courses WHERE institution_id = ? ORDER BY name", [$this->institutionId]);
         $courses = $this->db->fetchAll();
 
         $this->db->query("SELECT id, head_name, head_code, category, is_mandatory FROM fee_heads WHERE institution_id = ? AND is_active = 1 ORDER BY category, head_name", [$this->institutionId]);
