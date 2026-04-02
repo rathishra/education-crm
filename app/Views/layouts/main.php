@@ -269,9 +269,13 @@
                         <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                         Overview
                     </a>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/students') !== false && strpos($_SERVER['REQUEST_URI'],'/dashboard') === false ? 'active' : '' ?>" href="<?= url('students') ?>">
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/students') !== false && strpos($_SERVER['REQUEST_URI'],'/dashboard') === false && strpos($_SERVER['REQUEST_URI'],'/portal-access') === false ? 'active' : '' ?>" href="<?= url('students') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-user-graduate"></i></div>
                         All Students
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/students/portal-access') !== false ? 'active' : '' ?>" href="<?= url('students/portal-access') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-key"></i></div>
+                        Portal Access
                     </a>
                     <?php endif; ?>
 

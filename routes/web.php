@@ -218,6 +218,8 @@ $router->group(['middleware' => 'auth'], function ($router) {
 
     // Students
     $router->get('/students/dashboard', 'Admin\StudentDashboardController@index', 'students.dashboard');
+    $router->get('/students/portal-access', 'Admin\PortalUserController@index', 'students.portal_access');
+    $router->post('/students/portal-bulk', 'Admin\PortalUserController@bulkAction', 'students.portal_bulk');
     $router->get('/students', 'Admin\StudentController@index', 'students.index');
     $router->get('/students/create', 'Admin\StudentController@create', 'students.create');
     $router->post('/students', 'Admin\StudentController@store', 'students.store');
@@ -227,6 +229,8 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->post('/students/{id}/delete', 'Admin\StudentController@destroy', 'students.destroy');
     $router->post('/students/{id}/note', 'Admin\StudentController@addNote', 'students.note');
     $router->post('/students/{id}/assign-section', 'Admin\StudentController@assignSection', 'students.assign_section');
+    $router->post('/students/{id}/portal-toggle', 'Admin\PortalUserController@toggleAccess', 'students.portal_toggle');
+    $router->post('/students/{id}/portal-password', 'Admin\PortalUserController@setPassword', 'students.portal_password');
     $router->get('/students/export', 'Admin\StudentController@export', 'students.export');
 
     // Fee Structures (legacy — replaced by Fees module below)
