@@ -199,11 +199,13 @@ class Router
     private function resolveMiddleware(string $name): ?object
     {
         $map = [
-            'auth'       => \App\Middleware\AuthMiddleware::class,
-            'guest'      => \App\Middleware\GuestMiddleware::class,
-            'csrf'       => \App\Middleware\CsrfMiddleware::class,
-            'permission' => \App\Middleware\PermissionMiddleware::class,
-            'api'        => \App\Middleware\ApiAuthMiddleware::class,
+            'auth'         => \App\Middleware\AuthMiddleware::class,
+            'guest'        => \App\Middleware\GuestMiddleware::class,
+            'csrf'         => \App\Middleware\CsrfMiddleware::class,
+            'permission'   => \App\Middleware\PermissionMiddleware::class,
+            'api'          => \App\Middleware\ApiAuthMiddleware::class,
+            'portal_auth'  => \App\Middleware\PortalAuthMiddleware::class,
+            'portal_guest' => \App\Middleware\PortalGuestMiddleware::class,
         ];
 
         // Handle permission:slug format

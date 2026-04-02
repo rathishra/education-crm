@@ -604,3 +604,55 @@ $router->group(['middleware' => 'auth'], function ($router) {
 
 });
 
+// ============================================================
+// Student Portal — Guest Routes (login, forgot/reset password)
+// ============================================================
+$router->group(['prefix' => 'portal/student', 'middleware' => 'portal_guest'], function ($router) {
+    $router->get('/login',                      'Portal\Auth\PortalAuthController@showLogin',          'portal.login');
+    $router->post('/login',                     'Portal\Auth\PortalAuthController@login',              'portal.login.post');
+    $router->get('/forgot-password',            'Portal\Auth\PortalAuthController@showForgotPassword', 'portal.forgot');
+    $router->post('/forgot-password',           'Portal\Auth\PortalAuthController@forgotPassword',     'portal.forgot.post');
+    $router->get('/reset-password/{token}',     'Portal\Auth\PortalAuthController@showReset',          'portal.reset');
+    $router->post('/reset-password',            'Portal\Auth\PortalAuthController@resetPassword',      'portal.reset.post');
+});
+
+// ============================================================
+// Student Portal — Authenticated Routes
+// ============================================================
+$router->group(['prefix' => 'portal/student', 'middleware' => 'portal_auth'], function ($router) {
+    $router->post('/logout',                    'Portal\Auth\PortalAuthController@logout',             'portal.logout');
+
+    // Dashboard
+    $router->get('/dashboard',                  'Portal\DashboardController@index',                    'portal.dashboard');
+
+    // Profile
+    $router->get('/profile',                    'Portal\ProfileController@index',                      'portal.profile');
+    $router->post('/profile/change-password',   'Portal\ProfileController@changePassword',             'portal.profile.password');
+
+    // Fees & Payments
+    $router->get('/fees',                       'Portal\FeeController@index',                          'portal.fees');
+    $router->get('/fees/receipt/{id}',          'Portal\FeeController@receipt',                        'portal.fees.receipt');
+    $router->get('/fees/receipt/{id}/print',    'Portal\FeeController@printReceipt',                   'portal.fees.receipt.print');
+
+    // Attendance
+    $router->get('/attendance',                 'Portal\AttendanceController@index',                   'portal.attendance');
+
+    // Timetable
+    $router->get('/timetable',                  'Portal\TimetableController@index',                    'portal.timetable');
+
+    // Exams & Results
+    $router->get('/exams',                      'Portal\ExamController@index',                         'portal.exams');
+    $router->get('/exams/results',              'Portal\ExamController@results',                       'portal.exams.results');
+
+    // LMS / Course Materials
+    $router->get('/lms',                        'Portal\LmsController@index',                          'portal.lms');
+    $router->get('/lms/download/{id}',          'Portal\LmsController@download',                       'portal.lms.download');
+
+    // Documents
+    $router->get('/documents',                  'Portal\DocumentController@index',                     'portal.documents');
+
+    // Notifications
+    $router->get('/notifications',              'Portal\NotificationController@index',                 'portal.notifications');
+    $router->post('/notifications/{id}/read',   'Portal\NotificationController@markRead',              'portal.notifications.read');
+});
+

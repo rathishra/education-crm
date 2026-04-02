@@ -142,6 +142,22 @@ function isLoggedIn(): bool
 }
 
 /**
+ * Student portal: get authenticated student from session
+ */
+function portalAuth(): ?array
+{
+    return \Core\Session\Session::getInstance()->get('student_portal_user');
+}
+
+/**
+ * Student portal: check if a student is logged in
+ */
+function isPortalLoggedIn(): bool
+{
+    return \Core\Session\Session::getInstance()->has('student_portal_user');
+}
+
+/**
  * Get current institution ID
  */
 function currentInstitutionId(): ?int
