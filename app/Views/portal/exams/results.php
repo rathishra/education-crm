@@ -1,19 +1,26 @@
 <?php
+function examGradeLabel(float $pct): string {
+    if ($pct >= 90) return 'O';
+    if ($pct >= 75) return 'A+';
+    if ($pct >= 60) return 'A';
+    if ($pct >= 50) return 'B';
+    if ($pct >= 40) return 'C';
+    return 'F';
+}
+
 // Calculate totals per subject
 $subjectTotals = [];
 foreach ($bySubject as $subName => $rows) {
     $total = $obtained = $count = 0;
-    $grades = [];
     foreach ($rows as $row) {
         if (!$row['is_absent']) {
-            $total   += (float)$row['max_marks'];
+            $total    += (float)$row['max_marks'];
             $obtained += (float)$row['marks_obtained'];
             $count++;
         }
-        if (!empty($row['grade'])) $grades[] = $row['grade'];
     }
     $pct = $total > 0 ? round($obtained / $total * 100, 1) : 0;
-    $subjectTotals[$subName] = compact('total', 'obtained', 'count', 'pct', 'grades');
+    $subjectTotals[$subName] = compact('total', 'obtained', 'count', 'pct');
 }
 ?>
 
@@ -88,7 +95,7 @@ foreach ($bySubject as $subName => $rows) {
                         <?= $r['is_absent'] ? '<span class="text-danger">AB</span>' : number_format((float)$r['marks_obtained'], 1) ?>
                     </td>
                     <td class="text-end" style="font-size:0.82rem"><?= $r['is_absent'] ? '—' : $pct . '%' ?></td>
-                    <td><?php if (!empty($r['grade'])): ?><span class="badge bg-secondary-subtle text-secondary border"><?= e($r['grade']) ?></span><?php else: ?>—<?php endif; ?></td>
+                    <td><?php if (!$r['is_absent'] && $pct > 0): ?><span class="badge bg-secondary-subtle text-secondary border"><?= examGradeLabel($pct) ?></span><?php else: ?>—<?php endif; ?></td>
                     <td>
                         <?php if ($r['is_absent']): ?>
                         <span class="badge bg-secondary-subtle text-secondary border" style="font-size:0.7rem">Absent</span>

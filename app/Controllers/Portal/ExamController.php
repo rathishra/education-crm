@@ -49,7 +49,7 @@ class ExamController extends PortalBaseController
             "SELECT aa.assessment_name, aa.assessment_type, aa.assessment_date,
                     aa.max_marks, aa.passing_marks,
                     sub.subject_name, sub.subject_code,
-                    aam.marks_obtained, aam.is_absent, aam.remarks, aam.grade,
+                    aam.marks_obtained, aam.is_absent, aam.remarks,
                     ROUND(aam.marks_obtained / NULLIF(aa.max_marks,0) * 100, 1) AS percentage
              FROM academic_assessment_marks aam
              JOIN academic_assessments aa ON aa.id = aam.assessment_id
