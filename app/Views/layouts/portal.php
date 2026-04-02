@@ -319,20 +319,20 @@ try {
 <main class="portal-main">
 
     <!-- Flash Messages -->
-    <?php $flashErrors = flash('errors', []); if (!empty($flashErrors)): ?>
+    <?php $flashErrors = getFlash('errors', []); if (!empty($flashErrors)): ?>
     <div class="alert alert-danger alert-dismissible fade show portal-alert" role="alert">
         <i class="fas fa-exclamation-triangle me-2"></i>
         <?php foreach ((array)$flashErrors as $fe): ?><?= e($fe) ?>&nbsp;<?php endforeach; ?>
         <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
     </div>
     <?php endif; ?>
-    <?php $flashSuccess = flash('success'); if ($flashSuccess): ?>
+    <?php $flashSuccess = getFlash('success'); if ($flashSuccess): ?>
     <div class="alert alert-success alert-dismissible fade show portal-alert" role="alert">
         <i class="fas fa-check-circle me-2"></i><?= e($flashSuccess) ?>
         <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
     </div>
     <?php endif; ?>
-    <?php $flashWarning = flash('warning'); if ($flashWarning): ?>
+    <?php $flashWarning = getFlash('warning'); if ($flashWarning): ?>
     <div class="alert alert-warning alert-dismissible fade show portal-alert" role="alert">
         <i class="fas fa-exclamation-circle me-2"></i><?= e($flashWarning) ?>
         <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>

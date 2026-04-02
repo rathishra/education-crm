@@ -138,14 +138,14 @@
     <!-- Form Panel -->
     <div class="portal-form-panel">
         <!-- Flash messages -->
-        <?php $errors = flash('errors', []); if (!empty($errors)): ?>
+        <?php $errors = getFlash('errors', []); if (!empty($errors)): ?>
         <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
             <i class="fas fa-exclamation-triangle me-2"></i>
             <?php foreach ((array)$errors as $err): ?><?= e($err) ?><?php endforeach; ?>
             <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
         </div>
         <?php endif; ?>
-        <?php $successMsg = flash('success'); if ($successMsg): ?>
+        <?php $successMsg = getFlash('success'); if ($successMsg): ?>
         <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
             <i class="fas fa-check-circle me-2"></i><?= e($successMsg) ?>
             <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
