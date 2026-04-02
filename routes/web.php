@@ -663,3 +663,27 @@ $router->group(['prefix' => 'portal/student', 'middleware' => 'portal_auth'], fu
     $router->post('/notifications/{id}/read',   'Portal\NotificationController@markRead',              'portal.notifications.read');
 });
 
+
+// ============================================================
+// Enterprise LMS Routes — /elms prefix
+// ============================================================
+
+// LMS Guest Routes (unauthenticated only)
+$router->group(['prefix' => '/elms', 'middleware' => 'lms_guest'], function ($router) {
+    $router->get('/login',                    'Lms\Auth\LmsAuthController@showLogin',          'lms.login');
+    $router->post('/login',                   'Lms\Auth\LmsAuthController@login',              'lms.login.post');
+    $router->get('/register',                 'Lms\Auth\LmsAuthController@showRegister',       'lms.register');
+    $router->post('/register',                'Lms\Auth\LmsAuthController@register',           'lms.register.post');
+    $router->get('/forgot-password',          'Lms\Auth\LmsAuthController@showForgotPassword', 'lms.password.forgot');
+    $router->post('/forgot-password',         'Lms\Auth\LmsAuthController@forgotPassword',     'lms.password.forgot.post');
+    $router->get('/reset-password/{token}',   'Lms\Auth\LmsAuthController@showResetPassword',  'lms.password.reset');
+    $router->post('/reset-password',          'Lms\Auth\LmsAuthController@resetPassword',      'lms.password.reset.post');
+});
+
+// LMS Authenticated Routes
+$router->group(['prefix' => '/elms', 'middleware' => 'lms_auth'], function ($router) {
+    $router->post('/logout',                  'Lms\Auth\LmsAuthController@logout',             'lms.logout');
+
+    // Dashboard (Module 2 — stub until built)
+    $router->get('/dashboard',                'Lms\DashboardController@index',                 'lms.dashboard');
+});

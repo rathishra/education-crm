@@ -158,6 +158,34 @@ function isPortalLoggedIn(): bool
 }
 
 /**
+ * LMS: get authenticated LMS user from session
+ */
+function lmsAuth(): ?array
+{
+    return \Core\Session\Session::getInstance()->get('lms_user');
+}
+
+/**
+ * LMS: check if LMS user is logged in
+ */
+function isLmsLoggedIn(): bool
+{
+    return \Core\Session\Session::getInstance()->has('lms_user');
+}
+
+/**
+ * LMS: check if current LMS user has permission
+ */
+function lmsCan(string $permission): bool
+{
+    $user = lmsAuth();
+    if (!$user) return false;
+    $perms = \Core\Session\Session::getInstance()->get('lms_permissions', null);
+    if ($perms === null) return false; // permissions not loaded yet
+    return in_array($permission, $perms, true);
+}
+
+/**
  * Get current institution ID
  */
 function currentInstitutionId(): ?int
