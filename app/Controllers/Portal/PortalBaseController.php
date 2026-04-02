@@ -92,8 +92,7 @@ abstract class PortalBaseController
                     b.name   AS batch_name,
                     d.name   AS department_name,
                     i.name   AS institution_name,
-                    sec.section_name,
-                    sec.section_code
+                    sec.section_name
              FROM students s
              LEFT JOIN courses      c   ON c.id = s.course_id
              LEFT JOIN batches      b   ON b.id = s.batch_id
