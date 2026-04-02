@@ -16,7 +16,7 @@ class ExamController extends PortalBaseController
             $db->query(
                 "SELECT aa.*,
                         sub.subject_name, sub.subject_code,
-                        gs.schema_name AS grading_schema
+                        gs.name AS grading_schema
                  FROM academic_assessments aa
                  JOIN subjects sub ON sub.id = aa.subject_id
                  LEFT JOIN grading_schemas gs ON gs.id = aa.grading_schema_id
