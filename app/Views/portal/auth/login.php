@@ -13,7 +13,7 @@
         <div class="input-group">
             <span class="input-group-text"><i class="fas fa-id-card"></i></span>
             <input type="text" name="login" class="form-control" placeholder="e.g. STU-GEN-2024-0001 or email"
-                   value="<?= e($this->session->getFlashInput('login') ?? '') ?>"
+                   value=""
                    autofocus required autocomplete="username">
         </div>
     </div>
