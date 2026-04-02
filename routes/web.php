@@ -654,6 +654,9 @@ $router->group(['prefix' => 'portal/student', 'middleware' => 'portal_auth'], fu
 
     // Documents
     $router->get('/documents',                  'Portal\DocumentController@index',                     'portal.documents');
+    $router->post('/documents/upload',          'Portal\DocumentController@upload',                    'portal.documents.upload');
+    $router->get('/documents/{id}/download',    'Portal\DocumentController@download',                  'portal.documents.download');
+    $router->post('/documents/{id}/delete',     'Portal\DocumentController@delete',                    'portal.documents.delete');
 
     // Notifications
     $router->get('/notifications',              'Portal\NotificationController@index',                 'portal.notifications');
