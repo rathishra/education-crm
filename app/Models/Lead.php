@@ -107,6 +107,11 @@ class Lead extends BaseModel
             $where .= " AND l.next_followup_date IS NOT NULL AND l.next_followup_date <= CURDATE()";
         }
 
+        // Converted filter — leads whose status is a "won" status
+        if (!empty($filters['converted'])) {
+            $where .= " AND EXISTS (SELECT 1 FROM lead_statuses ls2 WHERE ls2.id = l.lead_status_id AND ls2.is_won = 1)";
+        }
+
         // Extra SELECT columns and JOINs only available after migration 16
         $extraSelect = $this->isEnhanced()
             ? ",\n                       d.name AS department_name"
@@ -118,6 +123,7 @@ class Lead extends BaseModel
         $sql = "SELECT l.*,
                        ls.name          AS status_name,
                        ls.color         AS status_color,
+                       ls.is_won        AS is_converted,
                        lsrc.name        AS source_name,
                        CONCAT(u.first_name, ' ', u.last_name) AS assigned_name,
                        c.name           AS course_name,

@@ -45,7 +45,11 @@ $fuModeIcon = [
 $nextFollowup     = $lead['next_followup_date'] ?? null;
 $isFollowupOverdue = false;
 if ($nextFollowup) {
-    $isFollowupOverdue = (new DateTime($nextFollowup)) < (new DateTime('today'));
+    try {
+        $isFollowupOverdue = (new DateTime($nextFollowup)) < (new DateTime('today'));
+    } catch (\Exception $e) {
+        $isFollowupOverdue = false;
+    }
 }
 
 // Lead score (0-100)

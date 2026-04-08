@@ -108,8 +108,9 @@ $router->group(['middleware' => 'auth'], function ($router) {
     // Leads — static routes MUST come before {id} parameterised routes
     $router->get('/leads', 'Admin\LeadController@index', 'leads.index');
     $router->get('/leads/create', 'Admin\LeadController@create', 'leads.create');
-    $router->get('/leads/import', 'Admin\LeadController@showImport', 'leads.import');
-    $router->get('/leads/export', 'Admin\LeadController@export', 'leads.export');
+    $router->get('/leads/import',          'Admin\LeadController@showImport',    'leads.import');
+    $router->get('/leads/import/template', 'Admin\LeadController@importTemplate','leads.import.template');
+    $router->get('/leads/export',          'Admin\LeadController@export',         'leads.export');
     $router->get('/leads/check-duplicate', 'Admin\LeadController@checkDuplicate', 'leads.check_duplicate');
     $router->get('/leads/ajax/departments', 'Admin\LeadController@ajaxDepartments', 'leads.ajax_departments');
     $router->get('/leads/ajax/courses', 'Admin\LeadController@ajaxCourses', 'leads.ajax_courses');

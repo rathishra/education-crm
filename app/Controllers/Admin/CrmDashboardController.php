@@ -55,36 +55,48 @@ class CrmDashboardController extends BaseController
         }
 
         // 5. Today's follow-ups (leads with next_followup_date = today or overdue)
-        $this->db->query(
-            "SELECT l.id, l.lead_number, l.first_name, l.last_name, l.phone, l.next_followup_date, l.followup_mode,
-                    ls.name AS status_name, ls.color AS status_color,
-                    CONCAT(u.first_name,' ',u.last_name) AS assigned_name
-             FROM leads l
-             LEFT JOIN lead_statuses ls ON ls.id = l.lead_status_id
-             LEFT JOIN users u ON u.id = l.assigned_to
-             WHERE l.institution_id=? AND l.next_followup_date <= CURDATE() AND (ls.is_won IS NULL OR ls.is_won=0)
-             ORDER BY l.next_followup_date ASC
-             LIMIT 20",
-            [$institutionId]
-        );
-        $todayFollowups = $this->db->fetchAll();
+        try {
+            $this->db->query(
+                "SELECT l.id, l.lead_number, l.first_name, l.last_name, l.phone, l.next_followup_date, l.followup_mode,
+                        ls.name AS status_name, ls.color AS status_color,
+                        CONCAT(u.first_name,' ',u.last_name) AS assigned_name
+                 FROM leads l
+                 LEFT JOIN lead_statuses ls ON ls.id = l.lead_status_id
+                 LEFT JOIN users u ON u.id = l.assigned_to
+                 WHERE l.institution_id=? AND l.next_followup_date <= CURDATE()
+                   AND (ls.is_won IS NULL OR ls.is_won = 0)
+                   AND l.deleted_at IS NULL
+                 ORDER BY l.next_followup_date ASC
+                 LIMIT 20",
+                [$institutionId]
+            );
+            $todayFollowups = $this->db->fetchAll();
+        } catch (\Throwable $e) {
+            $todayFollowups = [];
+        }
 
         // 6. Hot leads
-        $this->db->query(
-            "SELECT l.id, l.lead_number, l.first_name, l.last_name, l.phone, l.lead_score,
-                    ls.name AS status_name, ls.color AS status_color,
-                    c.name AS course_name,
-                    CONCAT(u.first_name,' ',u.last_name) AS assigned_name
-             FROM leads l
-             LEFT JOIN lead_statuses ls ON ls.id = l.lead_status_id
-             LEFT JOIN courses c ON c.id = l.course_interested_id
-             LEFT JOIN users u ON u.id = l.assigned_to
-             WHERE l.institution_id=? AND l.priority='hot' AND (ls.is_won IS NULL OR ls.is_won=0)
-             ORDER BY l.lead_score DESC, l.created_at DESC
-             LIMIT 10",
-            [$institutionId]
-        );
-        $hotLeads = $this->db->fetchAll();
+        try {
+            $this->db->query(
+                "SELECT l.id, l.lead_number, l.first_name, l.last_name, l.phone, l.lead_score,
+                        ls.name AS status_name, ls.color AS status_color,
+                        c.name AS course_name,
+                        CONCAT(u.first_name,' ',u.last_name) AS assigned_name
+                 FROM leads l
+                 LEFT JOIN lead_statuses ls ON ls.id = l.lead_status_id
+                 LEFT JOIN courses c ON c.id = l.course_interested_id
+                 LEFT JOIN users u ON u.id = l.assigned_to
+                 WHERE l.institution_id=? AND l.priority='hot'
+                   AND (ls.is_won IS NULL OR ls.is_won = 0)
+                   AND l.deleted_at IS NULL
+                 ORDER BY l.lead_score DESC, l.created_at DESC
+                 LIMIT 10",
+                [$institutionId]
+            );
+            $hotLeads = $this->db->fetchAll();
+        } catch (\Throwable $e) {
+            $hotLeads = [];
+        }
 
         // 7. Source attribution (leads by source)
         $this->db->query(
@@ -127,20 +139,50 @@ class CrmDashboardController extends BaseController
         }
 
         // 9. Counselor leaderboard (top 8 by leads handled)
-        $this->db->query(
-            "SELECT CONCAT(u.first_name,' ',u.last_name) AS counselor,
-                    COUNT(l.id) AS total_leads,
-                    SUM(CASE WHEN ls.is_won=1 THEN 1 ELSE 0 END) AS converted,
-                    SUM(CASE WHEN l.priority='hot' THEN 1 ELSE 0 END) AS hot_leads
-             FROM users u
-             JOIN leads l ON l.assigned_to = u.id AND l.institution_id = ?
-             LEFT JOIN lead_statuses ls ON ls.id = l.lead_status_id
-             GROUP BY u.id, u.first_name, u.last_name
-             ORDER BY total_leads DESC
-             LIMIT 8",
-            [$institutionId]
-        );
-        $leaderboard = $this->db->fetchAll();
+        try {
+            $this->db->query(
+                "SELECT CONCAT(u.first_name,' ',u.last_name) AS counselor,
+                        COUNT(l.id) AS total_leads,
+                        SUM(CASE WHEN ls.is_won=1 THEN 1 ELSE 0 END) AS converted,
+                        SUM(CASE WHEN l.priority='hot' THEN 1 ELSE 0 END) AS hot_leads
+                 FROM users u
+                 JOIN leads l ON l.assigned_to = u.id AND l.institution_id = ? AND l.deleted_at IS NULL
+                 LEFT JOIN lead_statuses ls ON ls.id = l.lead_status_id
+                 GROUP BY u.id, u.first_name, u.last_name
+                 ORDER BY total_leads DESC
+                 LIMIT 8",
+                [$institutionId]
+            );
+            $leaderboard = $this->db->fetchAll();
+        } catch (\Throwable $e) {
+            $leaderboard = [];
+        }
+
+        // 11. Lead conversion time (avg days from created_at → converted_at)
+        try {
+            $this->db->query(
+                "SELECT ROUND(AVG(DATEDIFF(converted_at, created_at)), 1) AS avg_days
+                 FROM leads WHERE institution_id=? AND converted_at IS NOT NULL",
+                [$institutionId]
+            );
+            $avgConvDays = (float)($this->db->fetch()['avg_days'] ?? 0);
+        } catch (\Throwable $e) {
+            $avgConvDays = 0;
+        }
+
+        // 12. This month's new leads vs last month
+        try {
+            $this->db->query(
+                "SELECT
+                    SUM(CASE WHEN DATE_FORMAT(created_at,'%Y-%m')=DATE_FORMAT(NOW(),'%Y-%m') THEN 1 ELSE 0 END) AS this_month,
+                    SUM(CASE WHEN DATE_FORMAT(created_at,'%Y-%m')=DATE_FORMAT(NOW() - INTERVAL 1 MONTH,'%Y-%m') THEN 1 ELSE 0 END) AS last_month
+                 FROM leads WHERE institution_id=? AND created_at >= DATE_SUB(NOW(), INTERVAL 2 MONTH)",
+                [$institutionId]
+            );
+            $monthComparison = $this->db->fetch() ?? ['this_month' => 0, 'last_month' => 0];
+        } catch (\Throwable $e) {
+            $monthComparison = ['this_month' => 0, 'last_month' => 0];
+        }
 
         // 10. Recent activity (last 10 admissions)
         $this->db->query(
@@ -159,7 +201,8 @@ class CrmDashboardController extends BaseController
             'enqByStatus', 'leadByPriority', 'admByStatus',
             'todayFollowups', 'hotLeads', 'sourceStats',
             'trendMonths', 'enqTrend', 'leadTrend',
-            'leaderboard', 'recentAdmissions'
+            'leaderboard', 'recentAdmissions',
+            'avgConvDays', 'monthComparison'
         ));
     }
 }

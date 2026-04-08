@@ -118,6 +118,73 @@
     </div>
 </div>
 
+<!-- Row 2: Additional KPIs -->
+<?php
+$thisMonth = (int)($monthComparison['this_month'] ?? 0);
+$lastMonth = (int)($monthComparison['last_month'] ?? 0);
+$momChange = $lastMonth > 0 ? round(($thisMonth - $lastMonth) / $lastMonth * 100, 1) : ($thisMonth > 0 ? 100 : 0);
+$momColor  = $momChange > 0 ? 'text-success' : ($momChange < 0 ? 'text-danger' : 'text-muted');
+$momIcon   = $momChange > 0 ? 'fa-arrow-up' : ($momChange < 0 ? 'fa-arrow-down' : 'fa-minus');
+?>
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 p-3 h-100">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;background:#f0fdf4">
+                    <i class="fas fa-calendar-check text-success"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4"><?= number_format($thisMonth) ?></div>
+                    <div class="small text-muted">New Leads This Month</div>
+                    <div class="small <?= $momColor ?>"><i class="fas <?= $momIcon ?> me-1"></i><?= abs($momChange) ?>% vs last month</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 p-3 h-100">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;background:#fef3c7">
+                    <i class="fas fa-stopwatch text-warning"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4"><?= $avgConvDays > 0 ? $avgConvDays : '—' ?><?= $avgConvDays > 0 ? '<span class="small text-muted"> days</span>' : '' ?></div>
+                    <div class="small text-muted">Avg. Conversion Time</div>
+                    <div class="small text-muted">Lead → Admission</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 p-3 h-100">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;background:#eff6ff">
+                    <i class="fas fa-user-clock text-primary"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4"><?= number_format($enqByStatus['interested'] ?? 0) ?></div>
+                    <div class="small text-muted">Interested Enquiries</div>
+                    <div class="small text-muted">Ready to convert</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 p-3 h-100">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;background:#fdf2f8">
+                    <i class="fas fa-check-double text-purple" style="color:#7c3aed"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4"><?= number_format($admByStatus['confirmed'] ?? 0) ?></div>
+                    <div class="small text-muted">Confirmed Admissions</div>
+                    <div class="small text-muted">Awaiting enrollment</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Charts Row -->
 <div class="row g-3 mb-4">
     <div class="col-md-8">

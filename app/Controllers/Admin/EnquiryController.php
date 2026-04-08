@@ -95,7 +95,8 @@ class EnquiryController extends BaseController
         $departments = $this->db->fetchAll();
 
         $this->db->query(
-            "SELECT id, name FROM courses WHERE status = 'active' ORDER BY name"
+            "SELECT id, name FROM courses WHERE institution_id = ? AND status = 'active' ORDER BY name",
+            [$this->institutionId]
         );
         $courses = $this->db->fetchAll();
 
@@ -270,7 +271,8 @@ class EnquiryController extends BaseController
         $departments = $this->db->fetchAll();
 
         $this->db->query(
-            "SELECT id, name FROM courses WHERE status = 'active' ORDER BY name"
+            "SELECT id, name FROM courses WHERE institution_id = ? AND status = 'active' ORDER BY name",
+            [$instId]
         );
         $courses = $this->db->fetchAll();
 
@@ -708,7 +710,8 @@ class EnquiryController extends BaseController
             );
         } elseif ($institutionId) {
             $this->db->query(
-                "SELECT id, name FROM courses WHERE status = 'active' ORDER BY name"
+                "SELECT id, name FROM courses WHERE institution_id = ? AND status = 'active' ORDER BY name",
+                [$institutionId]
             );
         } else {
             echo json_encode([]);

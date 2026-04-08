@@ -39,6 +39,7 @@ class LeadController extends BaseController
             'date_from'           => $this->input('date_from'),
             'date_to'             => $this->input('date_to'),
             'next_followup_overdue' => $this->input('followup_overdue'),
+            'converted'           => $this->input('converted'),
         ];
 
         // Counselors see only their leads unless they have view_all
@@ -61,9 +62,10 @@ class LeadController extends BaseController
         );
         $counselors = $this->db->fetchAll();
 
-        // Courses
+        // Courses (scoped to institution)
         $this->db->query(
-            "SELECT id, name FROM courses WHERE status = 'active' ORDER BY name"
+            "SELECT id, name FROM courses WHERE institution_id = ? AND status = 'active' ORDER BY name",
+            [$this->institutionId]
         );
         $courses = $this->db->fetchAll();
 
@@ -205,6 +207,9 @@ class LeadController extends BaseController
             'hostel_required'      => isset($_POST['hostel_required']) ? 1 : 0,
             'transport_required'   => isset($_POST['transport_required']) ? 1 : 0,
             'scholarship_required' => isset($_POST['scholarship_required']) ? 1 : 0,
+
+            // Alternate contact
+            'alternate_phone'  => sanitize(trim($_POST['alternate_phone'] ?? '')) ?: null,
 
             // Link to enquiry if converted
             'enquiry_id'       => (int)($_POST['enquiry_id'] ?? 0) ?: null,
@@ -376,6 +381,9 @@ class LeadController extends BaseController
             'hostel_required'      => isset($_POST['hostel_required']) ? 1 : 0,
             'transport_required'   => isset($_POST['transport_required']) ? 1 : 0,
             'scholarship_required' => isset($_POST['scholarship_required']) ? 1 : 0,
+
+            // Alternate contact
+            'alternate_phone'  => sanitize(trim($_POST['alternate_phone'] ?? '')) ?: null,
 
             'updated_by' => $this->user['id'],
         ];
@@ -1007,5 +1015,144 @@ class LeadController extends BaseController
         $statuses = $this->leadModel->getStatuses();
 
         return [$institutions, $departments, $courses, $counselors, $sources, $statuses];
+    }
+
+    // =========================================================
+    // IMPORT LEADS (CSV)
+    // =========================================================
+
+    public function showImport(): void
+    {
+        $this->authorize('leads.create');
+        $pageTitle = 'Import Leads';
+        $this->view('leads/import', compact('pageTitle'));
+    }
+
+    public function importTemplate(): void
+    {
+        $this->authorize('leads.create');
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="leads_import_template.csv"');
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['first_name','last_name','phone','alternate_phone','email','gender','course_interested_id','priority','notes']);
+        fputcsv($out, ['John','Doe','9876543210','','john@example.com','male','','warm','Interested in BCA']);
+        fclose($out);
+        exit;
+    }
+
+    public function import(): void
+    {
+        $this->authorize('leads.create');
+
+        if (!verifyCsrf()) {
+            $this->backWithErrors(['Session expired. Please try again.']);
+            return;
+        }
+
+        if (empty($_FILES['csv_file']['tmp_name'])) {
+            $this->backWithErrors(['Please upload a CSV file.']);
+            return;
+        }
+
+        $file = $_FILES['csv_file'];
+        $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if ($ext !== 'csv') {
+            $this->backWithErrors(['Only CSV files are supported.']);
+            return;
+        }
+
+        $handle = fopen($file['tmp_name'], 'r');
+        if (!$handle) {
+            $this->backWithErrors(['Could not read the uploaded file.']);
+            return;
+        }
+
+        // Expected CSV columns (header row)
+        $headers = array_map('trim', fgetcsv($handle) ?: []);
+        $required = ['first_name', 'phone'];
+        foreach ($required as $req) {
+            if (!in_array($req, $headers)) {
+                fclose($handle);
+                $this->backWithErrors(["CSV must contain column: {$req}"]);
+                return;
+            }
+        }
+
+        $defaultStatusId = $this->leadModel->getDefaultStatusId();
+        $imported = 0;
+        $skipped  = 0;
+        $errors   = [];
+        $row      = 1;
+
+        while (($line = fgetcsv($handle)) !== false) {
+            $row++;
+            if (empty(array_filter($line))) continue;
+
+            $data = array_combine($headers, array_pad($line, count($headers), ''));
+
+            $phone = trim($data['phone'] ?? '');
+            $firstName = trim($data['first_name'] ?? '');
+
+            if (empty($phone) || empty($firstName)) {
+                $skipped++;
+                $errors[] = "Row {$row}: missing first_name or phone — skipped.";
+                continue;
+            }
+
+            // Skip duplicates
+            $this->db->query(
+                "SELECT id FROM leads WHERE institution_id = ? AND phone = ? LIMIT 1",
+                [$this->institutionId, $phone]
+            );
+            if ($this->db->fetch()) {
+                $skipped++;
+                $errors[] = "Row {$row}: phone {$phone} already exists — skipped.";
+                continue;
+            }
+
+            try {
+                $insertData = [
+                    'institution_id'       => $this->institutionId,
+                    'lead_number'          => $this->leadModel->generateLeadNumber($this->institutionId),
+                    'lead_status_id'       => $defaultStatusId,
+                    'first_name'           => sanitize($firstName),
+                    'last_name'            => sanitize(trim($data['last_name'] ?? '')) ?: null,
+                    'email'                => sanitize(trim($data['email'] ?? '')) ?: null,
+                    'phone'                => sanitize($phone),
+                    'alternate_phone'      => sanitize(trim($data['alternate_phone'] ?? '')) ?: null,
+                    'gender'               => in_array($data['gender'] ?? '', ['male','female','other']) ? $data['gender'] : null,
+                    'course_interested_id' => !empty($data['course_interested_id']) ? (int)$data['course_interested_id'] : null,
+                    'priority'             => in_array($data['priority'] ?? '', ['hot','warm','cold']) ? $data['priority'] : 'warm',
+                    'notes'                => sanitize(trim($data['notes'] ?? '')) ?: null,
+                    'created_by'           => $this->user['id'],
+                ];
+
+                $leadId = $this->leadModel->withoutScope()->create($insertData);
+                $this->leadModel->addActivity($leadId, 'system', 'Imported via CSV', null, $this->user['id']);
+                $imported++;
+            } catch (\Exception $e) {
+                $skipped++;
+                $errors[] = "Row {$row}: " . $e->getMessage();
+            }
+        }
+
+        fclose($handle);
+
+        $this->logAudit('import', 'leads', 0, ['imported' => $imported, 'skipped' => $skipped]);
+
+        $msg = "{$imported} lead(s) imported successfully.";
+        if ($skipped) $msg .= " {$skipped} row(s) skipped.";
+
+        if ($imported > 0) {
+            flash('success', $msg);
+        } else {
+            flash('warning', $msg);
+        }
+
+        if (!empty($errors)) {
+            $_SESSION['import_errors'] = array_slice($errors, 0, 20);
+        }
+
+        redirect('leads/import');
     }
 }
