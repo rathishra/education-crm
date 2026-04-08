@@ -1,79 +1,136 @@
 <?php
 namespace App\Controllers\Lms;
 
-use Core\Database\Database;
-use Core\Session\Session;
+use App\Controllers\BaseController;
 
-abstract class LmsBaseController
+abstract class LmsBaseController extends BaseController
 {
-    protected Database $db;
-    protected Session  $session;
-    protected ?array   $lmsUser;
-    protected ?int     $lmsUserId;
-    protected ?int     $institutionId;
-    protected string   $userRole;
+    protected ?array $lmsUser   = null;
+    protected ?int   $lmsUserId = null;
+    protected string $userRole  = 'instructor';
 
     public function __construct()
     {
-        $this->db            = db();
-        $this->session       = Session::getInstance();
-        $this->lmsUser       = $this->session->get('lms_user');
-        $this->lmsUserId     = $this->lmsUser['id']             ?? null;
-        $this->institutionId = $this->lmsUser['institution_id'] ?? null;
-        $this->userRole      = $this->lmsUser['role']           ?? 'learner';
+        parent::__construct();
+        $this->_resolveLmsUser();
     }
 
-    // ── View rendering ────────────────────────────────────────
-    protected function view(string $view, array $data = [], string $layout = 'lms'): void
+    // ── Resolve LMS user from admin session ───────────────────────
+    private function _resolveLmsUser(): void
     {
-        extract($data);
-        $lmsUser = $this->lmsUser;
+        if (!$this->user || !$this->institutionId) return;
 
-        $viewFile = BASE_PATH . '/app/Views/' . str_replace('.', '/', $view) . '.php';
-        if (!file_exists($viewFile)) {
-            echo "View not found: {$view}";
+        // Use session cache to avoid DB hit on every request
+        $cached = $this->session->get('_lms_ctx');
+        if ($cached && (int)($cached['staff_user_id'] ?? 0) === (int)$this->user['id']) {
+            $this->lmsUser   = $cached;
+            $this->lmsUserId = (int)$cached['id'];
+            $this->userRole  = $cached['role'];
+            $this->_ensurePermissionsLoaded();
             return;
         }
 
-        ob_start();
-        require $viewFile;
-        $content = ob_get_clean();
+        try {
+            // Look up existing lms_users record for this admin user
+            $this->db->query(
+                "SELECT * FROM lms_users
+                 WHERE staff_user_id = ? AND institution_id = ? AND deleted_at IS NULL
+                 LIMIT 1",
+                [$this->user['id'], $this->institutionId]
+            );
+            $lmsUser = $this->db->fetch();
 
-        $layoutFile = BASE_PATH . '/app/Views/layouts/' . $layout . '.php';
-        if (file_exists($layoutFile)) {
-            require $layoutFile;
-        } else {
-            echo $content;
+            if (!$lmsUser) {
+                // Auto-create LMS user linked to this admin account
+                $role = str_contains(strtolower($this->user['role_name'] ?? ''), 'admin')
+                    ? 'lms_admin'
+                    : 'instructor';
+
+                $newId = $this->db->insert('lms_users', [
+                    'institution_id'    => $this->institutionId,
+                    'staff_user_id'     => $this->user['id'],
+                    'email'             => $this->user['email'] ?? '',
+                    'password'          => password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT),
+                    'first_name'        => $this->user['first_name'] ?? '',
+                    'last_name'         => $this->user['last_name'] ?? '',
+                    'display_name'      => trim(($this->user['first_name'] ?? '') . ' ' . ($this->user['last_name'] ?? '')),
+                    'role'              => $role,
+                    'status'            => 'active',
+                    'email_verified_at' => date('Y-m-d H:i:s'),
+                ]);
+
+                $this->db->query("SELECT * FROM lms_users WHERE id = ?", [$newId]);
+                $lmsUser = $this->db->fetch();
+            }
+
+            if ($lmsUser) {
+                $this->lmsUser   = $lmsUser;
+                $this->lmsUserId = (int)$lmsUser['id'];
+                $this->userRole  = $lmsUser['role'];
+                $this->session->set('_lms_ctx', $lmsUser);
+            }
+
+            $this->_ensurePermissionsLoaded();
+
+        } catch (\Throwable $e) {
+            // lms_users table may not exist yet — fail silently
         }
     }
 
-    protected function json(array $data, int $status = 200): void
+    private function _ensurePermissionsLoaded(): void
     {
-        http_response_code($status);
-        header('Content-Type: application/json');
-        echo json_encode($data);
-        exit;
+        if (!$this->lmsUserId) return;
+        if ($this->session->get('lms_permissions') === null) {
+            $this->session->set('lms_permissions', $this->_loadPermissions());
+        }
     }
 
-    protected function input(string $key, $default = null)
+    private function _loadPermissions(): array
     {
-        return $_POST[$key] ?? $_GET[$key] ?? $default;
+        try {
+            $this->db->query(
+                "SELECT permission_key FROM lms_role_permissions WHERE role = ?",
+                [$this->userRole]
+            );
+            $perms = array_column($this->db->fetchAll(), 'permission_key');
+
+            $this->db->query(
+                "SELECT permission_key, granted FROM lms_user_permissions WHERE lms_user_id = ?",
+                [$this->lmsUserId]
+            );
+            foreach ($this->db->fetchAll() as $override) {
+                if ($override['granted']) {
+                    $perms[] = $override['permission_key'];
+                } else {
+                    $perms = array_diff($perms, [$override['permission_key']]);
+                }
+            }
+            return array_unique(array_values($perms));
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
-    // ── Permission check ──────────────────────────────────────
+    // ── View rendering — inject $lmsUser into all LMS views ───────
+    protected function view(string $view, array $data = [], string $layout = 'main'): void
+    {
+        $data['lmsUser'] = $this->lmsUser;
+        parent::view($view, $data, $layout);
+    }
+
+    // ── LMS permission check ──────────────────────────────────────
     protected function can(string $permission): bool
     {
         if (!$this->lmsUserId) return false;
-
-        // Cache permissions in session for performance
-        $cached = $this->session->get('lms_permissions', null);
-        if ($cached === null) {
-            $cached = $this->loadPermissions();
-            $this->session->set('lms_permissions', $cached);
+        $perms = $this->session->get('lms_permissions', null);
+        if ($perms === null) {
+            $perms = $this->_loadPermissions();
+            $this->session->set('lms_permissions', $perms);
         }
-        return in_array($permission, $cached, true);
+        return in_array($permission, $perms, true);
     }
 
+    // Override BaseController::authorize() with LMS permission check
     protected function authorize(string $permission): void
     {
         if (!$this->can($permission)) {
@@ -86,38 +143,13 @@ abstract class LmsBaseController
         }
     }
 
-    private function loadPermissions(): array
-    {
-        // Role-level permissions
-        $this->db->query(
-            "SELECT permission_key FROM lms_role_permissions WHERE role = ?",
-            [$this->userRole]
-        );
-        $rolePerms = array_column($this->db->fetchAll(), 'permission_key');
-
-        // User-level overrides
-        $this->db->query(
-            "SELECT permission_key, granted FROM lms_user_permissions WHERE lms_user_id = ?",
-            [$this->lmsUserId]
-        );
-        $overrides = $this->db->fetchAll();
-
-        foreach ($overrides as $override) {
-            if ($override['granted']) {
-                $rolePerms[] = $override['permission_key'];
-            } else {
-                $rolePerms = array_diff($rolePerms, [$override['permission_key']]);
-            }
-        }
-        return array_unique(array_values($rolePerms));
-    }
-
-    // ── Audit logging ─────────────────────────────────────────
+    // ── Audit logging ─────────────────────────────────────────────
     protected function audit(string $action, string $entityType = null, int $entityId = null, array $meta = []): void
     {
         try {
             $this->db->query(
-                "INSERT INTO lms_audit_log (lms_user_id, action, entity_type, entity_id, meta, ip_address, user_agent, created_at)
+                "INSERT INTO lms_audit_log
+                    (lms_user_id, action, entity_type, entity_id, meta, ip_address, user_agent, created_at)
                  VALUES (?, ?, ?, ?, ?, ?, ?, NOW())",
                 [
                     $this->lmsUserId, $action, $entityType, $entityId,
@@ -131,11 +163,11 @@ abstract class LmsBaseController
 
     protected function isAjax(): bool
     {
-        return (strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest')
-            || (($_SERVER['HTTP_ACCEPT'] ?? '') === 'application/json');
+        return strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest'
+            || ($_SERVER['HTTP_ACCEPT'] ?? '') === 'application/json';
     }
 
-    protected function isAdmin(): bool     { return $this->userRole === 'lms_admin'; }
+    protected function isAdmin(): bool      { return $this->userRole === 'lms_admin'; }
     protected function isInstructor(): bool { return in_array($this->userRole, ['lms_admin', 'instructor']); }
     protected function isLearner(): bool    { return $this->userRole === 'learner'; }
 }

@@ -22,6 +22,9 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <?php if (empty($batches)): ?>
+                    <tr><td colspan="10" class="text-center text-muted py-4"><i class="fas fa-inbox me-2"></i>No batches found. Create your first batch to get started.</td></tr>
+                    <?php endif; ?>
                     <?php foreach($batches as $b): ?>
                     <tr>
                         <td>

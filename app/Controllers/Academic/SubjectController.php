@@ -223,6 +223,10 @@ class SubjectController extends BaseController
 
         $newId = $this->db->lastInsertId();
         $this->logAudit('subject_create', 'subjects', $newId);
+
+        // Auto-create matching LMS course
+        try { \App\Services\LmsAutoSync::syncSubject((int)$newId, $this->institutionId); } catch (\Throwable $e) {}
+
         $this->redirectWith(url('academic/subjects/'.$newId), 'success', 'Subject "'.$name.'" created successfully.');
     }
 

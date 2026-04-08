@@ -69,13 +69,12 @@
         </div>
         <?php endif; ?>
         <!-- Fee Summary -->
-        <?php 
-           $feeSql = "SELECT SUM(net_amount) as total_net, SUM(paid_amount) as total_paid FROM student_fees WHERE student_id = ? AND status != 'waived'";
-           db()->query($feeSql, [$student['id']]);
-           $fs = db()->fetch();
-           $totalNet = $fs['total_net'] ?? 0;
-           $totalPaid = $fs['total_paid'] ?? 0;
-           $totalBalance = $totalNet - $totalPaid;
+        <?php
+           $totalNet = $feeSummary['total'] ?? 0;
+           $totalPaid = $feeSummary['paid'] ?? 0;
+           $totalBalance = $feeSummary['balance'] ?? 0;
+           $totalOverdue = $feeSummary['overdue'] ?? 0;
+           $paidPct = $totalNet > 0 ? round(($totalPaid / $totalNet) * 100) : 0;
         ?>
         <div class="card">
             <div class="card-header bg-light d-flex justify-content-between align-items-center">
@@ -85,7 +84,18 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2"><span class="text-muted">Net Payable</span><span class="fw-semibold"><?= formatCurrency($totalNet) ?></span></div>
                 <div class="d-flex justify-content-between mb-2"><span class="text-muted">Total Paid</span><span class="text-success fw-semibold"><?= formatCurrency($totalPaid) ?></span></div>
-                <div class="d-flex justify-content-between mb-2"><span class="text-muted">Total Balance</span><span class="text-danger fw-semibold"><?= formatCurrency($totalBalance) ?></span></div>
+                <div class="d-flex justify-content-between mb-2"><span class="text-muted">Balance</span><span class="text-danger fw-semibold"><?= formatCurrency($totalBalance) ?></span></div>
+                <?php if ($totalOverdue > 0): ?>
+                <div class="d-flex justify-content-between mb-2"><span class="text-muted">Overdue</span><span class="text-danger fw-bold"><i class="fas fa-exclamation-triangle me-1"></i><?= formatCurrency($totalOverdue) ?></span></div>
+                <?php endif; ?>
+                <?php if ($totalNet > 0): ?>
+                <div class="mt-2">
+                    <div class="progress" style="height:6px">
+                        <div class="progress-bar <?= $paidPct >= 100 ? 'bg-success' : ($paidPct >= 50 ? 'bg-primary' : 'bg-warning') ?>" style="width:<?= $paidPct ?>%"></div>
+                    </div>
+                    <div class="text-end mt-1" style="font-size:.7rem;color:#64748b"><?= $paidPct ?>% paid</div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

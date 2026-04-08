@@ -650,6 +650,7 @@ $router->group(['prefix' => 'portal/student', 'middleware' => 'portal_auth'], fu
 
     // LMS / Course Materials
     $router->get('/lms',                        'Portal\LmsController@index',                          'portal.lms');
+    $router->get('/lms/courses/{id}',           'Portal\LmsController@course',                         'portal.lms.course');
     $router->get('/lms/download/{id}',          'Portal\LmsController@download',                       'portal.lms.download');
 
     // Documents
@@ -665,25 +666,159 @@ $router->group(['prefix' => 'portal/student', 'middleware' => 'portal_auth'], fu
 
 
 // ============================================================
-// Enterprise LMS Routes — /elms prefix
 // ============================================================
+// Enterprise LMS Module — uses existing admin auth (no separate login)
+// ============================================================
+$router->group(['prefix' => '/elms', 'middleware' => 'auth'], function ($router) {
 
-// LMS Guest Routes (unauthenticated only)
-$router->group(['prefix' => '/elms', 'middleware' => 'lms_guest'], function ($router) {
-    $router->get('/login',                    'Lms\Auth\LmsAuthController@showLogin',          'lms.login');
-    $router->post('/login',                   'Lms\Auth\LmsAuthController@login',              'lms.login.post');
-    $router->get('/register',                 'Lms\Auth\LmsAuthController@showRegister',       'lms.register');
-    $router->post('/register',                'Lms\Auth\LmsAuthController@register',           'lms.register.post');
-    $router->get('/forgot-password',          'Lms\Auth\LmsAuthController@showForgotPassword', 'lms.password.forgot');
-    $router->post('/forgot-password',         'Lms\Auth\LmsAuthController@forgotPassword',     'lms.password.forgot.post');
-    $router->get('/reset-password/{token}',   'Lms\Auth\LmsAuthController@showResetPassword',  'lms.password.reset');
-    $router->post('/reset-password',          'Lms\Auth\LmsAuthController@resetPassword',      'lms.password.reset.post');
-});
-
-// LMS Authenticated Routes
-$router->group(['prefix' => '/elms', 'middleware' => 'lms_auth'], function ($router) {
-    $router->post('/logout',                  'Lms\Auth\LmsAuthController@logout',             'lms.logout');
-
-    // Dashboard (Module 2 — stub until built)
+    // Dashboard (Module 2)
     $router->get('/dashboard',                'Lms\DashboardController@index',                 'lms.dashboard');
+    $router->post('/dashboard/dismiss-announcement/{id}', 'Lms\DashboardController@dismissAnnouncement', 'lms.dashboard.dismiss_ann');
+
+    // Courses (Module 3) — static routes BEFORE {id}
+    $router->get('/courses',                           'Lms\CourseController@index',              'lms.courses');
+    $router->get('/courses/create',                    'Lms\CourseController@create',             'lms.courses.create');
+    $router->post('/courses/store',                    'Lms\CourseController@store',              'lms.courses.store');
+    $router->get('/courses/{id}',                      'Lms\CourseController@show',               'lms.courses.show');
+    $router->get('/courses/{id}/edit',                 'Lms\CourseController@edit',               'lms.courses.edit');
+    $router->post('/courses/{id}/update',              'Lms\CourseController@update',             'lms.courses.update');
+    $router->post('/courses/{id}/toggle-status',       'Lms\CourseController@toggleStatus',       'lms.courses.toggle_status');
+    $router->post('/courses/{id}/delete',              'Lms\CourseController@destroy',            'lms.courses.delete');
+    $router->post('/courses/{id}/enroll',              'Lms\CourseController@enrollStudents',     'lms.courses.enroll');
+    // Section AJAX
+    $router->post('/courses/{courseId}/sections',                      'Lms\CourseController@storeSectionAjax',   'lms.sections.store');
+    $router->post('/courses/{courseId}/sections/{secId}',              'Lms\CourseController@updateSectionAjax',  'lms.sections.update');
+    $router->post('/courses/{courseId}/sections/{secId}/delete',       'Lms\CourseController@deleteSectionAjax',  'lms.sections.delete');
+    $router->post('/courses/{courseId}/sections/reorder',              'Lms\CourseController@reorderSectionsAjax','lms.sections.reorder');
+
+    // Lessons (Module 4) — static routes BEFORE {id}
+    $router->get('/courses/{courseId}/lessons/create',                 'Lms\LessonController@create',             'lms.lessons.create');
+    $router->post('/courses/{courseId}/lessons/store',                 'Lms\LessonController@store',              'lms.lessons.store');
+    $router->post('/courses/{courseId}/lessons/reorder',               'Lms\LessonController@reorder',            'lms.lessons.reorder');
+    $router->get('/courses/{courseId}/lessons/{id}',                   'Lms\LessonController@view_lesson',        'lms.lessons.view');
+    $router->get('/courses/{courseId}/lessons/{id}/edit',              'Lms\LessonController@edit',               'lms.lessons.edit');
+    $router->post('/courses/{courseId}/lessons/{id}/update',           'Lms\LessonController@update',             'lms.lessons.update');
+    $router->post('/courses/{courseId}/lessons/{id}/delete',           'Lms\LessonController@destroy',            'lms.lessons.delete');
+    $router->post('/courses/{courseId}/lessons/{id}/progress',         'Lms\LessonController@markProgress',       'lms.lessons.progress');
+    $router->get('/courses/{id}/lessons-list',                         'Lms\CourseController@lessonsList',         'lms.courses.lessons_list');
+
+    // Assignments (Module 5) — static routes BEFORE {id}
+    $router->get('/assignments',                                        'Lms\AssignmentController@index',           'lms.assignments');
+    $router->get('/assignments/create',                                 'Lms\AssignmentController@create',          'lms.assignments.create');
+    $router->post('/assignments/store',                                 'Lms\AssignmentController@store',           'lms.assignments.store');
+    $router->get('/assignments/{id}',                                   'Lms\AssignmentController@show',            'lms.assignments.show');
+    $router->get('/assignments/{id}/edit',                              'Lms\AssignmentController@edit',            'lms.assignments.edit');
+    $router->post('/assignments/{id}/update',                           'Lms\AssignmentController@update',          'lms.assignments.update');
+    $router->post('/assignments/{id}/delete',                           'Lms\AssignmentController@destroy',         'lms.assignments.delete');
+    $router->post('/assignments/{id}/submit',                           'Lms\AssignmentController@submit',          'lms.assignments.submit');
+    $router->post('/assignments/{id}/submissions/{subId}/grade',        'Lms\AssignmentController@grade',           'lms.assignments.grade');
+    $router->get('/assignments/{id}/submissions/{subId}/download',      'Lms\AssignmentController@download',        'lms.assignments.download');
+
+    // Quizzes (Module 6) — static routes BEFORE {id}
+    $router->get('/quizzes',                                             'Lms\QuizController@index',                  'lms.quizzes');
+    $router->get('/quizzes/create',                                      'Lms\QuizController@create',                 'lms.quizzes.create');
+    $router->post('/quizzes/store',                                      'Lms\QuizController@store',                  'lms.quizzes.store');
+    $router->get('/quizzes/{id}',                                        'Lms\QuizController@show',                   'lms.quizzes.show');
+    $router->get('/quizzes/{id}/edit',                                   'Lms\QuizController@edit',                   'lms.quizzes.edit');
+    $router->post('/quizzes/{id}/update',                                'Lms\QuizController@update',                 'lms.quizzes.update');
+    $router->post('/quizzes/{id}/delete',                                'Lms\QuizController@destroy',                'lms.quizzes.delete');
+    // Builder
+    $router->get('/quizzes/{id}/builder',                                'Lms\QuizController@builder',                'lms.quizzes.builder');
+    $router->post('/quizzes/{id}/questions/save',                        'Lms\QuizController@saveQuestion',           'lms.quizzes.q.save');
+    $router->post('/quizzes/{id}/questions/reorder',                     'Lms\QuizController@reorderQuestions',       'lms.quizzes.q.reorder');
+    $router->post('/quizzes/{id}/questions/{qid}/delete',                'Lms\QuizController@deleteQuestion',         'lms.quizzes.q.delete');
+    // Attempt
+    $router->post('/quizzes/{id}/start',                                 'Lms\QuizController@startAttempt',           'lms.quizzes.start');
+    $router->get('/quizzes/{id}/attempt/{attemptId}',                    'Lms\QuizController@take',                   'lms.quizzes.take');
+    $router->post('/quizzes/{id}/attempt/{attemptId}/submit',            'Lms\QuizController@submitAttempt',          'lms.quizzes.submit');
+    $router->get('/quizzes/{id}/attempt/{attemptId}/result',             'Lms\QuizController@result',                 'lms.quizzes.result');
+
+    // Attendance (Module 7) — static routes BEFORE {id}
+    $router->get('/attendance',                                          'Lms\AttendanceController@index',            'lms.attendance');
+    $router->get('/attendance/report',                                   'Lms\AttendanceController@report',           'lms.attendance.report');
+    $router->get('/attendance/create',                                   'Lms\AttendanceController@create',           'lms.attendance.create');
+    $router->post('/attendance/store',                                   'Lms\AttendanceController@store',            'lms.attendance.store');
+    $router->get('/attendance/{id}',                                     'Lms\AttendanceController@mark',             'lms.attendance.view');
+    $router->get('/attendance/{id}/mark',                                'Lms\AttendanceController@mark',             'lms.attendance.mark');
+    $router->post('/attendance/{id}/save',                               'Lms\AttendanceController@saveAttendance',   'lms.attendance.save');
+    $router->get('/attendance/{id}/edit',                                'Lms\AttendanceController@edit',             'lms.attendance.edit');
+    $router->post('/attendance/{id}/update',                             'Lms\AttendanceController@update',           'lms.attendance.update');
+    $router->post('/attendance/{id}/delete',                             'Lms\AttendanceController@destroy',          'lms.attendance.delete');
+    $router->post('/attendance/{id}/lock',                               'Lms\AttendanceController@toggleLock',       'lms.attendance.lock');
+
+    // Live Classes (Module 8) — static routes BEFORE {id}
+    $router->get('/live',                                                'Lms\LiveClassController@index',             'lms.live');
+    $router->get('/live/create',                                         'Lms\LiveClassController@create',            'lms.live.create');
+    $router->post('/live/store',                                         'Lms\LiveClassController@store',             'lms.live.store');
+    $router->get('/live/{id}',                                           'Lms\LiveClassController@show',              'lms.live.show');
+    $router->get('/live/{id}/edit',                                      'Lms\LiveClassController@edit',              'lms.live.edit');
+    $router->post('/live/{id}/update',                                   'Lms\LiveClassController@update',            'lms.live.update');
+    $router->post('/live/{id}/delete',                                   'Lms\LiveClassController@destroy',           'lms.live.delete');
+    $router->get('/live/{id}/join',                                      'Lms\LiveClassController@join',              'lms.live.join');
+    $router->post('/live/{id}/status',                                   'Lms\LiveClassController@setStatus',         'lms.live.status');
+    $router->post('/live/{id}/recording',                                'Lms\LiveClassController@saveRecording',     'lms.live.recording');
+    $router->post('/live/{id}/cancel',                                   'Lms\LiveClassController@cancel',            'lms.live.cancel');
+
+    // Forum (Module 9) — static routes BEFORE {id}
+    $router->get('/forum',                                               'Lms\ForumController@index',                 'lms.forum');
+    $router->get('/forum/create',                                        'Lms\ForumController@create',                'lms.forum.create');
+    $router->post('/forum/store',                                        'Lms\ForumController@store',                 'lms.forum.store');
+    $router->get('/forum/categories',                                    'Lms\ForumController@categoriesAjax',        'lms.forum.categories');
+    $router->get('/forum/{id}',                                          'Lms\ForumController@show',                  'lms.forum.show');
+    $router->post('/forum/{id}/reply',                                   'Lms\ForumController@reply',                 'lms.forum.reply');
+    $router->post('/forum/{id}/delete',                                  'Lms\ForumController@deleteThread',          'lms.forum.delete');
+    $router->post('/forum/{id}/pin',                                     'Lms\ForumController@pin',                   'lms.forum.pin');
+    $router->post('/forum/{id}/lock',                                    'Lms\ForumController@lock',                  'lms.forum.lock');
+    $router->post('/forum/{id}/subscribe',                               'Lms\ForumController@subscribe',             'lms.forum.subscribe');
+    $router->post('/forum/{threadId}/post/{postId}/edit',                'Lms\ForumController@editPost',              'lms.forum.post.edit');
+    $router->post('/forum/{threadId}/post/{postId}/delete',              'Lms\ForumController@deletePost',            'lms.forum.post.delete');
+    $router->post('/forum/{threadId}/post/{postId}/solution',            'Lms\ForumController@markSolution',          'lms.forum.post.solution');
+    $router->post('/forum/{threadId}/post/{postId}/react',               'Lms\ForumController@react',                 'lms.forum.post.react');
+
+    // Gradebook (Module 10) — static routes BEFORE {id}
+    $router->get('/gradebook',                                           'Lms\GradebookController@index',             'lms.gradebook');
+    $router->get('/gradebook/my-grades',                                 'Lms\GradebookController@myGrades',          'lms.gradebook.mine');
+    $router->get('/gradebook/{courseId}/export',                         'Lms\GradebookController@export',            'lms.gradebook.export');
+    $router->post('/gradebook/{courseId}/weights',                       'Lms\GradebookController@saveWeights',       'lms.gradebook.weights');
+    $router->get('/gradebook/{courseId}/student/{userId}',               'Lms\GradebookController@student',           'lms.gradebook.student');
+    $router->post('/gradebook/{courseId}/student/{userId}/override',     'Lms\GradebookController@override',          'lms.gradebook.override');
+    $router->post('/gradebook/{courseId}/student/{userId}/override/clear','Lms\GradebookController@clearOverride',   'lms.gradebook.override.clear');
+    $router->post('/gradebook/{courseId}/sync-academic',                'Lms\GradebookController@syncToAcademic',  'lms.gradebook.sync.academic');
+
+    // Analytics (Module 11) — static routes BEFORE {id}
+    $router->get('/analytics',                                           'Lms\AnalyticsController@index',             'lms.analytics');
+    $router->get('/analytics/courses',                                   'Lms\AnalyticsController@courses',           'lms.analytics.courses');
+    $router->get('/analytics/course/{id}',                               'Lms\AnalyticsController@course',            'lms.analytics.course');
+    $router->get('/analytics/student/{userId}',                          'Lms\AnalyticsController@student',           'lms.analytics.student');
+
+    // LMS Students (Integration) — static routes BEFORE {id}
+    $router->get('/students',                                            'Lms\StudentController@index',               'lms.students');
+    $router->get('/students/{id}',                                       'Lms\StudentController@show',                'lms.students.show');
+    $router->post('/students/{id}/toggle-status',                        'Lms\StudentController@toggleStatus',        'lms.students.toggle');
+
+    // Academic Sync (Integration) — static routes BEFORE {id}
+    $router->get('/sync',                                                'Lms\AcademicSyncController@index',          'lms.sync');
+    $router->get('/sync/stats',                                          'Lms\AcademicSyncController@stats',          'lms.sync.stats');
+    $router->post('/sync/students',                                      'Lms\AcademicSyncController@syncStudents',   'lms.sync.students');
+    $router->post('/sync/faculty',                                       'Lms\AcademicSyncController@syncFaculty',    'lms.sync.faculty');
+    $router->post('/sync/courses',                                       'Lms\AcademicSyncController@syncCourses',    'lms.sync.courses');
+    $router->post('/sync/enrollments',                                   'Lms\AcademicSyncController@syncEnrollments','lms.sync.enrollments');
+    $router->post('/sync/all',                                           'Lms\AcademicSyncController@syncAll',        'lms.sync.all');
+
+    // Notifications (Module 12) — static routes BEFORE {id}
+    $router->get('/notifications',                                       'Lms\NotificationController@index',          'lms.notifications');
+    $router->get('/notifications/count',                                 'Lms\NotificationController@unreadCount',    'lms.notifications.count');
+    $router->post('/notifications/read-all',                             'Lms\NotificationController@markAllRead',    'lms.notifications.read_all');
+    $router->post('/notifications/clear-read',                           'Lms\NotificationController@clearRead',      'lms.notifications.clear');
+    $router->post('/notifications/{id}/read',                            'Lms\NotificationController@markRead',       'lms.notifications.read');
+    $router->post('/notifications/{id}/delete',                          'Lms\NotificationController@delete',         'lms.notifications.delete');
+
+    // Announcements (Module 12) — static routes BEFORE {id}
+    $router->get('/announcements',                                       'Lms\NotificationController@announcements',  'lms.announcements');
+    $router->get('/announcements/create',                                'Lms\NotificationController@createAnnouncement','lms.announcements.create');
+    $router->post('/announcements/store',                                'Lms\NotificationController@storeAnnouncement', 'lms.announcements.store');
+    $router->get('/announcements/{id}/edit',                             'Lms\NotificationController@editAnnouncement',  'lms.announcements.edit');
+    $router->post('/announcements/{id}/update',                          'Lms\NotificationController@updateAnnouncement','lms.announcements.update');
+    $router->post('/announcements/{id}/delete',                          'Lms\NotificationController@deleteAnnouncement','lms.announcements.delete');
+    $router->post('/announcements/{id}/dismiss',                         'Lms\NotificationController@dismissAnnouncement','lms.announcements.dismiss');
 });

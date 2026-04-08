@@ -497,6 +497,20 @@ class Student extends BaseModel
 
         $this->update($id, ['status' => $status]);
 
+        // ── Auto-disable portal + LMS when student becomes inactive ──
+        $inactiveStatuses = ['dropped', 'suspended', 'inactive', 'passed_out', 'transferred'];
+        if (in_array($status, $inactiveStatuses, true) && $oldStatus !== $status) {
+            try {
+                $this->db->query(
+                    "UPDATE students SET portal_enabled = 0 WHERE id = ?", [$id]
+                );
+                $this->db->query(
+                    "UPDATE lms_users SET status = 'suspended', updated_at = NOW()
+                     WHERE student_id = ? AND deleted_at IS NULL", [$id]
+                );
+            } catch (\Throwable $e) { /* lms_users may not exist */ }
+        }
+
         $description = "Status changed from {$oldStatus} to {$status}";
         if ($reason) {
             $description .= ". Reason: {$reason}";

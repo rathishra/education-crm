@@ -206,8 +206,6 @@ class Router
             'api'          => \App\Middleware\ApiAuthMiddleware::class,
             'portal_auth'  => \App\Middleware\PortalAuthMiddleware::class,
             'portal_guest' => \App\Middleware\PortalGuestMiddleware::class,
-            'lms_auth'     => \App\Middleware\LmsAuthMiddleware::class,
-            'lms_guest'    => \App\Middleware\LmsGuestMiddleware::class,
         ];
 
         // Handle permission:slug format

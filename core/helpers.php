@@ -158,19 +158,19 @@ function isPortalLoggedIn(): bool
 }
 
 /**
- * LMS: get authenticated LMS user from session
+ * LMS: get authenticated LMS user from session (resolved via admin session)
  */
 function lmsAuth(): ?array
 {
-    return \Core\Session\Session::getInstance()->get('lms_user');
+    return \Core\Session\Session::getInstance()->get('_lms_ctx');
 }
 
 /**
- * LMS: check if LMS user is logged in
+ * LMS: check if current admin user has a resolved LMS context
  */
 function isLmsLoggedIn(): bool
 {
-    return \Core\Session\Session::getInstance()->has('lms_user');
+    return \Core\Session\Session::getInstance()->has('_lms_ctx');
 }
 
 /**

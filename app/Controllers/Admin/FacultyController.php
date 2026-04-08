@@ -401,6 +401,10 @@ class FacultyController extends BaseController
             ]);
 
             $this->logAudit('faculty_create', 'users', $userId);
+
+            // Auto-provision LMS instructor
+            try { \App\Services\LmsAutoSync::syncFaculty($userId, $this->institutionId); } catch (\Throwable $e) {}
+
             $this->db->commit();
 
             flash('success', "Faculty member {$firstName} {$lastName} created successfully.");

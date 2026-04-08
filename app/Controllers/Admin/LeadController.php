@@ -607,27 +607,55 @@ class LeadController extends BaseController
             $sourceName = $src['source_name'] ?? $src['name'] ?? null;
         }
 
+        // Require a course before conversion
+        if (empty($lead['course_interested_id'])) {
+            $this->redirectWith(url('leads/' . $id), 'error', 'Please assign a course of interest to the lead before converting.');
+            return;
+        }
+
         try {
             $admissionModel = new \App\Models\Admission();
             $admNumber = $admissionModel->generateAdmissionNumber($this->institutionId);
 
+            // Resolve academic_year_id from name if needed
+            $academicYearId = null;
+            if (!empty($lead['academic_year_id'])) {
+                $academicYearId = (int)$lead['academic_year_id'];
+            } elseif (!empty($lead['academic_year'])) {
+                $this->db->query(
+                    "SELECT id FROM academic_years WHERE institution_id = ? AND (name = ? OR YEAR(start_date) = ?) LIMIT 1",
+                    [$this->institutionId, $lead['academic_year'], $lead['academic_year']]
+                );
+                $ay = $this->db->fetch();
+                $academicYearId = $ay ? (int)$ay['id'] : null;
+            }
+            // Fallback: use current academic year
+            if (!$academicYearId) {
+                $this->db->query(
+                    "SELECT id FROM academic_years WHERE institution_id = ? AND is_current = 1 LIMIT 1",
+                    [$this->institutionId]
+                );
+                $ay = $this->db->fetch();
+                $academicYearId = $ay ? (int)$ay['id'] : null;
+            }
+
             $admId = $admissionModel->create([
-                'institution_id'    => $this->institutionId,
-                'admission_number'  => $admNumber,
-                'first_name'        => $lead['first_name'],
-                'last_name'         => $lead['last_name'] ?? null,
-                'email'             => $lead['email'] ?? null,
-                'phone'             => $lead['phone'],
-                'gender'            => $lead['gender'] ?? null,
-                'date_of_birth'     => $lead['date_of_birth'] ?? null,
-                'course_id'         => $lead['course_interested_id'] ?? null,
-                'academic_year'     => $lead['academic_year'] ?? null,
-                'application_date'  => date('Y-m-d'),
-                'status'            => 'applied',
-                'source'            => $sourceName,
-                'remarks'           => $lead['notes'] ?? null,
-                'lead_id'           => $lead['id'],
-                'created_by'        => $this->user['id'],
+                'institution_id'     => $this->institutionId,
+                'admission_number'   => $admNumber,
+                'first_name'         => $lead['first_name'],
+                'last_name'          => $lead['last_name'] ?? null,
+                'email'              => $lead['email'] ?? null,
+                'phone'              => $lead['phone'],
+                'gender'             => $lead['gender'] ?? null,
+                'date_of_birth'      => $lead['date_of_birth'] ?? null,
+                'course_id'          => (int)$lead['course_interested_id'],
+                'academic_year_id'   => $academicYearId,
+                'application_date'   => date('Y-m-d'),
+                'status'             => 'applied',
+                'application_source' => $sourceName,
+                'remarks'            => $lead['notes'] ?? null,
+                'lead_id'            => $lead['id'],
+                'created_by'         => $this->user['id'],
             ]);
 
             // Mark lead as won/converted
@@ -658,8 +686,8 @@ class LeadController extends BaseController
                 'Lead converted to admission.'
             );
         } catch (\Exception $e) {
-            appLog('Lead convert failed: ' . $e->getMessage(), 'error');
-            $this->redirectWith(url('leads/' . $id), 'error', 'Conversion failed. Please try again.');
+            appLog('Lead convert failed [lead_id=' . $id . ']: ' . $e->getMessage() . ' | ' . $e->getFile() . ':' . $e->getLine(), 'error');
+            $this->redirectWith(url('leads/' . $id), 'error', 'Conversion failed: ' . $e->getMessage());
         }
     }
 

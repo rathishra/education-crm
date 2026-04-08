@@ -457,6 +457,11 @@ class EnquiryController extends BaseController
             return;
         }
 
+        if (empty($enquiry['course_interested_id'])) {
+            $this->redirectWith(url('enquiries/' . $id), 'error', 'Please assign a course of interest to the enquiry before converting to admission.');
+            return;
+        }
+
         $admissionModel  = new Admission();
         $admissionNumber = $admissionModel->generateAdmissionNumber($this->institutionId);
 
@@ -469,15 +474,16 @@ class EnquiryController extends BaseController
             'phone'            => $enquiry['phone'],
             'gender'           => $enquiry['gender'] ?? null,
             'date_of_birth'    => $enquiry['date_of_birth'] ?? null,
-            'course_id'        => $enquiry['course_interested_id'] ?? null,
+            'course_id'        => (int)$enquiry['course_interested_id'],
             'department_id'    => $enquiry['department_id'] ?? null,
             'nationality'      => 'Indian',
             'admission_type'   => 'regular',
-            'application_date' => date('Y-m-d'),
-            'status'           => 'applied',
-            'source'           => $enquiry['source'] ?? null,
-            'remarks'          => $enquiry['remarks'] ?: ($enquiry['message'] ?? ''),
-            'created_by'       => $this->user['id'],
+            'application_date'   => date('Y-m-d'),
+            'status'             => 'applied',
+            'application_source' => $enquiry['source'] ?? null,
+            'enquiry_id'         => $id,
+            'remarks'            => $enquiry['remarks'] ?: ($enquiry['message'] ?? ''),
+            'created_by'         => $this->user['id'],
         ]);
 
         if ($admissionId) {

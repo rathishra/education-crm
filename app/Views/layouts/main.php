@@ -398,6 +398,72 @@
                     <?php endif; ?>
                     <?php endif; ?>
 
+                    <!-- E-LEARNING (LMS) -->
+                    <div class="sb-sidenav-menu-heading">E-Learning</div>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/elms/dashboard') !== false ? 'active' : '' ?>" href="<?= url('elms/dashboard') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-graduation-cap"></i></div>
+                        LMS Dashboard
+                    </a>
+                    <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'],'/elms/courses') !== false && strpos($_SERVER['REQUEST_URI'],'/elms/dashboard') === false) ? 'active' : '' ?>" href="<?= url('elms/courses') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                        Courses
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/elms/students') !== false ? 'active' : '' ?>" href="<?= url('elms/students') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-user-graduate"></i></div>
+                        LMS Students
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/elms/assignments') !== false ? 'active' : '' ?>" href="<?= url('elms/assignments') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-tasks"></i></div>
+                        Assignments
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/elms/quizzes') !== false ? 'active' : '' ?>" href="<?= url('elms/quizzes') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-question-circle"></i></div>
+                        Quizzes
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/elms/attendance') !== false ? 'active' : '' ?>" href="<?= url('elms/attendance') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-clipboard-check"></i></div>
+                        Attendance
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/elms/live') !== false ? 'active' : '' ?>" href="<?= url('elms/live') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-broadcast-tower"></i></div>
+                        Live Classes
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/elms/forum') !== false ? 'active' : '' ?>" href="<?= url('elms/forum') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-comments"></i></div>
+                        Forum
+                    </a>
+                    <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'],'/elms/gradebook') !== false) ? 'active' : '' ?>" href="<?= url('elms/gradebook') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-star-half-alt"></i></div>
+                        Gradebook
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/elms/analytics') !== false ? 'active' : '' ?>" href="<?= url('elms/analytics') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-chart-line"></i></div>
+                        Analytics
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/elms/notifications') !== false ? 'active' : '' ?>" href="<?= url('elms/notifications') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-bell"></i></div>
+                        Notifications
+                        <?php
+                        // Show unread badge if lms context is active
+                        if (!empty($_SESSION['_lms_ctx'])) {
+                            try {
+                                global $db;
+                                $db->query("SELECT COUNT(*) AS cnt FROM lms_notifications WHERE lms_user_id=? AND is_read=0", [$_SESSION['_lms_ctx']['id'] ?? 0]);
+                                $__nb = (int)($db->fetch()['cnt'] ?? 0);
+                                if ($__nb > 0) echo '<span class="badge ms-auto notif-header-badge" style="background:#ef4444;color:#fff;border-radius:20px;font-size:.65rem;padding:.15rem .45rem">'.$__nb.'</span>';
+                            } catch (\Throwable $__e) {}
+                        }
+                        ?>
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/elms/announcements') !== false ? 'active' : '' ?>" href="<?= url('elms/announcements') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-bullhorn"></i></div>
+                        Announcements
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/elms/sync') !== false ? 'active' : '' ?>" href="<?= url('elms/sync') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-sync-alt"></i></div>
+                        Academic Sync
+                    </a>
+
                     <!-- ADMINISTRATION -->
                     <?php if (hasPermission('users.view') || hasPermission('settings.manage')): ?>
                     <div class="sb-sidenav-menu-heading">Administration</div>

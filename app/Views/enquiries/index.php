@@ -284,12 +284,12 @@
                         $pCfg = $priorityConfig[$enq['priority'] ?? 'warm'] ?? $priorityConfig['warm'];
 
                         $statusConfig = [
-                            'new'           => ['cls'=>'bg-primary bg-opacity-10 text-primary',  'label'=>'New'],
-                            'contacted'     => ['cls'=>'bg-info bg-opacity-10 text-info',         'label'=>'Contacted'],
-                            'interested'    => ['cls'=>'bg-success bg-opacity-10 text-success',   'label'=>'Interested'],
-                            'not_interested'=> ['cls'=>'bg-secondary bg-opacity-10 text-secondary','label'=>'Not Interested'],
-                            'converted'     => ['cls'=>'bg-purple bg-opacity-10 text-purple',     'label'=>'Converted'],
-                            'closed'        => ['cls'=>'bg-light text-muted border',               'label'=>'Closed'],
+                            'new'           => ['cls'=>'bg-primary bg-opacity-10 text-primary',    'label'=>'New',          'style'=>''],
+                            'contacted'     => ['cls'=>'bg-info bg-opacity-10 text-info',           'label'=>'Contacted',    'style'=>''],
+                            'interested'    => ['cls'=>'bg-success bg-opacity-10 text-success',     'label'=>'Interested',   'style'=>''],
+                            'not_interested'=> ['cls'=>'bg-secondary bg-opacity-10 text-secondary', 'label'=>'Not Interested','style'=>''],
+                            'converted'     => ['cls'=>'',                                          'label'=>'Converted',    'style'=>'--bs-badge-color:#6d28d9;background:#ede9fe;color:#6d28d9;border:1px solid #c4b5fd'],
+                            'closed'        => ['cls'=>'bg-light text-muted border',               'label'=>'Closed',       'style'=>''],
                         ];
                         $sCfg  = $statusConfig[$enq['status'] ?? 'new'] ?? ['cls'=>'bg-secondary','label'=>ucfirst($enq['status'] ?? 'new')];
 
@@ -366,7 +366,7 @@
                                 </ul>
                             </div>
                             <?php else: ?>
-                            <span class="badge <?= $sCfg['cls'] ?>"><?= $sCfg['label'] ?></span>
+                            <span class="badge <?= $sCfg['cls'] ?>" style="<?= $sCfg['style'] ?? '' ?>"><?= $sCfg['label'] ?></span>
                             <?php endif; ?>
                         </td>
                         <td>

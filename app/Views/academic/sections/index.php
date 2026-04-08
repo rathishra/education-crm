@@ -22,6 +22,9 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <?php if (empty($sections)): ?>
+                    <tr><td colspan="10" class="text-center text-muted py-4"><i class="fas fa-inbox me-2"></i>No sections found. Create sections within your batches.</td></tr>
+                    <?php endif; ?>
                     <?php foreach($sections as $s): ?>
                     <tr>
                         <td>

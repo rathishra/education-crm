@@ -129,6 +129,10 @@ class StudentController extends BaseController
             ]);
 
             $this->logAudit('create', 'student', $id);
+
+            // Auto-provision LMS learner
+            try { \App\Services\LmsAutoSync::syncStudent((int)$id, (int)($data['institution_id'] ?? $this->institutionId)); } catch (\Throwable $e) {}
+
             $this->redirectWith(url('students/' . $id), 'success', 'Student added successfully.');
         } catch (\Exception $e) {
             appLog('Student create failed: ' . $e->getMessage(), 'error');
@@ -157,7 +161,29 @@ class StudentController extends BaseController
             )->fetchAll();
         }
 
-        $this->view('students/show', compact('student', 'sections'));
+        // Fee summary
+        $feeSummary = ['total' => 0, 'paid' => 0, 'balance' => 0, 'overdue' => 0];
+        try {
+            $this->db->query(
+                "SELECT COALESCE(SUM(net_amount),0) AS total,
+                        COALESCE(SUM(paid_amount),0) AS paid,
+                        COALESCE(SUM(balance_amount),0) AS balance,
+                        SUM(CASE WHEN status='overdue' THEN balance_amount ELSE 0 END) AS overdue
+                 FROM student_fees WHERE student_id = ? AND status != 'waived'",
+                [$id]
+            );
+            $row = $this->db->fetch();
+            if ($row) {
+                $feeSummary = [
+                    'total'   => (float)$row['total'],
+                    'paid'    => (float)$row['paid'],
+                    'balance' => (float)$row['balance'],
+                    'overdue' => (float)$row['overdue'],
+                ];
+            }
+        } catch (\Throwable $e) {}
+
+        $this->view('students/show', compact('student', 'sections', 'feeSummary'));
     }
 
     public function edit(int $id): void
@@ -237,6 +263,17 @@ class StudentController extends BaseController
             'status'                 => $data['status'] ?? $student['status'],
             'notes'                  => sanitize($data['notes'] ?? ''),
         ]);
+
+        // ── Sync portal + LMS access when status changes ──────────
+        $newStatus = $data['status'] ?? $student['status'];
+        $oldStatus = $student['status'];
+        $inactiveStatuses = ['dropped', 'suspended', 'inactive', 'passed_out', 'transferred'];
+        if ($newStatus !== $oldStatus && in_array($newStatus, $inactiveStatuses, true)) {
+            try {
+                $this->db->query("UPDATE students SET portal_enabled = 0 WHERE id = ?", [$id]);
+                $this->db->query("UPDATE lms_users SET status = 'suspended', updated_at = NOW() WHERE student_id = ? AND deleted_at IS NULL", [$id]);
+            } catch (\Throwable $e) { /* lms_users table may not exist */ }
+        }
 
         $this->logAudit('update', 'student', $id);
         $this->redirectWith(url('students/' . $id), 'success', 'Student updated successfully.');

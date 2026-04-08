@@ -433,6 +433,7 @@ class AdmissionController extends BaseController
             $admissionData = $this->admission->findWithDetails($id);
             if ($admissionData) {
                 $this->assignInitialFees($studentId, $admissionData);
+                $this->_provisionLmsUser($studentId, $admissionData);
             }
             $this->logAudit('admission_enrolled', 'admission', $id, ['student_id' => $studentId]);
             $this->redirectWith(url('students/' . $studentId), 'success', 'Student enrolled successfully.');
@@ -956,6 +957,153 @@ class AdmissionController extends BaseController
         if ($structure) {
             $feeModel = new \App\Models\Fee();
             $feeModel->assignStructure($studentId, $structure['id']);
+
+            // Also create enterprise fee_student_assignments per fee head
+            $this->_assignEnterpriseFees($studentId, (int)$structure['id'], $admission);
+        }
+    }
+
+    /**
+     * Create fee_student_assignments from fee_structure_details (enterprise fee schema).
+     */
+    private function _assignEnterpriseFees(int $studentId, int $structureId, array $admission): void
+    {
+        try {
+            $this->db->query(
+                "SELECT fsd.*, fh.head_name, fh.head_code, fh.fee_type
+                 FROM fee_structure_details fsd
+                 JOIN fee_heads fh ON fh.id = fsd.fee_head_id
+                 WHERE fsd.structure_id = ? ORDER BY fsd.sort_order",
+                [$structureId]
+            );
+            $details = $this->db->fetchAll();
+            if (empty($details)) return;
+
+            $instId = (int)$admission['institution_id'];
+            $ayId   = $admission['academic_year_id'] ?? null;
+
+            foreach ($details as $d) {
+                // Skip if already assigned
+                $this->db->query(
+                    "SELECT id FROM fee_student_assignments
+                     WHERE student_id = ? AND structure_id = ? AND fee_head_id = ?
+                     LIMIT 1",
+                    [$studentId, $structureId, $d['fee_head_id']]
+                );
+                if ($this->db->fetch()) continue;
+
+                $amount = (float)$d['amount'];
+                $this->db->insert('fee_student_assignments', [
+                    'institution_id'    => $instId,
+                    'student_id'        => $studentId,
+                    'academic_year_id'  => $ayId,
+                    'structure_id'      => $structureId,
+                    'fee_head_id'       => (int)$d['fee_head_id'],
+                    'gross_amount'      => $amount,
+                    'concession_amount' => 0,
+                    'net_amount'        => $amount,
+                    'paid_amount'       => 0,
+                    'fine_amount'       => 0,
+                    'balance_amount'    => $amount,
+                    'due_date'          => $d['due_date'] ?? date('Y-m-d', strtotime('+30 days')),
+                    'status'            => 'pending',
+                    'created_by'        => auth()['id'] ?? null,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // Non-fatal — basic fee assignment already done
+        }
+    }
+
+    /**
+     * Auto-provision an LMS user (learner) and enroll them in matching LMS courses.
+     */
+    private function _provisionLmsUser(int $studentId, array $admission): void
+    {
+        try {
+            $instId = (int)$admission['institution_id'];
+
+            // Check if LMS user already exists
+            $this->db->query(
+                "SELECT id FROM lms_users WHERE student_id = ? AND institution_id = ? AND deleted_at IS NULL LIMIT 1",
+                [$studentId, $instId]
+            );
+            $existing = $this->db->fetch();
+            if ($existing) {
+                $lmsUserId = (int)$existing['id'];
+            } else {
+                $lmsUserId = (int)$this->db->insert('lms_users', [
+                    'institution_id' => $instId,
+                    'student_id'     => $studentId,
+                    'first_name'     => $admission['first_name'],
+                    'last_name'      => $admission['last_name'] ?? '',
+                    'email'          => $admission['email'],
+                    'role'           => 'learner',
+                    'status'         => 'active',
+                    'xp_points'      => 0,
+                    'level'          => 1,
+                    'created_at'     => date('Y-m-d H:i:s'),
+                ]);
+            }
+
+            if (!$lmsUserId) return;
+
+            // Find LMS courses linked to subjects in the student's batch
+            $batchId  = $admission['batch_id'] ?? null;
+            $courseId  = $admission['course_id'] ?? null; // academic program
+
+            // Get subjects from faculty_subject_allocations for this batch
+            $this->db->query(
+                "SELECT DISTINCT lc.id AS lms_course_id
+                 FROM lms_courses lc
+                 JOIN subjects s ON s.id = lc.subject_id
+                 JOIN faculty_subject_allocations fsa ON fsa.subject_id = s.id
+                 WHERE fsa.batch_id = ? AND fsa.institution_id = ?
+                   AND lc.institution_id = ? AND lc.deleted_at IS NULL
+                   AND lc.status IN ('published','active')",
+                [$batchId, $instId, $instId]
+            );
+            $lmsCourses = $this->db->fetchAll();
+
+            // Also include courses linked to subjects in the student's program (course_id)
+            if ($courseId) {
+                $this->db->query(
+                    "SELECT DISTINCT lc.id AS lms_course_id
+                     FROM lms_courses lc
+                     JOIN subjects s ON s.id = lc.subject_id
+                     WHERE s.course_id = ? AND s.institution_id = ?
+                       AND lc.institution_id = ? AND lc.deleted_at IS NULL
+                       AND lc.status IN ('published','active')",
+                    [$courseId, $instId, $instId]
+                );
+                $programCourses = $this->db->fetchAll();
+                $existingIds = array_column($lmsCourses, 'lms_course_id');
+                foreach ($programCourses as $pc) {
+                    if (!in_array($pc['lms_course_id'], $existingIds)) {
+                        $lmsCourses[] = $pc;
+                    }
+                }
+            }
+
+            // Create enrollments
+            foreach ($lmsCourses as $lc) {
+                $this->db->query(
+                    "SELECT id FROM lms_enrollments WHERE lms_user_id = ? AND course_id = ? LIMIT 1",
+                    [$lmsUserId, $lc['lms_course_id']]
+                );
+                if ($this->db->fetch()) continue;
+
+                $this->db->insert('lms_enrollments', [
+                    'institution_id' => $instId,
+                    'lms_user_id'    => $lmsUserId,
+                    'course_id'      => (int)$lc['lms_course_id'],
+                    'status'         => 'active',
+                    'progress'       => 0,
+                    'enrolled_at'    => date('Y-m-d H:i:s'),
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // Non-fatal — student record is already created
         }
     }
 }

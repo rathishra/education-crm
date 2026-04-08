@@ -199,6 +199,14 @@ class SectionController extends BaseController
                 'created_by'       => $_SESSION['user_id'] ?? 1,
             ]);
             $added++;
+
+            // Auto-enroll in LMS courses for this batch
+            try {
+                $lmsUid = \App\Services\LmsAutoSync::syncStudent((int)$sid, $this->institutionId);
+                if ($lmsUid) {
+                    \App\Services\LmsAutoSync::enrollStudentInBatchCourses($lmsUid, (int)$section['batch_id'], $this->institutionId);
+                }
+            } catch (\Throwable $e) {}
         }
         echo json_encode(['status' => 'success', 'message' => "$added student(s) enrolled.", 'added' => $added]);
         exit;
