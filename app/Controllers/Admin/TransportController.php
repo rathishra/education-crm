@@ -5,6 +5,30 @@ use App\Controllers\BaseController;
 
 class TransportController extends BaseController
 {
+    private bool $tablesReady = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+        try {
+            $this->db->query("SELECT 1 FROM transport_routes LIMIT 0");
+            $this->tablesReady = true;
+        } catch (\Exception $e) {
+            $this->tablesReady = false;
+        }
+    }
+
+    /** Redirect back with setup notice if tables are missing */
+    private function requireTables(): bool
+    {
+        if (!$this->tablesReady) {
+            $this->redirectWith(url('transport'), 'error',
+                'Transport tables are not set up. Please run database/41_transport_management.sql in phpMyAdmin.');
+            return false;
+        }
+        return true;
+    }
+
     // =========================================================
     // ROUTES — INDEX
     // =========================================================
@@ -13,18 +37,23 @@ class TransportController extends BaseController
     {
         $this->authorize('transport.view');
 
-        $this->db->query(
-            "SELECT r.*, COUNT(s.id) AS total_stops
-             FROM transport_routes r
-             LEFT JOIN transport_stops s ON s.route_id = r.id
-             WHERE r.institution_id = ?
-             GROUP BY r.id
-             ORDER BY r.name",
-            [$this->institutionId]
-        );
-        $routes = $this->db->fetchAll();
+        $routes       = [];
+        $tablesMissing = !$this->tablesReady;
 
-        $this->view('transport/index', compact('routes'));
+        if ($this->tablesReady) {
+            $this->db->query(
+                "SELECT r.*, COUNT(s.id) AS total_stops
+                 FROM transport_routes r
+                 LEFT JOIN transport_stops s ON s.route_id = r.id
+                 WHERE r.institution_id = ?
+                 GROUP BY r.id
+                 ORDER BY r.name",
+                [$this->institutionId]
+            );
+            $routes = $this->db->fetchAll();
+        }
+
+        $this->view('transport/index', compact('routes', 'tablesMissing'));
     }
 
     // =========================================================
@@ -34,6 +63,7 @@ class TransportController extends BaseController
     public function store(): void
     {
         $this->authorize('transport.manage');
+        if (!$this->requireTables()) return;
 
         $data   = $this->postData();
         $errors = $this->validate($data, ['name' => 'required']);
@@ -54,12 +84,13 @@ class TransportController extends BaseController
     }
 
     // =========================================================
-    // ROUTES — UPDATE STATUS (AJAX toggle)
+    // ROUTES — TOGGLE STATUS (AJAX)
     // =========================================================
 
     public function toggleStatus(int $id): void
     {
         $this->authorize('transport.manage');
+        if (!$this->tablesReady) { $this->json(['status' => 'error', 'message' => 'Tables not set up'], 500); return; }
 
         $this->db->query(
             "SELECT id, status FROM transport_routes WHERE id = ? AND institution_id = ?",
@@ -69,10 +100,7 @@ class TransportController extends BaseController
         if (!$route) { $this->json(['status' => 'error', 'message' => 'Not found'], 404); return; }
 
         $newStatus = $route['status'] === 'active' ? 'inactive' : 'active';
-        $this->db->query(
-            "UPDATE transport_routes SET status = ? WHERE id = ?",
-            [$newStatus, $id]
-        );
+        $this->db->query("UPDATE transport_routes SET status = ? WHERE id = ?", [$newStatus, $id]);
 
         $this->json(['status' => 'ok', 'new_status' => $newStatus]);
     }
@@ -84,6 +112,7 @@ class TransportController extends BaseController
     public function deleteRoute(int $id): void
     {
         $this->authorize('transport.manage');
+        if (!$this->requireTables()) return;
 
         $this->db->query(
             "DELETE FROM transport_routes WHERE id = ? AND institution_id = ?",
@@ -99,6 +128,7 @@ class TransportController extends BaseController
     public function stops(int $routeId): void
     {
         $this->authorize('transport.view');
+        if (!$this->requireTables()) return;
 
         $this->db->query(
             "SELECT * FROM transport_routes WHERE id = ? AND institution_id = ?",
@@ -126,8 +156,8 @@ class TransportController extends BaseController
     public function storeStop(int $routeId): void
     {
         $this->authorize('transport.manage');
+        if (!$this->requireTables()) return;
 
-        // Verify route belongs to this institution
         $this->db->query(
             "SELECT id FROM transport_routes WHERE id = ? AND institution_id = ?",
             [$routeId, $this->institutionId]
@@ -162,6 +192,7 @@ class TransportController extends BaseController
     public function deleteStop(int $routeId, int $stopId): void
     {
         $this->authorize('transport.manage');
+        if (!$this->requireTables()) return;
 
         $this->db->query(
             "DELETE ts FROM transport_stops ts
@@ -179,14 +210,14 @@ class TransportController extends BaseController
     public function allocations(): void
     {
         $this->authorize('transport.allocate');
+        if (!$this->requireTables()) return;
 
-        // Current academic year from session or latest
         $this->db->query(
             "SELECT id FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC LIMIT 1",
             [$this->institutionId]
         );
         $ay = $this->db->fetch();
-        $academicYearId = $ay['id'] ?? null;
+        $academicYearId = $ay['id'] ?? 0;
 
         $this->db->query(
             "SELECT ta.*,
@@ -196,8 +227,7 @@ class TransportController extends BaseController
              JOIN students s  ON s.id  = ta.student_id
              JOIN transport_routes r ON r.id = ta.route_id
              JOIN transport_stops st ON st.id = ta.stop_id
-             WHERE r.institution_id = ?
-               AND ta.academic_year_id = ?
+             WHERE r.institution_id = ? AND ta.academic_year_id = ?
              ORDER BY ta.created_at DESC",
             [$this->institutionId, $academicYearId]
         );
@@ -219,6 +249,7 @@ class TransportController extends BaseController
     public function createAllocation(): void
     {
         $this->authorize('transport.allocate');
+        if (!$this->requireTables()) return;
 
         $data   = $this->postData();
         $errors = $this->validate($data, [
@@ -227,7 +258,6 @@ class TransportController extends BaseController
         ]);
         if ($errors) { $this->backWithErrors($errors); return; }
 
-        // Get route_id from stop
         $this->db->query(
             "SELECT ts.route_id FROM transport_stops ts
              INNER JOIN transport_routes tr ON tr.id = ts.route_id AND tr.institution_id = ?
@@ -235,12 +265,8 @@ class TransportController extends BaseController
             [$this->institutionId, (int)$data['stop_id']]
         );
         $stop = $this->db->fetch();
-        if (!$stop) {
-            $this->backWithErrors(['Invalid stop selected.']);
-            return;
-        }
+        if (!$stop) { $this->backWithErrors(['Invalid stop selected.']); return; }
 
-        // Get academic year
         $this->db->query(
             "SELECT id FROM academic_years WHERE institution_id = ? ORDER BY start_date DESC LIMIT 1",
             [$this->institutionId]
@@ -266,6 +292,8 @@ class TransportController extends BaseController
 
     public function ajaxStops(int $routeId): void
     {
+        if (!$this->tablesReady) { $this->json([]); return; }
+
         $this->db->query(
             "SELECT ts.id, ts.name, ts.pickup_time, ts.fare
              FROM transport_stops ts

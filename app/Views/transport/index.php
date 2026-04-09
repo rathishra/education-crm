@@ -15,6 +15,16 @@
     <?php endif; ?>
 </div>
 
+<?php if (!empty($tablesMissing)): ?>
+<div class="alert alert-warning d-flex align-items-start gap-3">
+    <i class="fas fa-triangle-exclamation fa-xl mt-1 text-warning"></i>
+    <div>
+        <strong>Transport tables not set up yet.</strong><br>
+        Please run <code>database/41_transport_management.sql</code> in phpMyAdmin to create the transport tables, then refresh this page.
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="row">
     <div class="col-12">
         <div class="card">
