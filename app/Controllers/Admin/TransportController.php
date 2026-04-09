@@ -125,14 +125,14 @@ class TransportController extends BaseController
     // STOPS — LIST
     // =========================================================
 
-    public function stops(int $routeId): void
+    public function stops(int $id): void
     {
         $this->authorize('transport.view');
         if (!$this->requireTables()) return;
 
         $this->db->query(
             "SELECT * FROM transport_routes WHERE id = ? AND institution_id = ?",
-            [$routeId, $this->institutionId]
+            [$id, $this->institutionId]
         );
         $route = $this->db->fetch();
         if (!$route) {
@@ -142,7 +142,7 @@ class TransportController extends BaseController
 
         $this->db->query(
             "SELECT * FROM transport_stops WHERE route_id = ? ORDER BY sort_order ASC, pickup_time ASC",
-            [$routeId]
+            [$id]
         );
         $stops = $this->db->fetchAll();
 
@@ -153,14 +153,14 @@ class TransportController extends BaseController
     // STOPS — STORE
     // =========================================================
 
-    public function storeStop(int $routeId): void
+    public function storeStop(int $id): void
     {
         $this->authorize('transport.manage');
         if (!$this->requireTables()) return;
 
         $this->db->query(
             "SELECT id FROM transport_routes WHERE id = ? AND institution_id = ?",
-            [$routeId, $this->institutionId]
+            [$id, $this->institutionId]
         );
         if (!$this->db->fetch()) {
             $this->redirectWith(url('transport'), 'error', 'Route not found.');
@@ -171,8 +171,8 @@ class TransportController extends BaseController
         $errors = $this->validate($data, ['name' => 'required']);
         if ($errors) { $this->backWithErrors($errors); return; }
 
-        $id = $this->db->insert('transport_stops', [
-            'route_id'    => $routeId,
+        $stopId = $this->db->insert('transport_stops', [
+            'route_id'    => $id,
             'name'        => sanitize($data['name']),
             'landmark'    => sanitize($data['landmark'] ?? ''),
             'pickup_time' => $data['pickup_time'] ?: null,
@@ -181,15 +181,15 @@ class TransportController extends BaseController
             'sort_order'  => (int)($data['sort_order'] ?? 0),
         ]);
 
-        $this->logAudit('transport_stop_added', 'transport_route', $routeId, ['stop_id' => $id]);
-        $this->redirectWith(url("transport/{$routeId}/stops"), 'success', 'Stop added successfully.');
+        $this->logAudit('transport_stop_added', 'transport_route', $id, ['stop_id' => $stopId]);
+        $this->redirectWith(url("transport/{$id}/stops"), 'success', 'Stop added successfully.');
     }
 
     // =========================================================
     // STOPS — DELETE
     // =========================================================
 
-    public function deleteStop(int $routeId, int $stopId): void
+    public function deleteStop(int $id, int $stopId): void
     {
         $this->authorize('transport.manage');
         if (!$this->requireTables()) return;
@@ -198,9 +198,9 @@ class TransportController extends BaseController
             "DELETE ts FROM transport_stops ts
              INNER JOIN transport_routes tr ON tr.id = ts.route_id AND tr.institution_id = ?
              WHERE ts.id = ? AND ts.route_id = ?",
-            [$this->institutionId, $stopId, $routeId]
+            [$this->institutionId, $stopId, $id]
         );
-        $this->redirectWith(url("transport/{$routeId}/stops"), 'success', 'Stop deleted.');
+        $this->redirectWith(url("transport/{$id}/stops"), 'success', 'Stop deleted.');
     }
 
     // =========================================================
@@ -290,7 +290,7 @@ class TransportController extends BaseController
     // AJAX — stops by route
     // =========================================================
 
-    public function ajaxStops(int $routeId): void
+    public function ajaxStops(int $id): void
     {
         if (!$this->tablesReady) { $this->json([]); return; }
 
@@ -300,7 +300,7 @@ class TransportController extends BaseController
              INNER JOIN transport_routes tr ON tr.id = ts.route_id AND tr.institution_id = ?
              WHERE ts.route_id = ?
              ORDER BY ts.sort_order, ts.name",
-            [$this->institutionId, $routeId]
+            [$this->institutionId, $id]
         );
         $this->json($this->db->fetchAll());
     }
