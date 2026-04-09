@@ -303,8 +303,12 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->post('/transport', 'Admin\TransportController@store', 'transport.store');
     $router->get('/transport/allocations', 'Admin\TransportController@allocations', 'transport.allocations');
     $router->post('/transport/allocations', 'Admin\TransportController@createAllocation', 'transport.allocations.store');
+    $router->get('/transport/ajax/stops/{routeId}', 'Admin\TransportController@ajaxStops', 'transport.ajax.stops');
+    $router->post('/transport/{id}/toggle-status', 'Admin\TransportController@toggleStatus', 'transport.toggle');
+    $router->post('/transport/{id}/delete', 'Admin\TransportController@deleteRoute', 'transport.delete');
     $router->get('/transport/{id}/stops', 'Admin\TransportController@stops', 'transport.stops');
     $router->post('/transport/{id}/stops', 'Admin\TransportController@storeStop', 'transport.stops.store');
+    $router->post('/transport/{routeId}/stops/{stopId}/delete', 'Admin\TransportController@deleteStop', 'transport.stops.delete');
 
     // Library
     $router->get('/library', 'Admin\LibraryController@index', 'library.index');
