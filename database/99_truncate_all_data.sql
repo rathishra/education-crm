@@ -1,227 +1,257 @@
 -- ============================================================
 -- TRUNCATE ALL DATA — Fresh Product Reset
--- ============================================================
--- WARNING: This permanently deletes ALL data.
--- Schema (tables/columns/indexes) is preserved.
+-- Safe version: skips tables that don't exist yet
 -- Run this in phpMyAdmin on the education_crm database.
 -- ============================================================
 
 SET FOREIGN_KEY_CHECKS = 0;
 
+-- Helper procedure to truncate only if table exists
+DROP PROCEDURE IF EXISTS safe_truncate;
+DELIMITER $$
+CREATE PROCEDURE safe_truncate(IN tbl VARCHAR(128))
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = DATABASE() AND table_name = tbl
+    ) THEN
+        SET @sql = CONCAT('TRUNCATE TABLE `', tbl, '`');
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END IF;
+END$$
+DELIMITER ;
+
 -- ── LMS ──────────────────────────────────────────────────────
-TRUNCATE TABLE lms_academic_sync_log;
-TRUNCATE TABLE lms_activity_feed;
-TRUNCATE TABLE lms_analytics_daily;
-TRUNCATE TABLE lms_announcement_dismissals;
-TRUNCATE TABLE lms_announcements;
-TRUNCATE TABLE lms_assignment_submissions;
-TRUNCATE TABLE lms_assignments;
-TRUNCATE TABLE lms_attendance_records;
-TRUNCATE TABLE lms_attendance_sessions;
-TRUNCATE TABLE lms_audit_log;
-TRUNCATE TABLE lms_categories;
-TRUNCATE TABLE lms_computed_grades;
-TRUNCATE TABLE lms_course_reviews;
-TRUNCATE TABLE lms_course_sections;
-TRUNCATE TABLE lms_course_tags;
-TRUNCATE TABLE lms_courses;
-TRUNCATE TABLE lms_dashboard_prefs;
-TRUNCATE TABLE lms_deadlines;
-TRUNCATE TABLE lms_enrollments;
-TRUNCATE TABLE lms_forum_categories;
-TRUNCATE TABLE lms_forum_posts;
-TRUNCATE TABLE lms_forum_reactions;
-TRUNCATE TABLE lms_forum_subscriptions;
-TRUNCATE TABLE lms_forum_threads;
-TRUNCATE TABLE lms_grade_overrides;
-TRUNCATE TABLE lms_grade_weights;
-TRUNCATE TABLE lms_lesson_progress;
-TRUNCATE TABLE lms_lesson_views;
-TRUNCATE TABLE lms_lessons;
-TRUNCATE TABLE lms_live_classes;
-TRUNCATE TABLE lms_live_registrations;
-TRUNCATE TABLE lms_materials;
-TRUNCATE TABLE lms_notifications;
-TRUNCATE TABLE lms_quiz_answers;
-TRUNCATE TABLE lms_quiz_attempts;
-TRUNCATE TABLE lms_quiz_options;
-TRUNCATE TABLE lms_quiz_questions;
-TRUNCATE TABLE lms_quizzes;
-TRUNCATE TABLE lms_sessions;
-TRUNCATE TABLE lms_tags;
-TRUNCATE TABLE lms_user_permissions;
-TRUNCATE TABLE lms_users;
+CALL safe_truncate('lms_academic_sync_log');
+CALL safe_truncate('lms_activity_feed');
+CALL safe_truncate('lms_analytics_daily');
+CALL safe_truncate('lms_announcement_dismissals');
+CALL safe_truncate('lms_announcements');
+CALL safe_truncate('lms_assignment_submissions');
+CALL safe_truncate('lms_assignments');
+CALL safe_truncate('lms_attendance_records');
+CALL safe_truncate('lms_attendance_sessions');
+CALL safe_truncate('lms_audit_log');
+CALL safe_truncate('lms_categories');
+CALL safe_truncate('lms_computed_grades');
+CALL safe_truncate('lms_course_reviews');
+CALL safe_truncate('lms_course_sections');
+CALL safe_truncate('lms_course_tags');
+CALL safe_truncate('lms_courses');
+CALL safe_truncate('lms_dashboard_prefs');
+CALL safe_truncate('lms_deadlines');
+CALL safe_truncate('lms_enrollments');
+CALL safe_truncate('lms_forum_categories');
+CALL safe_truncate('lms_forum_posts');
+CALL safe_truncate('lms_forum_reactions');
+CALL safe_truncate('lms_forum_subscriptions');
+CALL safe_truncate('lms_forum_threads');
+CALL safe_truncate('lms_grade_overrides');
+CALL safe_truncate('lms_grade_weights');
+CALL safe_truncate('lms_lesson_progress');
+CALL safe_truncate('lms_lesson_views');
+CALL safe_truncate('lms_lessons');
+CALL safe_truncate('lms_live_classes');
+CALL safe_truncate('lms_live_registrations');
+CALL safe_truncate('lms_materials');
+CALL safe_truncate('lms_notifications');
+CALL safe_truncate('lms_permissions');
+CALL safe_truncate('lms_quiz_answers');
+CALL safe_truncate('lms_quiz_attempts');
+CALL safe_truncate('lms_quiz_options');
+CALL safe_truncate('lms_quiz_questions');
+CALL safe_truncate('lms_quizzes');
+CALL safe_truncate('lms_role_permissions');
+CALL safe_truncate('lms_sessions');
+CALL safe_truncate('lms_tags');
+CALL safe_truncate('lms_user_permissions');
+CALL safe_truncate('lms_users');
 
 -- ── Academic ─────────────────────────────────────────────────
-TRUNCATE TABLE academic_assessment_marks;
-TRUNCATE TABLE academic_assessments;
-TRUNCATE TABLE academic_attendance_records;
-TRUNCATE TABLE academic_attendance_sessions;
-TRUNCATE TABLE academic_batches;
-TRUNCATE TABLE academic_sections;
-TRUNCATE TABLE academic_timetable;
-TRUNCATE TABLE academic_timetable_periods;
-TRUNCATE TABLE academic_years;
-TRUNCATE TABLE assessment_configs;
-TRUNCATE TABLE assessment_marks;
-TRUNCATE TABLE attendance_records;
-TRUNCATE TABLE attendance_sessions;
-TRUNCATE TABLE attendances;
-TRUNCATE TABLE batch_faculty;
-TRUNCATE TABLE batch_subjects;
-TRUNCATE TABLE batches;
-TRUNCATE TABLE classrooms;
-TRUNCATE TABLE exam_marks;
-TRUNCATE TABLE exam_schedules;
-TRUNCATE TABLE exams;
-TRUNCATE TABLE faculty_profiles;
-TRUNCATE TABLE faculty_subject_allocations;
-TRUNCATE TABLE grading_grade_rules;
-TRUNCATE TABLE grading_mark_components;
-TRUNCATE TABLE grading_schema_categories;
-TRUNCATE TABLE grading_schemas;
-TRUNCATE TABLE grading_sub_components;
-TRUNCATE TABLE sections;
-TRUNCATE TABLE student_section_enrollments;
-TRUNCATE TABLE subjects;
-TRUNCATE TABLE timetable;
-TRUNCATE TABLE timetable_periods;
-TRUNCATE TABLE timetables;
+CALL safe_truncate('academic_assessment_marks');
+CALL safe_truncate('academic_assessments');
+CALL safe_truncate('academic_attendance_records');
+CALL safe_truncate('academic_attendance_sessions');
+CALL safe_truncate('academic_batches');
+CALL safe_truncate('academic_sections');
+CALL safe_truncate('academic_timetable');
+CALL safe_truncate('academic_timetable_periods');
+CALL safe_truncate('academic_years');
+CALL safe_truncate('assessment_configs');
+CALL safe_truncate('assessment_marks');
+CALL safe_truncate('attendance_records');
+CALL safe_truncate('attendance_sessions');
+CALL safe_truncate('attendances');
+CALL safe_truncate('batch_faculty');
+CALL safe_truncate('batch_subjects');
+CALL safe_truncate('batches');
+CALL safe_truncate('classrooms');
+CALL safe_truncate('exam_marks');
+CALL safe_truncate('exam_schedules');
+CALL safe_truncate('exams');
+CALL safe_truncate('faculty_profiles');
+CALL safe_truncate('faculty_subject_allocations');
+CALL safe_truncate('grading_grade_rules');
+CALL safe_truncate('grading_mark_components');
+CALL safe_truncate('grading_schema_categories');
+CALL safe_truncate('grading_schemas');
+CALL safe_truncate('grading_sub_components');
+CALL safe_truncate('sections');
+CALL safe_truncate('student_section_enrollments');
+CALL safe_truncate('subjects');
+CALL safe_truncate('timetable');
+CALL safe_truncate('timetable_periods');
+CALL safe_truncate('timetables');
 
 -- ── Admissions & Students ────────────────────────────────────
-TRUNCATE TABLE admission_documents;
-TRUNCATE TABLE admission_payments;
-TRUNCATE TABLE admission_timeline;
-TRUNCATE TABLE admissions;
-TRUNCATE TABLE placement_applications;
-TRUNCATE TABLE placement_companies;
-TRUNCATE TABLE placement_drives;
-TRUNCATE TABLE student_activities;
-TRUNCATE TABLE student_documents;
-TRUNCATE TABLE student_fees;
-TRUNCATE TABLE student_installments;
-TRUNCATE TABLE students;
+CALL safe_truncate('admission_documents');
+CALL safe_truncate('admission_payments');
+CALL safe_truncate('admission_timeline');
+CALL safe_truncate('admissions');
+CALL safe_truncate('placement_applications');
+CALL safe_truncate('placement_companies');
+CALL safe_truncate('placement_drives');
+CALL safe_truncate('student_activities');
+CALL safe_truncate('student_documents');
+CALL safe_truncate('student_fees');
+CALL safe_truncate('student_installments');
+CALL safe_truncate('students');
 
 -- ── CRM ──────────────────────────────────────────────────────
-TRUNCATE TABLE enquiries;
-TRUNCATE TABLE followups;
-TRUNCATE TABLE lead_activities;
-TRUNCATE TABLE lead_followups;
-TRUNCATE TABLE leads;
+CALL safe_truncate('enquiries');
+CALL safe_truncate('followups');
+CALL safe_truncate('lead_activities');
+CALL safe_truncate('lead_followups');
+CALL safe_truncate('leads');
 
 -- ── Fees ─────────────────────────────────────────────────────
-TRUNCATE TABLE fee_components;
-TRUNCATE TABLE fee_concessions;
-TRUNCATE TABLE fee_fine_rules;
-TRUNCATE TABLE fee_heads;
-TRUNCATE TABLE fee_installments;
-TRUNCATE TABLE fee_receipt_items;
-TRUNCATE TABLE fee_receipts;
-TRUNCATE TABLE fee_refunds;
-TRUNCATE TABLE fee_structure_details;
-TRUNCATE TABLE fee_structures;
-TRUNCATE TABLE fee_student_assignments;
-TRUNCATE TABLE installment_plans;
-TRUNCATE TABLE payments;
-TRUNCATE TABLE payslips;
+CALL safe_truncate('fee_components');
+CALL safe_truncate('fee_concessions');
+CALL safe_truncate('fee_fine_rules');
+CALL safe_truncate('fee_heads');
+CALL safe_truncate('fee_installments');
+CALL safe_truncate('fee_receipt_items');
+CALL safe_truncate('fee_receipts');
+CALL safe_truncate('fee_refunds');
+CALL safe_truncate('fee_structure_details');
+CALL safe_truncate('fee_structures');
+CALL safe_truncate('fee_student_assignments');
+CALL safe_truncate('installment_plans');
+CALL safe_truncate('payments');
+CALL safe_truncate('payslips');
 
 -- ── Transport ────────────────────────────────────────────────
-TRUNCATE TABLE transport_allocations;
-TRUNCATE TABLE transport_stops;
-TRUNCATE TABLE transport_routes;
+CALL safe_truncate('transport_allocations');
+CALL safe_truncate('transport_stops');
+CALL safe_truncate('transport_routes');
 
 -- ── Hostel ───────────────────────────────────────────────────
-TRUNCATE TABLE hostel_allocations;
-TRUNCATE TABLE hostel_rooms;
-TRUNCATE TABLE hostels;
+CALL safe_truncate('hostel_allocations');
+CALL safe_truncate('hostel_rooms');
+CALL safe_truncate('hostels');
 
 -- ── Library ──────────────────────────────────────────────────
-TRUNCATE TABLE library_issues;
-TRUNCATE TABLE library_books;
+CALL safe_truncate('library_issues');
+CALL safe_truncate('library_books');
 
 -- ── Communication ────────────────────────────────────────────
-TRUNCATE TABLE bulk_campaigns;
-TRUNCATE TABLE communications;
-TRUNCATE TABLE notifications;
-TRUNCATE TABLE tasks;
+CALL safe_truncate('bulk_campaigns');
+CALL safe_truncate('communications');
+CALL safe_truncate('notifications');
+CALL safe_truncate('tasks');
 
 -- ── HR / Staff ───────────────────────────────────────────────
-TRUNCATE TABLE staff_leave_requests;
-TRUNCATE TABLE staff_profiles;
+CALL safe_truncate('staff_leave_requests');
+CALL safe_truncate('staff_profiles');
 
 -- ── Documents / Uploads ──────────────────────────────────────
-TRUNCATE TABLE documents;
-TRUNCATE TABLE uploads;
+CALL safe_truncate('documents');
+CALL safe_truncate('uploads');
 
 -- ── Auth & Users ─────────────────────────────────────────────
-TRUNCATE TABLE audit_logs;
-TRUNCATE TABLE password_resets;
-TRUNCATE TABLE user_sessions;
-TRUNCATE TABLE user_permission_overrides;
-TRUNCATE TABLE user_roles;
-TRUNCATE TABLE users;
+CALL safe_truncate('audit_logs');
+CALL safe_truncate('password_resets');
+CALL safe_truncate('user_sessions');
+CALL safe_truncate('user_permission_overrides');
+CALL safe_truncate('user_roles');
+CALL safe_truncate('users');
 
--- ── Organisation & Courses (configurable masters) ────────────
-TRUNCATE TABLE campuses;
-TRUNCATE TABLE courses;
-TRUNCATE TABLE departments;
-TRUNCATE TABLE organizations;
+-- ── Organisation masters ─────────────────────────────────────
+CALL safe_truncate('campuses');
+CALL safe_truncate('courses');
+CALL safe_truncate('departments');
+CALL safe_truncate('organizations');
 
--- ── Lead / Enquiry masters ───────────────────────────────────
-TRUNCATE TABLE lead_sources;
-TRUNCATE TABLE lead_statuses;
+-- ── CRM masters ──────────────────────────────────────────────
+CALL safe_truncate('lead_sources');
+CALL safe_truncate('lead_statuses');
 
--- ── Settings & Comms config ──────────────────────────────────
-TRUNCATE TABLE communication_settings;
-TRUNCATE TABLE communication_templates;
-TRUNCATE TABLE settings;
+-- ── Settings ─────────────────────────────────────────────────
+CALL safe_truncate('communication_settings');
+CALL safe_truncate('communication_templates');
+CALL safe_truncate('settings');
 
--- ── RBAC — keep structure, clear overrides ───────────────────
--- (roles & permissions rows are re-seeded below)
-TRUNCATE TABLE role_permissions;
-TRUNCATE TABLE lms_role_permissions;
-TRUNCATE TABLE lms_permissions;
-TRUNCATE TABLE permissions;
-TRUNCATE TABLE roles;
+-- ── RBAC ─────────────────────────────────────────────────────
+CALL safe_truncate('role_permissions');
+CALL safe_truncate('permissions');
+CALL safe_truncate('roles');
 
--- ── Institution — reset to single fresh row ──────────────────
-TRUNCATE TABLE institutions;
+-- ── Institution ──────────────────────────────────────────────
+CALL safe_truncate('institutions');
+
+-- Cleanup helper
+DROP PROCEDURE IF EXISTS safe_truncate;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================================
--- RE-SEED: Single institution
+-- RE-SEED: Institution
 -- ============================================================
 INSERT INTO institutions (id, name, code, email, phone, address, status, created_at)
-VALUES (1, 'My Institution', 'INST001', 'admin@institution.com', '9000000000',
-        'Institution Address', 'active', NOW());
+VALUES (1, 'My Institution', 'INST001', 'admin@institution.com',
+        '9000000000', 'Institution Address', 'active', NOW());
 
 -- ============================================================
--- RE-SEED: Super Admin user  (password: Admin@123)
--- Change the password after first login!
+-- RE-SEED: Super Admin  (password: Admin@123)
 -- ============================================================
 INSERT INTO users (id, first_name, last_name, email, password, is_active, created_at)
 VALUES (1, 'Super', 'Admin', 'admin@institution.com',
-        '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- Admin@123
-        1, NOW());
-
--- Link user to institution
-INSERT INTO user_roles (user_id, institution_id, role_id, created_at)
-SELECT 1, 1, r.id, NOW() FROM roles r WHERE r.name = 'super_admin' LIMIT 1;
+        '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW());
 
 -- ============================================================
--- RE-SEED: Default lead statuses
+-- RE-SEED: Roles
+-- ============================================================
+INSERT INTO roles (id, name, display_name, description, is_system) VALUES
+(1,  'super_admin',       'Super Admin',         'Full system access',       1),
+(2,  'institution_admin', 'Institution Admin',   'Manages one institution',  1),
+(3,  'principal',         'Principal',           'Academic head',            1),
+(4,  'hod',               'HOD',                 'Head of Department',       1),
+(5,  'faculty',           'Faculty',             'Teaching staff',           1),
+(6,  'counselor',         'Counselor',           'Admission counselor',      1),
+(7,  'accountant',        'Accountant',          'Fee & finance management', 1),
+(8,  'receptionist',      'Receptionist',        'Front desk',               1),
+(9,  'student',           'Student',             'Student portal access',    1),
+(10, 'parent',            'Parent',              'Parent portal access',     1);
+
+-- Link Super Admin to institution
+INSERT INTO user_roles (user_id, institution_id, role_id, created_at)
+VALUES (1, 1, 1, NOW());
+
+-- ============================================================
+-- RE-SEED: Lead Statuses
 -- ============================================================
 INSERT INTO lead_statuses (institution_id, name, color, sort_order, is_default, is_won, is_lost) VALUES
-(1, 'New',         '#3b82f6', 1, 1, 0, 0),
-(1, 'Contacted',   '#f59e0b', 2, 0, 0, 0),
-(1, 'Interested',  '#8b5cf6', 3, 0, 0, 0),
-(1, 'Follow Up',   '#06b6d4', 4, 0, 0, 0),
-(1, 'Converted',   '#10b981', 5, 0, 1, 0),
+(1, 'New',            '#3b82f6', 1, 1, 0, 0),
+(1, 'Contacted',      '#f59e0b', 2, 0, 0, 0),
+(1, 'Interested',     '#8b5cf6', 3, 0, 0, 0),
+(1, 'Follow Up',      '#06b6d4', 4, 0, 0, 0),
+(1, 'Converted',      '#10b981', 5, 0, 1, 0),
 (1, 'Not Interested', '#ef4444', 6, 0, 0, 1);
 
 -- ============================================================
--- RE-SEED: Default lead sources
+-- RE-SEED: Lead Sources
 -- ============================================================
 INSERT INTO lead_sources (institution_id, name, is_active) VALUES
 (1, 'Walk-in',        1),
@@ -234,33 +264,13 @@ INSERT INTO lead_sources (institution_id, name, is_active) VALUES
 (1, 'Education Fair', 1);
 
 -- ============================================================
--- RE-SEED: Roles & Permissions
--- (Copied from 12_seed_erp_permissions.sql baseline)
--- ============================================================
-INSERT INTO roles (id, name, display_name, description, is_system) VALUES
-(1,  'super_admin',    'Super Admin',        'Full system access',           1),
-(2,  'institution_admin','Institution Admin', 'Manages one institution',      1),
-(3,  'principal',      'Principal',          'Academic head',                1),
-(4,  'hod',            'HOD',                'Head of Department',           1),
-(5,  'faculty',        'Faculty',            'Teaching staff',               1),
-(6,  'counselor',      'Counselor',          'Admission counselor',          1),
-(7,  'accountant',     'Accountant',         'Fee & finance management',     1),
-(8,  'receptionist',   'Receptionist',       'Front desk',                   1),
-(9,  'student',        'Student',            'Student portal access',        1),
-(10, 'parent',         'Parent',             'Parent portal access',         1);
-
--- Re-link super admin
-INSERT IGNORE INTO user_roles (user_id, institution_id, role_id, created_at)
-VALUES (1, 1, 1, NOW());
-
--- ============================================================
--- RE-SEED: Default academic year
+-- RE-SEED: Academic Year
 -- ============================================================
 INSERT INTO academic_years (institution_id, name, start_date, end_date, is_current, status)
 VALUES (1, '2025-26', '2025-06-01', '2026-05-31', 1, 'active');
 
 -- ============================================================
--- RE-SEED: Default settings
+-- RE-SEED: Default Settings
 -- ============================================================
 INSERT INTO settings (institution_id, `key`, `value`) VALUES
 (1, 'app_name',          'Education CRM'),
@@ -274,5 +284,7 @@ INSERT INTO settings (institution_id, `key`, `value`) VALUES
 (1, 'lead_prefix',       'LEAD');
 
 -- ============================================================
--- DONE ✓  Login: admin@institution.com / Admin@123
+-- ✅ DONE
+-- Login:    admin@institution.com
+-- Password: Admin@123  ← change this after first login!
 -- ============================================================
