@@ -5,12 +5,26 @@
  * DELETE this file after use!
  */
 
-// ── Load app config for DB connection ──────────────────────
+// ── Bootstrap app (loads env, DB, helpers) ─────────────────
 define('BASE_PATH', dirname(__DIR__));
-$config = require BASE_PATH . '/config/database.php';
 
-$dsn  = "mysql:host={$config['host']};dbname={$config['database']};charset=utf8mb4";
-$pdo  = new PDO($dsn, $config['username'], $config['password'], [
+spl_autoload_register(function (string $class) {
+    $map = ['Core\\' => BASE_PATH . '/core/', 'App\\' => BASE_PATH . '/app/'];
+    foreach ($map as $prefix => $baseDir) {
+        if (str_starts_with($class, $prefix)) {
+            $file = $baseDir . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
+            if (file_exists($file)) { require_once $file; return; }
+        }
+    }
+});
+
+require_once BASE_PATH . '/core/helpers.php';
+Core\App::getInstance(); // boots DB, session, env
+
+// Get PDO from app DB instance
+$config = require BASE_PATH . '/config/database.php';
+$dsn    = "mysql:host={$config['host']};port={$config['port']};dbname={$config['database']};charset=utf8mb4";
+$pdo    = new PDO($dsn, $config['username'], $config['password'], [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 ]);
 
