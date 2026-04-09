@@ -11,9 +11,17 @@
         </nav>
     </div>
     <?php if (hasPermission('roles.manage')): ?>
-    <a href="<?= url('roles/create') ?>" class="btn btn-primary">
-        <i class="fas fa-plus me-1"></i>Create Role
-    </a>
+    <div class="d-flex gap-2">
+        <?php if ($totalPermissions === 0): ?>
+        <div class="alert alert-warning mb-0 py-2 px-3 d-flex align-items-center gap-2">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>No permissions seeded. Run <code>database/42_permissions_seed.sql</code> in phpMyAdmin.</span>
+        </div>
+        <?php endif; ?>
+        <a href="<?= url('roles/create') ?>" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Create Role
+        </a>
+    </div>
     <?php endif; ?>
 </div>
 
@@ -173,14 +181,36 @@ function viewPermissions(roleId, roleName) {
             document.getElementById('permModalBody').innerHTML = '<p class="text-muted text-center py-3">No permissions assigned.</p>';
             return;
         }
-        let html = '';
+        const moduleIcons = {
+            system:'cog', admin:'building', crm:'filter', admissions:'clipboard-check',
+            students:'user-graduate', academic:'graduation-cap', attendance:'calendar-check',
+            assessments:'file-alt', fees:'file-invoice-dollar', faculty:'chalkboard-teacher',
+            hr:'id-badge', lms:'laptop', transport:'bus', hostel:'bed', library:'book',
+            communication:'bell', placement:'briefcase', reports:'chart-bar', portal:'globe'
+        };
+        const moduleColors = {
+            system:'secondary', admin:'danger', crm:'purple', admissions:'warning',
+            students:'primary', academic:'info', attendance:'success', assessments:'warning',
+            fees:'success', faculty:'primary', hr:'danger', lms:'primary',
+            transport:'secondary', hostel:'warning', library:'success',
+            communication:'info', placement:'success', reports:'dark', portal:'primary'
+        };
+        let html = `<p class="text-muted small mb-3">Total: <strong>${data.data.length}</strong> permission(s) assigned</p><div class="row g-3">`;
         for (const [module, perms] of Object.entries(data.grouped)) {
-            html += `<div class="mb-3"><h6 class="text-uppercase text-muted small fw-bold mb-2">${module}</h6><div class="d-flex flex-wrap gap-1">`;
+            const icon  = moduleIcons[module]  || 'circle';
+            const color = moduleColors[module] || 'secondary';
+            html += `<div class="col-md-6"><div class="border rounded p-3 h-100">
+                <h6 class="text-capitalize fw-semibold mb-2 text-${color}">
+                    <i class="fas fa-${icon} me-1"></i>${module.replace(/_/g,' ')}
+                    <span class="badge bg-${color} bg-opacity-15 text-${color} float-end">${perms.length}</span>
+                </h6>
+                <div class="d-flex flex-wrap gap-1">`;
             perms.forEach(p => {
-                html += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">${p}</span>`;
+                html += `<span class="badge bg-light text-dark border" style="font-size:0.7rem">${p}</span>`;
             });
-            html += '</div></div>';
+            html += `</div></div></div>`;
         }
+        html += '</div>';
         document.getElementById('permModalBody').innerHTML = html;
     })
     .catch(() => {

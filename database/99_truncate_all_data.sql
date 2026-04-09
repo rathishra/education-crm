@@ -295,4 +295,7 @@ INSERT INTO settings (institution_id, group_name, key_name, value, type) VALUES
 -- ✅ DONE
 -- Login:    admin@institution.com
 -- Password: Admin@123  ← change this after first login!
+--
+-- Next step: run database/42_permissions_seed.sql to populate
+-- all module permissions and assign them to roles.
 -- ============================================================
