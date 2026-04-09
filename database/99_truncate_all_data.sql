@@ -207,11 +207,19 @@ DROP PROCEDURE IF EXISTS safe_truncate;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================================
+-- RE-SEED: Organization
+-- ============================================================
+INSERT INTO organizations (id, organization_name, organization_code, status, created_at)
+VALUES (1, 'My Organization', 'ORG001', 'active', NOW());
+
+-- ============================================================
 -- RE-SEED: Institution
 -- ============================================================
-INSERT INTO institutions (id, name, code, email, phone, address, status, created_at)
-VALUES (1, 'My Institution', 'INST001', 'admin@institution.com',
-        '9000000000', 'Institution Address', 'active', NOW());
+INSERT INTO institutions (id, organization_id, name, code, type, email, phone,
+                          address_line1, city, state, country, status, created_at)
+VALUES (1, 1, 'My Institution', 'INST001', 'arts_science',
+        'admin@institution.com', '9000000000',
+        'Institution Address', 'City', 'State', 'India', 'active', NOW());
 
 -- ============================================================
 -- RE-SEED: Super Admin  (password: Admin@123)
@@ -221,47 +229,47 @@ VALUES (1, 'Super', 'Admin', 'admin@institution.com',
         '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW());
 
 -- ============================================================
--- RE-SEED: Roles
+-- RE-SEED: Roles  (slug = unique key)
 -- ============================================================
-INSERT INTO roles (id, name, display_name, description, is_system) VALUES
-(1,  'super_admin',       'Super Admin',         'Full system access',       1),
-(2,  'institution_admin', 'Institution Admin',   'Manages one institution',  1),
-(3,  'principal',         'Principal',           'Academic head',            1),
-(4,  'hod',               'HOD',                 'Head of Department',       1),
-(5,  'faculty',           'Faculty',             'Teaching staff',           1),
-(6,  'counselor',         'Counselor',           'Admission counselor',      1),
-(7,  'accountant',        'Accountant',          'Fee & finance management', 1),
-(8,  'receptionist',      'Receptionist',        'Front desk',               1),
-(9,  'student',           'Student',             'Student portal access',    1),
-(10, 'parent',            'Parent',              'Parent portal access',     1);
+INSERT INTO roles (id, name, slug, description, is_system, level) VALUES
+(1,  'Super Admin',        'super_admin',       'Full system access',        1, 0),
+(2,  'Institution Admin',  'institution_admin', 'Manages one institution',   1, 2),
+(3,  'Principal',          'principal',         'Academic head',             1, 2),
+(4,  'HOD',                'hod',               'Head of Department',        1, 3),
+(5,  'Faculty',            'faculty',           'Teaching staff',            1, 3),
+(6,  'Counselor',          'counselor',         'Admission counselor',       1, 3),
+(7,  'Accountant',         'accountant',        'Fee & finance management',  1, 3),
+(8,  'Receptionist',       'receptionist',      'Front desk',                1, 3),
+(9,  'Student',            'student',           'Student portal access',     1, 3),
+(10, 'Parent',             'parent',            'Parent portal access',      1, 3);
 
--- Link Super Admin to institution
-INSERT INTO user_roles (user_id, institution_id, role_id, created_at)
-VALUES (1, 1, 1, NOW());
-
--- ============================================================
--- RE-SEED: Lead Statuses
--- ============================================================
-INSERT INTO lead_statuses (institution_id, name, color, sort_order, is_default, is_won, is_lost) VALUES
-(1, 'New',            '#3b82f6', 1, 1, 0, 0),
-(1, 'Contacted',      '#f59e0b', 2, 0, 0, 0),
-(1, 'Interested',     '#8b5cf6', 3, 0, 0, 0),
-(1, 'Follow Up',      '#06b6d4', 4, 0, 0, 0),
-(1, 'Converted',      '#10b981', 5, 0, 1, 0),
-(1, 'Not Interested', '#ef4444', 6, 0, 0, 1);
+-- Link Super Admin
+INSERT INTO user_roles (user_id, role_id, organization_id, institution_id, created_at)
+VALUES (1, 1, 1, 1, NOW());
 
 -- ============================================================
--- RE-SEED: Lead Sources
+-- RE-SEED: Lead Statuses  (slug = unique key)
 -- ============================================================
-INSERT INTO lead_sources (institution_id, name, is_active) VALUES
-(1, 'Walk-in',        1),
-(1, 'Website',        1),
-(1, 'Social Media',   1),
-(1, 'Referral',       1),
-(1, 'Phone Enquiry',  1),
-(1, 'Advertisement',  1),
-(1, 'Email Campaign', 1),
-(1, 'Education Fair', 1);
+INSERT INTO lead_statuses (name, slug, color, sort_order, is_default, is_won, is_lost) VALUES
+('New',            'new',            '#3b82f6', 1, 1, 0, 0),
+('Contacted',      'contacted',      '#f59e0b', 2, 0, 0, 0),
+('Interested',     'interested',     '#8b5cf6', 3, 0, 0, 0),
+('Follow Up',      'follow-up',      '#06b6d4', 4, 0, 0, 0),
+('Converted',      'converted',      '#10b981', 5, 0, 1, 0),
+('Not Interested', 'not-interested', '#ef4444', 6, 0, 0, 1);
+
+-- ============================================================
+-- RE-SEED: Lead Sources  (slug = unique key)
+-- ============================================================
+INSERT INTO lead_sources (name, slug, is_active) VALUES
+('Walk-in',        'walk-in',        1),
+('Website',        'website',        1),
+('Social Media',   'social-media',   1),
+('Referral',       'referral',       1),
+('Phone Enquiry',  'phone-enquiry',  1),
+('Advertisement',  'advertisement',  1),
+('Email Campaign', 'email-campaign', 1),
+('Education Fair', 'education-fair', 1);
 
 -- ============================================================
 -- RE-SEED: Academic Year
@@ -270,18 +278,18 @@ INSERT INTO academic_years (institution_id, name, start_date, end_date, is_curre
 VALUES (1, '2025-26', '2025-06-01', '2026-05-31', 1, 'active');
 
 -- ============================================================
--- RE-SEED: Default Settings
+-- RE-SEED: Default Settings  (group_name + key_name columns)
 -- ============================================================
-INSERT INTO settings (institution_id, `key`, `value`) VALUES
-(1, 'app_name',          'Education CRM'),
-(1, 'currency',          'INR'),
-(1, 'currency_symbol',   '₹'),
-(1, 'date_format',       'd/m/Y'),
-(1, 'time_format',       'h:i A'),
-(1, 'academic_year',     '2025-26'),
-(1, 'admission_prefix',  'ADM'),
-(1, 'student_id_prefix', 'STU'),
-(1, 'lead_prefix',       'LEAD');
+INSERT INTO settings (institution_id, group_name, key_name, value, type) VALUES
+(1, 'general', 'app_name',          'Education CRM', 'string'),
+(1, 'general', 'currency',          'INR',           'string'),
+(1, 'general', 'currency_symbol',   '₹',             'string'),
+(1, 'general', 'date_format',       'd/m/Y',         'string'),
+(1, 'general', 'time_format',       'h:i A',         'string'),
+(1, 'general', 'academic_year',     '2025-26',       'string'),
+(1, 'general', 'admission_prefix',  'ADM',           'string'),
+(1, 'general', 'student_id_prefix', 'STU',           'string'),
+(1, 'general', 'lead_prefix',       'LEAD',          'string');
 
 -- ============================================================
 -- ✅ DONE
