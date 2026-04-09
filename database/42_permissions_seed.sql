@@ -6,13 +6,25 @@
 -- placement, reports, portal
 -- ============================================================
 
+-- Disable FK checks for entire script duration
 SET FOREIGN_KEY_CHECKS = 0;
 
--- Clear existing permissions (re-seeding clean)
+-- Clear existing data (order safe — FK checks off)
 TRUNCATE TABLE role_permissions;
 TRUNCATE TABLE permissions;
-
-SET FOREIGN_KEY_CHECKS = 1;
+-- Only truncate overrides if the table exists
+DROP PROCEDURE IF EXISTS _trunc_if_exists;
+DELIMITER $$
+CREATE PROCEDURE _trunc_if_exists(IN tbl VARCHAR(128))
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = tbl) THEN
+        SET @s = CONCAT('TRUNCATE TABLE `', tbl, '`');
+        PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+    END IF;
+END$$
+DELIMITER ;
+CALL _trunc_if_exists('user_permission_overrides');
+DROP PROCEDURE IF EXISTS _trunc_if_exists;
 
 -- ============================================================
 -- 1. SYSTEM MODULE
@@ -361,6 +373,9 @@ WHERE @receptionist IS NOT NULL
     'communication.notify','communication.view',
     'transport.view','hostel.view'
   );
+
+-- Re-enable FK checks at the very end
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================================
 -- DONE ✓  Run this after 99_truncate_all_data.sql or on a fresh DB
