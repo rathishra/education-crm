@@ -465,44 +465,58 @@
                     </a>
 
                     <!-- ADMINISTRATION -->
-                    <?php if (hasPermission('users.view') || hasPermission('settings.manage')): ?>
+                    <?php if (hasPermission('users.view') || hasPermission('settings.manage') || hasPermission('organizations.view') || hasPermission('roles.view') || hasPermission('audit.view')): ?>
                     <div class="sb-sidenav-menu-heading">Administration</div>
-                    <?php if (hasPermission('organizations.view')): ?>
+
+                    <?php if (hasPermission('organizations.manage') || hasPermission('organizations.view')): ?>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/organizations') !== false ? 'active' : '' ?>" href="<?= url('organizations') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-sitemap"></i></div>
+                        Organizations
+                    </a>
+                    <?php endif; ?>
+
+                    <?php if (hasPermission('institutions.view') || hasPermission('institutions.manage')): ?>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/institutions') !== false ? 'active' : '' ?>" href="<?= url('institutions') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-university"></i></div>
                         Institutions
                     </a>
                     <?php endif; ?>
-                    <?php if (hasPermission('departments.view')): ?>
+
+                    <?php if (hasPermission('departments.view') || hasPermission('departments.manage')): ?>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/departments') !== false ? 'active' : '' ?>" href="<?= url('departments') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-project-diagram"></i></div>
                         Departments
                     </a>
                     <?php endif; ?>
+
                     <?php if (hasPermission('users.view')): ?>
                     <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'],'/users') !== false && strpos($_SERVER['REQUEST_URI'],'/roles') === false) ? 'active' : '' ?>" href="<?= url('users') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-users-cog"></i></div>
                         Users
                     </a>
                     <?php endif; ?>
+
                     <?php if (hasPermission('roles.view')): ?>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/roles') !== false ? 'active' : '' ?>" href="<?= url('roles') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-shield-alt"></i></div>
                         Role Management
                     </a>
                     <?php endif; ?>
-                    <?php if (hasPermission('settings.manage')): ?>
+
+                    <?php if (hasPermission('settings.view') || hasPermission('settings.manage')): ?>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/settings') !== false ? 'active' : '' ?>" href="<?= url('settings') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-sliders-h"></i></div>
                         Settings
                     </a>
                     <?php endif; ?>
+
                     <?php if (hasPermission('audit.view')): ?>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/audit') !== false ? 'active' : '' ?>" href="<?= url('audit-logs') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-history"></i></div>
                         Audit Logs
                     </a>
                     <?php endif; ?>
+
                     <?php endif; ?>
 
                 </div>
