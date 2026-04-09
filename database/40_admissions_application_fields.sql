@@ -74,13 +74,24 @@ ALTER TABLE admissions
     ADD COLUMN IF NOT EXISTS `hsc_percentage`        DECIMAL(5,2) NULL           AFTER `hsc_marks_obtained`;
 
 -- ── Foreign keys for course preferences ─────────────────
+-- (DROP first to make re-runnable; ignore errors if they don't exist)
 ALTER TABLE admissions
-    ADD CONSTRAINT IF NOT EXISTS `fk_adm_cpref1` FOREIGN KEY (`course_preference_1`) REFERENCES `courses`(`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-    ADD CONSTRAINT IF NOT EXISTS `fk_adm_cpref2` FOREIGN KEY (`course_preference_2`) REFERENCES `courses`(`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-    ADD CONSTRAINT IF NOT EXISTS `fk_adm_cpref3` FOREIGN KEY (`course_preference_3`) REFERENCES `courses`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+    DROP FOREIGN KEY IF EXISTS `fk_adm_cpref1`,
+    DROP FOREIGN KEY IF EXISTS `fk_adm_cpref2`,
+    DROP FOREIGN KEY IF EXISTS `fk_adm_cpref3`;
+
+ALTER TABLE admissions
+    ADD CONSTRAINT `fk_adm_cpref1` FOREIGN KEY (`course_preference_1`) REFERENCES `courses`(`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+    ADD CONSTRAINT `fk_adm_cpref2` FOREIGN KEY (`course_preference_2`) REFERENCES `courses`(`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+    ADD CONSTRAINT `fk_adm_cpref3` FOREIGN KEY (`course_preference_3`) REFERENCES `courses`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- ── Indexes ──────────────────────────────────────────────
 ALTER TABLE admissions
-    ADD INDEX IF NOT EXISTS `idx_adm_aadhaar`    (`aadhaar_number`),
-    ADD INDEX IF NOT EXISTS `idx_adm_whatsapp`   (`whatsapp_number`),
-    ADD INDEX IF NOT EXISTS `idx_adm_community`  (`community`);
+    DROP INDEX IF EXISTS `idx_adm_aadhaar`,
+    DROP INDEX IF EXISTS `idx_adm_whatsapp`,
+    DROP INDEX IF EXISTS `idx_adm_community`;
+
+ALTER TABLE admissions
+    ADD INDEX `idx_adm_aadhaar`   (`aadhaar_number`),
+    ADD INDEX `idx_adm_whatsapp`  (`whatsapp_number`),
+    ADD INDEX `idx_adm_community` (`community`);
