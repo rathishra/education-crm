@@ -90,14 +90,18 @@ class AdmissionController extends BaseController
         );
         $counselors = $db->fetchAll();
 
-        $db->query(
-            "SELECT ts.id, ts.name AS stop_name, tr.name AS route_name
-             FROM transport_stops ts
-             INNER JOIN transport_routes tr ON tr.id = ts.route_id AND tr.institution_id = ? AND tr.status = 'active'
-             ORDER BY tr.name, ts.sort_order, ts.name",
-            [$this->institutionId]
-        );
-        $busStops = $db->fetchAll();
+        try {
+            $db->query(
+                "SELECT ts.id, ts.name AS stop_name, tr.name AS route_name
+                 FROM transport_stops ts
+                 INNER JOIN transport_routes tr ON tr.id = ts.route_id AND tr.institution_id = ? AND tr.status = 'active'
+                 ORDER BY tr.name, ts.sort_order, ts.name",
+                [$this->institutionId]
+            );
+            $busStops = $db->fetchAll();
+        } catch (\Exception $e) {
+            $busStops = [];
+        }
 
         $this->view('admissions/create', compact('prefill', 'courses', 'departments', 'academicYears', 'counselors', 'leadId', 'busStops'));
     }
@@ -323,14 +327,18 @@ class AdmissionController extends BaseController
         );
         $counselors = $db->fetchAll();
 
-        $db->query(
-            "SELECT ts.id, ts.name AS stop_name, tr.name AS route_name
-             FROM transport_stops ts
-             INNER JOIN transport_routes tr ON tr.id = ts.route_id AND tr.institution_id = ? AND tr.status = 'active'
-             ORDER BY tr.name, ts.sort_order, ts.name",
-            [$this->institutionId]
-        );
-        $busStops = $db->fetchAll();
+        try {
+            $db->query(
+                "SELECT ts.id, ts.name AS stop_name, tr.name AS route_name
+                 FROM transport_stops ts
+                 INNER JOIN transport_routes tr ON tr.id = ts.route_id AND tr.institution_id = ? AND tr.status = 'active'
+                 ORDER BY tr.name, ts.sort_order, ts.name",
+                [$this->institutionId]
+            );
+            $busStops = $db->fetchAll();
+        } catch (\Exception $e) {
+            $busStops = [];
+        }
 
         $this->view('admissions/edit', compact('admission', 'courses', 'departments', 'batches', 'academicYears', 'counselors', 'busStops'));
     }
