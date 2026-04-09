@@ -161,15 +161,22 @@ $states       = ['Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisg
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">Nearest MTC Bus Stop <span class="text-danger">*</span></label>
-                        <input type="text" name="nearest_bus_stop" class="form-control" value="<?= fv('nearest_bus_stop') ?>">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">OTP Status</label>
-                        <div class="form-control bg-light text-success fw-semibold">
-                            <i class="fas fa-check-circle me-1"></i>Verified
-                        </div>
-                        <input type="hidden" name="otp_verified" value="1">
+                        <label class="form-label fw-semibold">Nearest Bus Stop</label>
+                        <select name="nearest_bus_stop" class="form-select">
+                            <option value="">-- Select Bus Stop --</option>
+                            <?php
+                            $currentRoute = '';
+                            foreach ($busStops as $bs):
+                                if ($bs['route_name'] !== $currentRoute):
+                                    if ($currentRoute !== '') echo '</optgroup>';
+                                    echo '<optgroup label="' . e($bs['route_name']) . '">';
+                                    $currentRoute = $bs['route_name'];
+                                endif;
+                            ?>
+                            <option value="<?= e($bs['stop_name']) ?>" <?= fv('nearest_bus_stop') === $bs['stop_name'] ? 'selected' : '' ?>><?= e($bs['stop_name']) ?></option>
+                            <?php endforeach; ?>
+                            <?php if ($currentRoute !== '') echo '</optgroup>'; ?>
+                        </select>
                     </div>
                 </div>
             </div>

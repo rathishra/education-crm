@@ -268,7 +268,21 @@ function adm($field, array $admission, $default = '') {
                             </div>
                             <div class="mb-0">
                                 <label class="form-label">Nearest Bus Stop</label>
-                                <input type="text" name="nearest_bus_stop" class="form-control" value="<?= e(adm('nearest_bus_stop', $admission)) ?>">
+                                <select name="nearest_bus_stop" class="form-select">
+                                    <option value="">-- Select Bus Stop --</option>
+                                    <?php
+                                    $currentRoute = '';
+                                    foreach ($busStops as $bs):
+                                        if ($bs['route_name'] !== $currentRoute):
+                                            if ($currentRoute !== '') echo '</optgroup>';
+                                            echo '<optgroup label="' . e($bs['route_name']) . '">';
+                                            $currentRoute = $bs['route_name'];
+                                        endif;
+                                    ?>
+                                    <option value="<?= e($bs['stop_name']) ?>" <?= adm('nearest_bus_stop', $admission) === $bs['stop_name'] ? 'selected' : '' ?>><?= e($bs['stop_name']) ?></option>
+                                    <?php endforeach; ?>
+                                    <?php if ($currentRoute !== '') echo '</optgroup>'; ?>
+                                </select>
                             </div>
                         </div>
                     </div>
