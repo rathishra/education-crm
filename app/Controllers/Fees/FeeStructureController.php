@@ -71,6 +71,7 @@ class FeeStructureController extends BaseController
     // ── STORE ────────────────────────────────────────────────
     public function store(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $name = trim($this->input('name', ''));
         $courseId = (int)$this->input('course_id', 0);
         $ayId     = (int)$this->input('academic_year_id', 0);
@@ -148,6 +149,7 @@ class FeeStructureController extends BaseController
     // ── UPDATE ───────────────────────────────────────────────
     public function update(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->db->query("SELECT id FROM fee_structures WHERE id = ? AND institution_id = ?", [$id, $this->institutionId]);
         if (!$this->db->fetch()) { $this->redirectWith(url('fees/structures'), 'error', 'Not found.'); return; }
 
@@ -197,6 +199,7 @@ class FeeStructureController extends BaseController
     // ── TOGGLE STATUS ────────────────────────────────────────
     public function toggleStatus(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->db->query("SELECT status FROM fee_structures WHERE id = ? AND institution_id = ?", [$id, $this->institutionId]);
         $row = $this->db->fetch();
         if (!$row) { $this->json(['status' => 'error', 'message' => 'Not found.'], 404); }
@@ -208,6 +211,7 @@ class FeeStructureController extends BaseController
     // ── DESTROY ──────────────────────────────────────────────
     public function destroy(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->db->query("SELECT COUNT(*) AS cnt FROM fee_student_assignments WHERE structure_id = ?", [$id]);
         if (($this->db->fetch()['cnt'] ?? 0) > 0) {
             $this->json(['status' => 'error', 'message' => 'Cannot delete: students are assigned to this structure.'], 422);
@@ -232,6 +236,7 @@ class FeeStructureController extends BaseController
     // ── COPY STRUCTURE ───────────────────────────────────────
     public function copy(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->db->query("SELECT * FROM fee_structures WHERE id = ? AND institution_id = ?", [$id, $this->institutionId]);
         $src = $this->db->fetch();
         if (!$src) { $this->json(['status' => 'error', 'message' => 'Source not found.'], 404); }

@@ -602,6 +602,55 @@ class Student extends BaseModel
     }
 
     /**
+     * Return all dropdown options needed by the student create/edit/index forms.
+     * Centralises the 4 repeated raw queries that were copy-pasted across
+     * StudentController::index(), create(), and edit().
+     *
+     * Returns:
+     *   courses        – id, name  (active, not deleted)
+     *   departments    – id, name  (not deleted)
+     *   batches        – id, name  (not deleted)
+     *   academicYears  – id, name  (current first, max 5)
+     */
+    public function getFormOptions(int $institutionId): array
+    {
+        $this->db->query(
+            "SELECT id, name FROM courses
+             WHERE institution_id = ? AND deleted_at IS NULL
+             ORDER BY name",
+            [$institutionId]
+        );
+        $courses = $this->db->fetchAll();
+
+        $this->db->query(
+            "SELECT id, name FROM departments
+             WHERE institution_id = ? AND deleted_at IS NULL
+             ORDER BY name",
+            [$institutionId]
+        );
+        $departments = $this->db->fetchAll();
+
+        $this->db->query(
+            "SELECT id, name FROM batches
+             WHERE institution_id = ? AND deleted_at IS NULL
+             ORDER BY name",
+            [$institutionId]
+        );
+        $batches = $this->db->fetchAll();
+
+        $this->db->query(
+            "SELECT id, name FROM academic_years
+             WHERE institution_id = ?
+             ORDER BY is_current DESC, start_date DESC
+             LIMIT 5",
+            [$institutionId]
+        );
+        $academicYears = $this->db->fetchAll();
+
+        return compact('courses', 'departments', 'batches', 'academicYears');
+    }
+
+    /**
      * Get fee summary for a student
      */
     public function getFeeSummary(int $studentId): array

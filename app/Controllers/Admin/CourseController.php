@@ -57,7 +57,14 @@ class CourseController extends BaseController
         $this->db->query("SELECT id, name FROM departments WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
         $departments = $this->db->fetchAll();
 
-        $this->view('courses/create', compact('departments'));
+        try {
+            $this->db->query("SELECT id, code, description, duration, no_of_semester FROM course_types WHERE institution_id = ? AND status = 'active' AND deleted_at IS NULL ORDER BY code", [$this->institutionId]);
+            $courseTypes = $this->db->fetchAll();
+        } catch (\Exception $e) {
+            $courseTypes = [];
+        }
+
+        $this->view('courses/create', compact('departments', 'courseTypes'));
     }
 
     public function store(): void
@@ -82,6 +89,7 @@ class CourseController extends BaseController
         $id = $this->db->insert('courses', [
             'institution_id'  => $this->institutionId,
             'department_id'   => $data['department_id'] ?: null,
+            'course_type_id'  => $data['course_type_id'] ?: null,
             'name'            => sanitize($data['name']),
             'code'            => strtoupper(sanitize($data['code'])),
             'short_name'      => sanitize($data['short_name'] ?? ''),
@@ -102,14 +110,21 @@ class CourseController extends BaseController
     {
         $this->authorize('courses.edit');
 
-        $this->db->query("SELECT * FROM courses WHERE id = ? AND deleted_at IS NULL", [$id]);
+        $this->db->query("SELECT * FROM courses WHERE id = ? AND institution_id = ? AND deleted_at IS NULL", [$id, $this->institutionId]);
         $course = $this->db->fetch();
         if (!$course) { $this->redirectWith(url('courses'), 'error', 'Course not found.'); return; }
 
         $this->db->query("SELECT id, name FROM departments WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
         $departments = $this->db->fetchAll();
 
-        $this->view('courses/edit', compact('course', 'departments'));
+        try {
+            $this->db->query("SELECT id, code, description, duration, no_of_semester FROM course_types WHERE institution_id = ? AND status = 'active' AND deleted_at IS NULL ORDER BY code", [$this->institutionId]);
+            $courseTypes = $this->db->fetchAll();
+        } catch (\Exception $e) {
+            $courseTypes = [];
+        }
+
+        $this->view('courses/edit', compact('course', 'departments', 'courseTypes'));
     }
 
     public function update(int $id): void
@@ -124,6 +139,7 @@ class CourseController extends BaseController
 
         $this->db->update('courses', [
             'department_id'   => $data['department_id'] ?: null,
+            'course_type_id'  => $data['course_type_id'] ?: null,
             'name'            => sanitize($data['name']),
             'code'            => strtoupper(sanitize($data['code'])),
             'short_name'      => sanitize($data['short_name'] ?? ''),

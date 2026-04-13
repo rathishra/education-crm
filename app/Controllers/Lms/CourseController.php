@@ -94,6 +94,7 @@ class CourseController extends LmsBaseController
     // ── Store ─────────────────────────────────────────────────
     public function store(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('courses.create');
 
         $data   = $this->_validate();
@@ -240,6 +241,7 @@ class CourseController extends LmsBaseController
     // ── Update ────────────────────────────────────────────────
     public function update(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('courses.edit');
         $course = $this->_findCourse($id);
 
@@ -295,6 +297,7 @@ class CourseController extends LmsBaseController
     // ── Publish / Archive toggle ──────────────────────────────
     public function toggleStatus(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('courses.publish');
         $course = $this->_findCourse($id);
 
@@ -320,6 +323,7 @@ class CourseController extends LmsBaseController
     // ── Soft delete ───────────────────────────────────────────
     public function destroy(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('courses.delete');
         $this->_findCourse($id);
 
@@ -357,6 +361,7 @@ class CourseController extends LmsBaseController
     // ── Enroll students (bulk) ────────────────────────────────
     public function enrollStudents(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('courses.enroll');
         $this->_findCourse($id);
 
@@ -389,6 +394,7 @@ class CourseController extends LmsBaseController
     // ── Sections CRUD (AJAX) ──────────────────────────────────
     public function storeSectionAjax(int $courseId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('courses.edit');
         $this->_findCourse($courseId);
 
@@ -415,6 +421,7 @@ class CourseController extends LmsBaseController
 
     public function updateSectionAjax(int $courseId, int $secId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('courses.edit');
         $title = trim($this->input('title', ''));
         if (!$title) { $this->json(['error' => 'Title required'], 400); return; }
@@ -432,6 +439,7 @@ class CourseController extends LmsBaseController
 
     public function deleteSectionAjax(int $courseId, int $secId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('courses.edit');
         try {
             $this->db->query(
@@ -446,6 +454,7 @@ class CourseController extends LmsBaseController
 
     public function reorderSectionsAjax(int $courseId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('courses.edit');
         $order = (array)($this->input('order', []));
         foreach ($order as $idx => $secId) {

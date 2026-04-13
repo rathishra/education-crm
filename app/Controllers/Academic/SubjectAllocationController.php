@@ -97,6 +97,7 @@ class SubjectAllocationController extends BaseController
     // ─── ASSIGN (AJAX POST) ───────────────────────────────────
     public function assign(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
             exit;
@@ -157,6 +158,7 @@ class SubjectAllocationController extends BaseController
     // ─── REMOVE (AJAX POST) ───────────────────────────────────
     public function remove(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->db->query(
             "SELECT id FROM batch_subjects WHERE id=? AND institution_id=?",
             [$id, $this->institutionId]
@@ -178,6 +180,7 @@ class SubjectAllocationController extends BaseController
     // ─── UPDATE (inline edit) ─────────────────────────────────
     public function updateRow(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid.']);
             exit;
@@ -209,6 +212,7 @@ class SubjectAllocationController extends BaseController
     // ─── BULK ASSIGN (copy subjects from another batch) ───────
     public function bulkCopy(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid.']);
             exit;

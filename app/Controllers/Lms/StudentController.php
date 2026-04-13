@@ -218,6 +218,7 @@ class StudentController extends LmsBaseController
     // ── Toggle status (AJAX) ───────────────────────────────────────
     public function toggleStatus(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('users.manage');
         try {
             $this->db->query(

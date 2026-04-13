@@ -30,7 +30,7 @@ class PlacementController extends BaseController
 
     public function companies(): void
     {
-        $this->authorize('placement.view');
+        $this->authorize('placements.view');
 
         $institutionId = session('institution_id');
         $companies = db()->query("
@@ -46,7 +46,7 @@ class PlacementController extends BaseController
 
     public function storeCompany(): void
     {
-        $this->authorize('placement.manage');
+        $this->authorize('placements.manage');
 
         $data = $this->postData();
         $errors = $this->validate($data, [
@@ -75,7 +75,7 @@ class PlacementController extends BaseController
 
     public function drives(): void
     {
-        $this->authorize('placement.view');
+        $this->authorize('placements.view');
 
         $institutionId = session('institution_id');
         $academicYearId = session('academic_year_id');
@@ -97,7 +97,7 @@ class PlacementController extends BaseController
 
     public function storeDrive(): void
     {
-        $this->authorize('placement.manage');
+        $this->authorize('placements.manage');
 
         $data = $this->postData();
         $errors = $this->validate($data, [
@@ -128,7 +128,7 @@ class PlacementController extends BaseController
 
     public function applications(int $driveId): void
     {
-        $this->authorize('placement.view');
+        $this->authorize('placements.view');
         
         $institutionId = session('institution_id');
         
@@ -160,7 +160,7 @@ class PlacementController extends BaseController
 
     public function storeApplication(int $driveId): void
     {
-        $this->authorize('placement.manage');
+        $this->authorize('placements.manage');
 
         $data = $this->postData();
         $errors = $this->validate($data, [
@@ -193,7 +193,7 @@ class PlacementController extends BaseController
 
     public function updateApplication(int $driveId, int $applicationId): void
     {
-        $this->authorize('placement.manage');
+        $this->authorize('placements.manage');
 
         $data = $this->postData();
         $status = $data['status'] ?? null;

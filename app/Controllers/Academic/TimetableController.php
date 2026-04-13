@@ -277,6 +277,7 @@ class TimetableController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function store(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status'=>'error','message'=>'Invalid request']); exit;
         }
@@ -422,6 +423,7 @@ class TimetableController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function copyTimetable(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status'=>'error','message'=>'Invalid request']); exit;
         }
@@ -533,6 +535,7 @@ class TimetableController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function clearSection(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status'=>'error','message'=>'Invalid request']); exit;
         }

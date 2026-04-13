@@ -254,6 +254,7 @@ class GradebookController extends LmsBaseController
     // ── Save grade weights (AJAX) ─────────────────────────────
     public function saveWeights(int $courseId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('gradebook.manage');
         $a = max(0, min(100, (int)$this->input('assignments_pct', 40)));
         $q = max(0, min(100, (int)$this->input('quizzes_pct',     40)));
@@ -278,6 +279,7 @@ class GradebookController extends LmsBaseController
     // ── Grade override (AJAX) ─────────────────────────────────
     public function override(int $courseId, int $userId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('gradebook.manage');
         $grade  = min(100, max(0, (float)$this->input('final_grade', 0)));
         $letter = trim($this->input('letter_grade', '')) ?: $this->_letter($grade);
@@ -300,6 +302,7 @@ class GradebookController extends LmsBaseController
     // ── Clear override (AJAX) ─────────────────────────────────
     public function clearOverride(int $courseId, int $userId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('gradebook.manage');
         try {
             $this->db->query(
@@ -552,6 +555,7 @@ class GradebookController extends LmsBaseController
     // ── Sync LMS grades → Academic assessment_marks ──────────
     public function syncToAcademic(int $courseId): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('gradebook.manage');
 
         // Load course with subject link

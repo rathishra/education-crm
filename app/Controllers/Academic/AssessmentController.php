@@ -62,6 +62,7 @@ class AssessmentController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function store(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
             exit;
@@ -173,6 +174,7 @@ class AssessmentController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function storeMarks(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
             exit;
@@ -323,6 +325,7 @@ class AssessmentController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function update(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
             exit;
@@ -416,6 +419,7 @@ class AssessmentController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function destroy(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->db->query(
             "SELECT status FROM academic_assessments WHERE id = ? AND institution_id = ?",
             [$id, $this->institutionId]

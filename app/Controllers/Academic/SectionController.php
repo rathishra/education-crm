@@ -42,6 +42,7 @@ class SectionController extends BaseController
 
     public function store(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid']); exit;
         }
@@ -164,6 +165,7 @@ class SectionController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function enroll(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid']); exit;
         }
@@ -217,6 +219,7 @@ class SectionController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function unenroll(int $enrollmentId): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid']); exit;
         }
@@ -243,6 +246,7 @@ class SectionController extends BaseController
 
     public function update(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid']); exit;
         }
@@ -265,6 +269,7 @@ class SectionController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function destroy(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->db->query("UPDATE academic_sections SET status='inactive' WHERE id=? AND institution_id=?", [$id, $this->institutionId]);
         $this->redirectWith(url('academic/sections'), 'success', 'Section deactivated.');
     }

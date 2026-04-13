@@ -103,6 +103,7 @@ class ForumController extends LmsBaseController
     // ── Store thread ──────────────────────────────────────────
     public function store(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('forum.post');
         $title  = trim($this->input('title', ''));
         $body   = trim($this->input('body', ''));
@@ -150,6 +151,7 @@ class ForumController extends LmsBaseController
     // ── Reply (AJAX) ──────────────────────────────────────────
     public function reply(int $threadId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('forum.post');
         $thread = $this->_findThread($threadId);
 
@@ -203,6 +205,7 @@ class ForumController extends LmsBaseController
     // ── Edit post (AJAX) ─────────────────────────────────────
     public function editPost(int $threadId, int $postId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('forum.post');
         $post = $this->_findPost($postId, $threadId);
 
@@ -222,6 +225,7 @@ class ForumController extends LmsBaseController
     // ── Delete post (soft) ────────────────────────────────────
     public function deletePost(int $threadId, int $postId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('forum.post');
         $post = $this->_findPost($postId, $threadId);
 
@@ -242,6 +246,7 @@ class ForumController extends LmsBaseController
     // ── Delete thread ─────────────────────────────────────────
     public function deleteThread(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('forum.post');
         $thread = $this->_findThread($id);
 
@@ -259,6 +264,7 @@ class ForumController extends LmsBaseController
     // ── Mark solution (AJAX) ──────────────────────────────────
     public function markSolution(int $threadId, int $postId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('forum.post');
         $thread = $this->_findThread($threadId);
 
@@ -299,6 +305,7 @@ class ForumController extends LmsBaseController
     // ── React / like (AJAX toggle) ────────────────────────────
     public function react(int $threadId, int $postId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('forum.view');
         $this->_findPost($postId, $threadId);
 
@@ -334,6 +341,7 @@ class ForumController extends LmsBaseController
     // ── Pin / Unpin (AJAX, instructor only) ───────────────────
     public function pin(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('forum.moderate');
         $thread = $this->_findThread($id);
         $newVal = $thread['is_pinned'] ? 0 : 1;
@@ -346,6 +354,7 @@ class ForumController extends LmsBaseController
     // ── Lock / Unlock (AJAX, instructor only) ─────────────────
     public function lock(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('forum.moderate');
         $thread = $this->_findThread($id);
         $newVal = $thread['is_locked'] ? 0 : 1;
@@ -358,6 +367,7 @@ class ForumController extends LmsBaseController
     // ── Subscribe / Unsubscribe (AJAX toggle) ────────────────
     public function subscribe(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('forum.view');
         $this->_findThread($id);
         try {

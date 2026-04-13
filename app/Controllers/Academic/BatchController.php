@@ -38,6 +38,7 @@ class BatchController extends BaseController
 
     public function store(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid request']); exit;
         }
@@ -138,6 +139,7 @@ class BatchController extends BaseController
 
     public function update(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid']); exit;
         }
@@ -167,6 +169,7 @@ class BatchController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function destroy(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->db->query("SELECT id FROM academic_batches WHERE id = ? AND institution_id = ?", [$id, $this->institutionId]);
         if (!$this->db->fetch()) {
             $this->redirectWith(url('academic/batches'), 'error', 'Not found.'); return;

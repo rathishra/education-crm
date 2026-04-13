@@ -44,6 +44,7 @@ class AttendanceController extends LmsBaseController
     // ── Store session ─────────────────────────────────────────
     public function store(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('attendance.manage');
         $data   = $_POST;
         $errors = $this->_validateSession($data);
@@ -87,6 +88,7 @@ class AttendanceController extends LmsBaseController
     // ── Update ────────────────────────────────────────────────
     public function update(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('attendance.manage');
         $session = $this->_findSession($id, true);
         if ($session['is_locked']) { flash('errors', ['Session is locked.']); back(); return; }
@@ -120,6 +122,7 @@ class AttendanceController extends LmsBaseController
     // ── Delete ────────────────────────────────────────────────
     public function destroy(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('attendance.manage');
         $this->_findSession($id, true);
         try {
@@ -162,6 +165,7 @@ class AttendanceController extends LmsBaseController
     // ── Save attendance (AJAX or form POST) ──────────────────
     public function saveAttendance(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('attendance.manage');
         $session = $this->_findSession($id, true);
         if ($session['is_locked']) { $this->json(['error' => 'Session is locked'], 403); return; }
@@ -211,6 +215,7 @@ class AttendanceController extends LmsBaseController
     // ── Toggle session lock ───────────────────────────────────
     public function toggleLock(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('attendance.manage');
         $session = $this->_findSession($id, true);
         $newVal  = $session['is_locked'] ? 0 : 1;

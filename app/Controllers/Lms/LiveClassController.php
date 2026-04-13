@@ -40,6 +40,7 @@ class LiveClassController extends LmsBaseController
     // ── Store ─────────────────────────────────────────────────
     public function store(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('live.manage');
         $data   = $_POST;
         $errors = $this->_validate($data);
@@ -140,6 +141,7 @@ class LiveClassController extends LmsBaseController
     // ── Update ────────────────────────────────────────────────
     public function update(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('live.manage');
         $this->_find($id, true);
         $data   = $_POST;
@@ -180,6 +182,7 @@ class LiveClassController extends LmsBaseController
     // ── Delete ────────────────────────────────────────────────
     public function destroy(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('live.manage');
         $this->_find($id, true);
         try {
@@ -221,6 +224,7 @@ class LiveClassController extends LmsBaseController
     // ── Set status: start / end ───────────────────────────────
     public function setStatus(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('live.manage');
         $this->_find($id, true);
         $status = $this->input('status', '');
@@ -244,6 +248,7 @@ class LiveClassController extends LmsBaseController
     // ── Save recording URL (AJAX) ─────────────────────────────
     public function saveRecording(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('live.manage');
         $this->_find($id, true);
         $url      = trim($this->input('recording_url', ''));
@@ -261,6 +266,7 @@ class LiveClassController extends LmsBaseController
     // ── Cancel ────────────────────────────────────────────────
     public function cancel(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('live.manage');
         $this->_find($id, true);
         try {

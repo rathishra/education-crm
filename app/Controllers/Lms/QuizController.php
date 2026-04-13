@@ -43,6 +43,7 @@ class QuizController extends LmsBaseController
     // ── Store ─────────────────────────────────────────────────
     public function store(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('quizzes.create');
         $data   = $_POST;
         $errors = $this->_validateQuiz($data);
@@ -91,6 +92,7 @@ class QuizController extends LmsBaseController
     // ── Update ────────────────────────────────────────────────
     public function update(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('quizzes.create');
         $this->_findQuiz($id, true);
         $data   = $_POST;
@@ -132,6 +134,7 @@ class QuizController extends LmsBaseController
     // ── Delete ────────────────────────────────────────────────
     public function destroy(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('quizzes.create');
         $this->_findQuiz($id, true);
         try {
@@ -154,6 +157,7 @@ class QuizController extends LmsBaseController
     // ── Save question (AJAX) ──────────────────────────────────
     public function saveQuestion(int $quizId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('quizzes.create');
         $this->_findQuiz($quizId, true);
 
@@ -214,6 +218,7 @@ class QuizController extends LmsBaseController
     // ── Delete question (AJAX) ────────────────────────────────
     public function deleteQuestion(int $quizId, int $qid): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('quizzes.create');
         try {
             $this->db->query("DELETE FROM lms_quiz_questions WHERE id=? AND quiz_id=?", [$qid, $quizId]);
@@ -224,6 +229,7 @@ class QuizController extends LmsBaseController
     // ── Reorder questions (AJAX) ──────────────────────────────
     public function reorderQuestions(int $quizId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('quizzes.create');
         foreach ((array)$this->input('order', []) as $idx => $qid) {
             try {
@@ -314,6 +320,7 @@ class QuizController extends LmsBaseController
     // ── Start attempt (POST) ──────────────────────────────────
     public function startAttempt(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('quizzes.view');
         $quiz = $this->_findQuiz($id);
         if ($this->isInstructor()) { redirect(url("elms/quizzes/{$id}")); return; }
@@ -368,6 +375,7 @@ class QuizController extends LmsBaseController
     // ── Submit attempt ────────────────────────────────────────
     public function submitAttempt(int $id, int $attemptId): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('quizzes.view');
         $quiz    = $this->_findQuiz($id);
         $attempt = $this->_findAttempt($attemptId, $id);

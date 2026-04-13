@@ -22,7 +22,8 @@ class CommunicationController extends BaseController
 
     public function storeTemplate(): void
     {
-        $this->authorize('communication.create');
+        $this->authorize('communication.templates');
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
 
         $data = $this->postData();
         $errors = $this->validate($data, ['name' => 'required', 'content' => 'required']);
@@ -45,7 +46,8 @@ class CommunicationController extends BaseController
 
     public function updateTemplate(int $id): void
     {
-        $this->authorize('communication.edit');
+        $this->authorize('communication.templates');
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
 
         $data = $this->postData();
         db()->update('communication_templates', [
@@ -60,7 +62,8 @@ class CommunicationController extends BaseController
 
     public function send(): void
     {
-        $this->authorize('communication.send');
+        $this->authorize('communication.notify');
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
 
         $data = $this->postData();
         $type     = $data['type'] ?? 'sms';
@@ -92,12 +95,13 @@ class CommunicationController extends BaseController
 
     public function bulkForm(): void
     {
-        $this->authorize('communication.bulk');
+        $this->authorize('communication.campaign');
 
-        db()->query("SELECT id, name FROM communication_templates WHERE status = 'active' ORDER BY name");
+        $instId = $this->institutionId;
+        db()->query("SELECT id, name FROM communication_templates WHERE institution_id = ? AND status = 'active' ORDER BY name", [$instId]);
         $templates = db()->fetchAll();
 
-        db()->query("SELECT id, name FROM courses WHERE deleted_at IS NULL ORDER BY name");
+        db()->query("SELECT id, name FROM courses WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$instId]);
         $courses = db()->fetchAll();
 
         $this->view('communication/bulk', compact('templates', 'courses'));
@@ -105,7 +109,8 @@ class CommunicationController extends BaseController
 
     public function sendBulk(): void
     {
-        $this->authorize('communication.bulk');
+        $this->authorize('communication.campaign');
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
 
         $data = $this->postData();
         $type        = $data['type'] ?? 'sms';

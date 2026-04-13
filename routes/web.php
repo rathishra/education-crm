@@ -25,6 +25,16 @@ $router->group(['middleware' => 'guest'], function ($router) {
 });
 
 // ============================================================
+// Public Routes — No middleware (accessible by everyone,
+// including logged-in admins testing the public forms)
+// ============================================================
+$router->get('/enquire',                    'Front\EnquiryController@index',            'public.enquiry');
+$router->post('/enquire',                   'Front\EnquiryController@submit',           'public.enquiry.post');
+$router->get('/enquire/thank-you',          'Front\EnquiryController@thankYou',         'public.enquiry.thankyou');
+$router->get('/enquire/ajax/departments',   'Front\EnquiryController@ajaxDepartments',  'public.enquiry.depts');
+$router->get('/enquire/ajax/courses',       'Front\EnquiryController@ajaxCourses',      'public.enquiry.courses');
+
+// ============================================================
 // Authenticated Routes
 // ============================================================
 $router->group(['middleware' => 'auth'], function ($router) {
@@ -34,6 +44,9 @@ $router->group(['middleware' => 'auth'], function ($router) {
 
     // Institution Switch
     $router->post('/switch-institution', 'Auth\AuthController@switchInstitution', 'switch.institution');
+
+    // User theme preference (AJAX)
+    $router->post('/user/theme', 'Admin\UserController@saveTheme', 'user.theme.save');
 
     // Dashboard
     $router->get('/', 'Admin\DashboardController@index', 'home');
@@ -60,19 +73,35 @@ $router->group(['middleware' => 'auth'], function ($router) {
     // Institutions
     $router->get('/institutions', 'Admin\InstitutionController@index', 'institutions.index');
     $router->get('/institutions/create', 'Admin\InstitutionController@create', 'institutions.create');
+    $router->get('/institutions/ajax/list', 'Admin\InstitutionController@ajaxList', 'institutions.ajax_list');
     $router->post('/institutions', 'Admin\InstitutionController@store', 'institutions.store');
     $router->get('/institutions/{id}', 'Admin\InstitutionController@show', 'institutions.show');
     $router->get('/institutions/{id}/edit', 'Admin\InstitutionController@edit', 'institutions.edit');
     $router->post('/institutions/{id}', 'Admin\InstitutionController@update', 'institutions.update');
     $router->post('/institutions/{id}/delete', 'Admin\InstitutionController@destroy', 'institutions.destroy');
 
+    // Course Types
+    $router->get('/course-types', 'Admin\CourseTypeController@index', 'course_types.index');
+    $router->get('/course-types/create', 'Admin\CourseTypeController@create', 'course_types.create');
+    $router->post('/course-types', 'Admin\CourseTypeController@store', 'course_types.store');
+    // ── AJAX ──────────────────────────────────────────────────────
+    $router->get('/course-types/ajax/list', 'Admin\CourseTypeController@ajaxList', 'course_types.ajax_list');
+    // ── Parameterised — must come AFTER all static/AJAX routes ───
+    $router->get('/course-types/{id}/edit', 'Admin\CourseTypeController@edit', 'course_types.edit');
+    $router->post('/course-types/{id}', 'Admin\CourseTypeController@update', 'course_types.update');
+    $router->post('/course-types/{id}/delete', 'Admin\CourseTypeController@delete', 'course_types.delete');
+    $router->post('/course-types/{id}/toggle-status', 'Admin\CourseTypeController@toggleStatus', 'course_types.toggle');
+
     // Departments
-    $router->get('/departments', 'Admin\DepartmentController@index', 'departments.index');
-    $router->get('/departments/create', 'Admin\DepartmentController@create', 'departments.create');
-    $router->post('/departments', 'Admin\DepartmentController@store', 'departments.store');
-    $router->get('/departments/{id}/edit', 'Admin\DepartmentController@edit', 'departments.edit');
-    $router->post('/departments/{id}', 'Admin\DepartmentController@update', 'departments.update');
-    $router->post('/departments/{id}/delete', 'Admin\DepartmentController@destroy', 'departments.destroy');
+    $router->get('/departments',                              'Admin\DepartmentController@index',        'departments.index');
+    $router->get('/departments/create',                       'Admin\DepartmentController@create',       'departments.create');
+    $router->post('/departments',                             'Admin\DepartmentController@store',        'departments.store');
+    $router->get('/departments/ajax/list',                    'Admin\DepartmentController@ajaxList',     'departments.ajax_list');
+    $router->get('/departments/{id}',                         'Admin\DepartmentController@show',         'departments.show');
+    $router->get('/departments/{id}/edit',                    'Admin\DepartmentController@edit',         'departments.edit');
+    $router->post('/departments/{id}',                        'Admin\DepartmentController@update',       'departments.update');
+    $router->post('/departments/{id}/delete',                 'Admin\DepartmentController@destroy',      'departments.destroy');
+    $router->post('/departments/{id}/toggle-status',          'Admin\DepartmentController@toggleStatus', 'departments.toggle');
 
     // Academic Years
     $router->get('/academic-years', 'Admin\AcademicYearController@index', 'academic_years.index');
@@ -224,6 +253,9 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->get('/students', 'Admin\StudentController@index', 'students.index');
     $router->get('/students/create', 'Admin\StudentController@create', 'students.create');
     $router->post('/students', 'Admin\StudentController@store', 'students.store');
+    // ── AJAX / utility ────────────────────────────────────────────
+    $router->get('/students/export', 'Admin\StudentController@export', 'students.export');
+    // ── Parameterised — must come AFTER all static/AJAX routes ───
     $router->get('/students/{id}', 'Admin\StudentController@show', 'students.show');
     $router->get('/students/{id}/edit', 'Admin\StudentController@edit', 'students.edit');
     $router->post('/students/{id}', 'Admin\StudentController@update', 'students.update');
@@ -232,7 +264,6 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->post('/students/{id}/assign-section', 'Admin\StudentController@assignSection', 'students.assign_section');
     $router->post('/students/{id}/portal-toggle', 'Admin\PortalUserController@toggleAccess', 'students.portal_toggle');
     $router->post('/students/{id}/portal-password', 'Admin\PortalUserController@setPassword', 'students.portal_password');
-    $router->get('/students/export', 'Admin\StudentController@export', 'students.export');
 
     // Fee Structures (legacy — replaced by Fees module below)
     // $router->get('/fees', 'Admin\FeeController@index', 'fees.index');
@@ -310,13 +341,16 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->post('/transport/{id}/stops', 'Admin\TransportController@storeStop', 'transport.stops.store');
     $router->post('/transport/{id}/stops/{stopId}/delete', 'Admin\TransportController@deleteStop', 'transport.stops.delete');
 
-    // Library
+    // Library — specific routes before {id} wildcard
     $router->get('/library', 'Admin\LibraryController@index', 'library.index');
     $router->get('/library/create', 'Admin\LibraryController@create', 'library.create');
     $router->post('/library', 'Admin\LibraryController@store', 'library.store');
     $router->get('/library/issues', 'Admin\LibraryController@issues', 'library.issues');
     $router->post('/library/issues', 'Admin\LibraryController@storeIssue', 'library.issues.store');
     $router->post('/library/issues/{id}/return', 'Admin\LibraryController@processReturn', 'library.issues.return');
+    $router->get('/library/{id}/edit', 'Admin\LibraryController@edit', 'library.edit');
+    $router->post('/library/{id}/edit', 'Admin\LibraryController@update', 'library.update');
+    $router->post('/library/{id}/delete', 'Admin\LibraryController@delete', 'library.delete');
 
     // Placement
     $router->get('/placement/companies', 'Admin\PlacementController@companies', 'placement.companies');
@@ -391,12 +425,17 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->post('/settings', 'Admin\SettingController@update', 'settings.update');
     $router->get('/settings/communication', 'Admin\SettingController@communication', 'settings.communication');
     $router->post('/settings/communication', 'Admin\SettingController@updateCommunication', 'settings.communication.update');
+    $router->post('/settings/upload-logo', 'Admin\SettingController@uploadLogo', 'settings.upload.logo');
+    $router->post('/settings/test-email', 'Admin\SettingController@testEmail', 'settings.test.email');
+    $router->post('/settings/test-sms', 'Admin\SettingController@testSms', 'settings.test.sms');
 
     // Notifications
     $router->get('/notifications', 'Admin\NotificationController@index', 'notifications.index');
-    $router->post('/notifications/{id}/read', 'Admin\NotificationController@markRead', 'notifications.read');
-    $router->post('/notifications/read-all', 'Admin\NotificationController@markAllRead', 'notifications.readAll');
+    // ── AJAX / utility — must come BEFORE {id} wildcard ──────────
     $router->get('/notifications/unread-count', 'Admin\NotificationController@unreadCount', 'notifications.unread');
+    $router->post('/notifications/read-all', 'Admin\NotificationController@markAllRead', 'notifications.readAll');
+    // ── Parameterised — must come AFTER all static/AJAX routes ───
+    $router->post('/notifications/{id}/read', 'Admin\NotificationController@markRead', 'notifications.read');
 
     // Documents
     $router->post('/documents/upload', 'Admin\DocumentController@upload', 'documents.upload');
@@ -463,13 +502,31 @@ $router->group(['middleware' => 'auth'], function ($router) {
 
     // Academic Timetable — static routes BEFORE {id} parameterized routes
     $router->get('/academic/timetable',                        'Academic\TimetableController@index',          'academic.timetable.index');
-    $router->get('/academic/timetable/generator',              'Academic\TimetableController@generator',      'academic.timetable.generator');
     $router->post('/academic/timetable/store',                 'Academic\TimetableController@store',          'academic.timetable.store');
     $router->post('/academic/timetable/copy',                  'Academic\TimetableController@copyTimetable',  'academic.timetable.copy');
     $router->post('/academic/timetable/clear',                 'Academic\TimetableController@clearSection',   'academic.timetable.clear');
     $router->get('/academic/timetable/ajax/faculty',           'Academic\TimetableController@ajaxFaculty',    'academic.timetable.ajax.faculty');
     $router->get('/academic/timetable/ajax/sections',          'Academic\TimetableController@ajaxSections',   'academic.timetable.ajax.sections');
     $router->get('/academic/timetable/{id}/view',              'Academic\TimetableController@viewTimetable',  'academic.timetable.view');
+
+    // ── Timetable Generator (all static/specific before {id} wildcards) ─────
+    $router->get('/academic/timetable/generator',                      'Academic\TimetableGeneratorController@index',              'timetable.generator.index');
+    $router->get('/academic/timetable/generator/configure',            'Academic\TimetableGeneratorController@configure',          'timetable.generator.configure');
+    $router->post('/academic/timetable/generator/save-config',         'Academic\TimetableGeneratorController@saveConfig',         'timetable.generator.save-config');
+    $router->post('/academic/timetable/generator/save-requirements',   'Academic\TimetableGeneratorController@saveRequirements',   'timetable.generator.save-req');
+    $router->post('/academic/timetable/generator/delete-requirement',  'Academic\TimetableGeneratorController@deleteRequirement',  'timetable.generator.del-req');
+    $router->post('/academic/timetable/generator/import-requirements', 'Academic\TimetableGeneratorController@importRequirements', 'timetable.generator.import-req');
+    $router->post('/academic/timetable/generator/generate',            'Academic\TimetableGeneratorController@generate',           'timetable.generator.generate');
+    $router->get('/academic/timetable/generator/analytics',            'Academic\TimetableGeneratorController@analytics',          'timetable.generator.analytics');
+    $router->get('/academic/timetable/generator/unavailability',       'Academic\TimetableGeneratorController@unavailability',     'timetable.generator.unavailability');
+    $router->post('/academic/timetable/generator/unavailability/save', 'Academic\TimetableGeneratorController@saveUnavailability', 'timetable.generator.unavail.save');
+    $router->post('/academic/timetable/generator/unavailability/delete','Academic\TimetableGeneratorController@deleteUnavailability','timetable.generator.unavail.del');
+    $router->get('/academic/timetable/generator/ajax/sections',        'Academic\TimetableGeneratorController@ajaxSections',       'timetable.generator.ajax.sections');
+    $router->get('/academic/timetable/generator/configure/{id}',       'Academic\TimetableGeneratorController@configure',          'timetable.generator.configure.edit');
+    $router->get('/academic/timetable/generator/run/{id}',             'Academic\TimetableGeneratorController@reviewRun',          'timetable.generator.run');
+    $router->post('/academic/timetable/generator/approve/{id}',        'Academic\TimetableGeneratorController@approveRun',         'timetable.generator.approve');
+    $router->post('/academic/timetable/generator/discard/{id}',        'Academic\TimetableGeneratorController@discardRun',         'timetable.generator.discard');
+    $router->get('/academic/timetable/generator/export/{id}',          'Academic\TimetableGeneratorController@exportSection',      'timetable.generator.export');
 
     // Academic Attendance — static routes BEFORE {id} parameterized routes
     $router->get('/academic/attendance', 'Academic\AttendanceController@index', 'academic.attendance.index');
@@ -537,9 +594,6 @@ $router->group(['middleware' => 'auth'], function ($router) {
     $router->post('/academic/subject-allocation/bulk-copy',        'Academic\SubjectAllocationController@bulkCopy',  'academic.subjectalloc.copy');
     $router->post('/academic/subject-allocation/{id}/remove',      'Academic\SubjectAllocationController@remove',    'academic.subjectalloc.remove');
     $router->post('/academic/subject-allocation/{id}/update',      'Academic\SubjectAllocationController@updateRow', 'academic.subjectalloc.update');
-
-    // Subject AJAX
-    $router->get('/academic/subjects/ajax/by-course', 'Academic\SubjectController@ajaxByCourse', 'academic.subjects.ajax.bycourse');
 
     // ============================================================
     // FEES MODULE (Namespace: Fees)

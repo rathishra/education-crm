@@ -62,6 +62,7 @@ class NotificationController extends LmsBaseController
     // ── Mark single as read (AJAX) ────────────────────────────
     public function markRead(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('notifications.view');
         try {
             $this->db->query(
@@ -76,6 +77,7 @@ class NotificationController extends LmsBaseController
     // ── Mark all as read (AJAX) ───────────────────────────────
     public function markAllRead(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('notifications.view');
         try {
             $this->db->query(
@@ -103,6 +105,7 @@ class NotificationController extends LmsBaseController
     // ── Clear all read notifications (AJAX) ──────────────────
     public function clearRead(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('notifications.view');
         try {
             $this->db->query(
@@ -195,6 +198,7 @@ class NotificationController extends LmsBaseController
     // ── Store announcement ────────────────────────────────────
     public function storeAnnouncement(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('announcements.manage');
         $data   = $_POST;
         $errors = $this->_validateAnn($data);
@@ -240,6 +244,7 @@ class NotificationController extends LmsBaseController
     // ── Update announcement ───────────────────────────────────
     public function updateAnnouncement(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('announcements.manage');
         $this->_findAnn($id);
         $data   = $_POST;
@@ -273,6 +278,7 @@ class NotificationController extends LmsBaseController
     // ── Delete announcement ───────────────────────────────────
     public function deleteAnnouncement(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('announcements.manage');
         $this->_findAnn($id);
         try {
@@ -285,6 +291,7 @@ class NotificationController extends LmsBaseController
     // ── Dismiss announcement (AJAX) ───────────────────────────
     public function dismissAnnouncement(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         try {
             $this->db->query(
                 "INSERT IGNORE INTO lms_announcement_dismissals (announcement_id, lms_user_id) VALUES (?,?)",

@@ -589,9 +589,16 @@ form#enquiryForm {
     function loadCoursesByDept(deptId, courseEl) {
         courseEl.innerHTML = '<option value="">-- Select Course --</option>';
         if (!deptId) return;
-        fetch('<?= url('enquiries/ajax/courses') ?>?department_id=' + deptId)
+        const instId = institutionSelect ? institutionSelect.value : '<?= $this->institutionId ?? '' ?>';
+        const qs = 'department_id=' + deptId + (instId ? '&institution_id=' + instId : '');
+        fetch('<?= url('enquiries/ajax/courses') ?>?' + qs)
             .then(r => r.json())
             .then(courses => {
+                if (!courses.length) {
+                    // Fallback: load all courses for the institution
+                    loadCoursesByInst(instId, courseEl);
+                    return;
+                }
                 courses.forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c.id; opt.textContent = c.name;

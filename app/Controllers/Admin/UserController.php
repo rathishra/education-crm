@@ -497,4 +497,44 @@ class UserController extends BaseController
         $msg = $newStatus ? 'User activated successfully.' : 'User deactivated successfully.';
         $this->redirectWith(url('users'), 'success', $msg);
     }
+
+    // ─────────────────────────────────────────────
+    // Save user theme preference (AJAX POST)
+    // ─────────────────────────────────────────────
+    public function saveTheme(): void
+    {
+        header('Content-Type: application/json');
+        if (!verifyCsrf()) { echo json_encode(['success' => false]); return; }
+
+        $userId = $this->user['id'] ?? null;
+        if (!$userId) { echo json_encode(['success' => false]); return; }
+
+        $allowedThemes   = ['default', 'dark', 'blue', 'green', 'rose', 'purple'];
+        $allowedFonts    = ['small', 'default', 'large'];
+        $allowedSidebars = ['expanded', 'compact'];
+
+        $theme   = in_array($_POST['theme']     ?? '', $allowedThemes)   ? $_POST['theme']     : 'default';
+        $font    = in_array($_POST['font_size']  ?? '', $allowedFonts)    ? $_POST['font_size']  : 'default';
+        $sidebar = in_array($_POST['sidebar']    ?? '', $allowedSidebars) ? $_POST['sidebar']    : 'expanded';
+
+        try {
+            $this->db->update('users', [
+                'theme_preference' => $theme,
+                'font_size'        => $font,
+                'sidebar_style'    => $sidebar,
+            ], 'id = ?', [$userId]);
+
+            // Update session so layout picks it up on next render
+            $user = $this->session->get('user') ?? [];
+            $user['theme_preference'] = $theme;
+            $user['font_size']        = $font;
+            $user['sidebar_style']    = $sidebar;
+            $this->session->set('user', $user);
+
+            echo json_encode(['success' => true]);
+        } catch (\Exception $e) {
+            // Column may not exist yet (migration pending) — silently ok
+            echo json_encode(['success' => true, 'note' => 'stored in localStorage only']);
+        }
+    }
 }

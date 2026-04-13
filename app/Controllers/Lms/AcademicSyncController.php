@@ -89,6 +89,7 @@ class AcademicSyncController extends LmsBaseController
     // ── Sync Students → LMS Learners ──────────────────────────────
     public function syncStudents(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('sync.manage');
         [$created, $updated, $skipped, $errors] = [0, 0, 0, 0];
 
@@ -165,6 +166,7 @@ class AcademicSyncController extends LmsBaseController
     // ── Sync Faculty → LMS Instructors ────────────────────────────
     public function syncFaculty(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('sync.manage');
         [$created, $updated, $skipped, $errors] = [0, 0, 0, 0];
 
@@ -231,6 +233,7 @@ class AcademicSyncController extends LmsBaseController
     // ── Sync Subjects → LMS Courses ───────────────────────────────
     public function syncCourses(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('sync.manage');
         [$created, $updated, $skipped, $errors] = [0, 0, 0, 0];
 
@@ -329,6 +332,7 @@ class AcademicSyncController extends LmsBaseController
     //     → create lms_enrollment if not already exists
     public function syncEnrollments(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('sync.manage');
         [$created, $updated, $skipped, $errors] = [0, 0, 0, 0];
 
@@ -406,6 +410,7 @@ class AcademicSyncController extends LmsBaseController
     // ── Sync All (runs all 4 steps in sequence) ───────────────────
     public function syncAll(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('sync.manage');
         $totals = ['created' => 0, 'updated' => 0, 'skipped' => 0, 'errors' => 0];
 

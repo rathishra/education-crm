@@ -47,25 +47,8 @@ class EnquiryController extends BaseController
         $enquiries = $this->enquiry->getListPaginated($page, $perPage, $filters);
         $stats     = $this->enquiry->getStats($this->institutionId);
 
-        // Counselors for filter dropdown (users with a role in this institution)
-        $this->db->query(
-            "SELECT DISTINCT u.id, CONCAT(u.first_name,' ',u.last_name) AS name
-             FROM users u
-             INNER JOIN user_roles ur ON ur.user_id = u.id AND ur.institution_id = ?
-             WHERE u.is_active = 1
-             ORDER BY u.first_name",
-            [$this->institutionId]
-        );
-        $counselors = $this->db->fetchAll();
-
-        // Distinct sources used by this institution
-        $this->db->query(
-            "SELECT DISTINCT source FROM enquiries
-             WHERE institution_id = ? AND source IS NOT NULL AND source <> ''
-             ORDER BY source",
-            [$this->institutionId]
-        );
-        $sources = array_column($this->db->fetchAll(), 'source');
+        $counselors = $this->enquiry->getCounselors($this->institutionId);
+        $sources    = $this->enquiry->getDistinctSources($this->institutionId);
 
         $this->view('enquiries/index', [
             'enquiries'  => $enquiries,
@@ -83,46 +66,9 @@ class EnquiryController extends BaseController
     {
         $this->authorize('enquiries.create');
 
-        $this->db->query(
-            "SELECT id, name FROM institutions WHERE status = 'active' AND deleted_at IS NULL ORDER BY name"
-        );
-        $institutions = $this->db->fetchAll();
+        $opts = $this->enquiry->getFormOptions($this->institutionId);
 
-        $this->db->query(
-            "SELECT id, name FROM departments WHERE institution_id = ? ORDER BY name",
-            [$this->institutionId]
-        );
-        $departments = $this->db->fetchAll();
-
-        $this->db->query(
-            "SELECT id, name FROM courses WHERE institution_id = ? AND status = 'active' ORDER BY name",
-            [$this->institutionId]
-        );
-        $courses = $this->db->fetchAll();
-
-        $this->db->query(
-            "SELECT DISTINCT u.id, CONCAT(u.first_name,' ',u.last_name) AS name
-             FROM users u
-             INNER JOIN user_roles ur ON ur.user_id = u.id AND ur.institution_id = ?
-             WHERE u.is_active = 1
-             ORDER BY u.first_name",
-            [$this->institutionId]
-        );
-        $counselors = $this->db->fetchAll();
-
-        $this->db->query(
-            "SELECT id, name FROM lead_sources WHERE is_active = 1 ORDER BY name"
-        );
-        $sources = $this->db->fetchAll();
-
-        $this->view('enquiries/create', [
-            'institutions' => $institutions,
-            'departments'  => $departments,
-            'courses'      => $courses,
-            'counselors'   => $counselors,
-            'sources'      => $sources,
-            'institutionId'=> $this->institutionId,
-        ]);
+        $this->view('enquiries/create', array_merge($opts, ['institutionId' => $this->institutionId]));
     }
 
     // -------------------------------------------------------------------------
@@ -149,15 +95,9 @@ class EnquiryController extends BaseController
             : $this->institutionId;
 
         // Resolve source name from source_id
-        $sourceName = null;
-        if (!empty($data['source_id'])) {
-            $this->db->query(
-                "SELECT name FROM lead_sources WHERE id = ?",
-                [(int)$data['source_id']]
-            );
-            $src        = $this->db->fetch();
-            $sourceName = $src ? $src['name'] : null;
-        }
+        $sourceName = !empty($data['source_id'])
+            ? $this->enquiry->resolveSourceName((int)$data['source_id'])
+            : null;
 
         // Duplicate check (non-blocking — flash warning but continue)
         $duplicate = null;
@@ -257,49 +197,10 @@ class EnquiryController extends BaseController
             return;
         }
 
-        $this->db->query(
-            "SELECT id, name FROM institutions WHERE status = 'active' AND deleted_at IS NULL ORDER BY name"
-        );
-        $institutions = $this->db->fetchAll();
-
         $instId = $enquiry['institution_id'] ?? $this->institutionId;
+        $opts   = $this->enquiry->getFormOptions($instId);
 
-        $this->db->query(
-            "SELECT id, name FROM departments WHERE institution_id = ? ORDER BY name",
-            [$instId]
-        );
-        $departments = $this->db->fetchAll();
-
-        $this->db->query(
-            "SELECT id, name FROM courses WHERE institution_id = ? AND status = 'active' ORDER BY name",
-            [$instId]
-        );
-        $courses = $this->db->fetchAll();
-
-        $this->db->query(
-            "SELECT DISTINCT u.id, CONCAT(u.first_name,' ',u.last_name) AS name
-             FROM users u
-             INNER JOIN user_roles ur ON ur.user_id = u.id AND ur.institution_id = ?
-             WHERE u.is_active = 1
-             ORDER BY u.first_name",
-            [$instId]
-        );
-        $counselors = $this->db->fetchAll();
-
-        $this->db->query(
-            "SELECT id, name FROM lead_sources WHERE is_active = 1 ORDER BY name"
-        );
-        $sources = $this->db->fetchAll();
-
-        $this->view('enquiries/edit', [
-            'enquiry'      => $enquiry,
-            'institutions' => $institutions,
-            'departments'  => $departments,
-            'courses'      => $courses,
-            'counselors'   => $counselors,
-            'sources'      => $sources,
-            'institutionId'=> $instId,
-        ]);
+        $this->view('enquiries/edit', array_merge(['enquiry' => $enquiry, 'institutionId' => $instId], $opts));
     }
 
     // -------------------------------------------------------------------------
@@ -330,16 +231,9 @@ class EnquiryController extends BaseController
         // Resolve source name from source_id
         $sourceName = $enquiry['source'];
         if (array_key_exists('source_id', $data)) {
-            if (!empty($data['source_id'])) {
-                $this->db->query(
-                    "SELECT name FROM lead_sources WHERE id = ?",
-                    [(int)$data['source_id']]
-                );
-                $src        = $this->db->fetch();
-                $sourceName = $src ? $src['name'] : null;
-            } else {
-                $sourceName = null;
-            }
+            $sourceName = !empty($data['source_id'])
+                ? $this->enquiry->resolveSourceName((int)$data['source_id'])
+                : null;
         }
 
         // Base columns — always exist
@@ -697,27 +591,54 @@ class EnquiryController extends BaseController
         header('Content-Type: application/json');
 
         $departmentId  = (int)($this->input('department_id') ?? 0);
-        $institutionId = (int)($this->input('institution_id') ?? 0);
+        $institutionId = (int)($this->input('institution_id') ?? $this->institutionId ?? 0);
 
-        if ($departmentId) {
-            $this->db->query(
-                "SELECT c.id, c.name
-                 FROM courses c
-                 INNER JOIN department_courses dc ON dc.course_id = c.id
-                 WHERE dc.department_id = ? AND c.status = 'active'
-                 ORDER BY c.name",
-                [$departmentId]
-            );
-        } elseif ($institutionId) {
-            $this->db->query(
-                "SELECT id, name FROM courses WHERE institution_id = ? AND status = 'active' ORDER BY name",
-                [$institutionId]
-            );
-        } else {
-            echo json_encode([]);
-            return;
+        try {
+            if ($departmentId) {
+                // Courses directly assigned to this department OR unassigned (NULL dept)
+                // institution_id scope applied if available
+                $instClause = $institutionId ? " AND institution_id = {$institutionId}" : '';
+                $this->db->query(
+                    "SELECT id, name FROM courses
+                     WHERE (department_id = ? OR department_id IS NULL)
+                       AND status = 'active'{$instClause}
+                     ORDER BY name",
+                    [$departmentId]
+                );
+            } elseif ($institutionId) {
+                $this->db->query(
+                    "SELECT id, name FROM courses
+                     WHERE institution_id = ? AND status = 'active'
+                     ORDER BY name",
+                    [$institutionId]
+                );
+            } else {
+                echo json_encode([]);
+                return;
+            }
+
+            $courses = $this->db->fetchAll();
+
+            // Fallback: if nothing found and we have institutionId, return all courses for institution
+            if (empty($courses) && $institutionId) {
+                $this->db->query(
+                    "SELECT id, name FROM courses WHERE institution_id = ? ORDER BY name",
+                    [$institutionId]
+                );
+                $courses = $this->db->fetchAll();
+            }
+
+            echo json_encode($courses);
+        } catch (\Exception $e) {
+            // Fallback without status filter if column schema differs
+            try {
+                $id = $departmentId ?: $institutionId;
+                $col = $departmentId ? 'department_id' : 'institution_id';
+                $this->db->query("SELECT id, name FROM courses WHERE {$col} = ? ORDER BY name", [$id]);
+                echo json_encode($this->db->fetchAll());
+            } catch (\Exception $e2) {
+                echo json_encode([]);
+            }
         }
-
-        echo json_encode($this->db->fetchAll());
     }
 }

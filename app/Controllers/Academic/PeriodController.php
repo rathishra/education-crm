@@ -57,6 +57,7 @@ class PeriodController extends BaseController
     // ─── STORE (AJAX) ──────────────────────────────────────────
     public function store(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
             exit;
@@ -131,6 +132,7 @@ class PeriodController extends BaseController
     // ─── UPDATE (AJAX POST) ────────────────────────────────────
     public function update(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
             exit;
@@ -194,6 +196,7 @@ class PeriodController extends BaseController
     // ─── DESTROY (AJAX POST) ───────────────────────────────────
     public function destroy(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         // Check timetable usage
         try {
             $this->db->query(
@@ -221,6 +224,7 @@ class PeriodController extends BaseController
     // ─── SEED DEFAULTS (AJAX POST) ────────────────────────────
     public function seedDefaults(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->db->query(
             "SELECT COUNT(*) AS cnt FROM academic_timetable_periods WHERE institution_id = ?",
             [$this->institutionId]
@@ -259,6 +263,7 @@ class PeriodController extends BaseController
     // ─── CLEAR ALL (AJAX POST) ────────────────────────────────
     public function clearAll(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         try {
             $this->db->query(
                 "SELECT COUNT(*) AS cnt FROM academic_timetable WHERE institution_id = ?",

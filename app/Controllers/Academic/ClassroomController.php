@@ -81,6 +81,7 @@ class ClassroomController extends BaseController
     // ─── STORE (AJAX POST) ─────────────────────────────────────
     public function store(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
             exit;
@@ -159,6 +160,7 @@ class ClassroomController extends BaseController
     // ─── UPDATE (AJAX POST) ────────────────────────────────────
     public function update(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
             exit;
@@ -224,6 +226,7 @@ class ClassroomController extends BaseController
     // ─── TOGGLE ACTIVE (AJAX) ─────────────────────────────────
     public function toggle(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->db->query(
             "SELECT is_active FROM classrooms WHERE id = ? AND institution_id = ?",
             [$id, $this->institutionId]
@@ -242,6 +245,7 @@ class ClassroomController extends BaseController
     // ─── DESTROY ──────────────────────────────────────────────
     public function destroy(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         // Check usage in timetable
         try {
             $this->db->query(

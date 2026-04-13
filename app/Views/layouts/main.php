@@ -89,6 +89,14 @@
             </div>
         </li>
 
+        <!-- Theme Switcher -->
+        <li class="nav-item">
+            <button id="themeToggleBtn" title="Change Theme">
+                <i class="fas fa-palette" id="themeIcon"></i>
+                <span class="theme-dot"></span>
+            </button>
+        </li>
+
         <!-- Notifications -->
         <li class="nav-item dropdown topnav-dropdown">
             <button class="topnav-icon-btn" id="notifDropdown" data-bs-toggle="dropdown" title="Notifications">
@@ -214,6 +222,12 @@
 
                     <!-- ACADEMIC -->
                     <div class="sb-sidenav-menu-heading">Academic Setup</div>
+                    <?php if(hasPermission('courses.view') || hasPermission('courses.manage')): ?>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/course-types') !== false ? 'active' : '' ?>" href="<?= url('course-types') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-graduation-cap"></i></div>
+                        Course Types
+                    </a>
+                    <?php endif; ?>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic-years') !== false ? 'active' : '' ?>" href="<?= url('academic-years') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-calendar-check"></i></div>
                         Academic Years
@@ -249,9 +263,13 @@
                         <div class="sb-nav-link-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                         Faculty Allocation
                     </a>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/timetable') !== false ? 'active' : '' ?>" href="<?= url('academic/timetable') ?>">
+                    <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'],'/academic/timetable') !== false && strpos($_SERVER['REQUEST_URI'],'/generator') === false) ? 'active' : '' ?>" href="<?= url('academic/timetable') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-calendar-alt"></i></div>
                         Timetable
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/timetable/generator') !== false ? 'active' : '' ?>" href="<?= url('academic/timetable/generator') ?>">
+                        <div class="sb-nav-link-icon"><i class="fas fa-magic"></i></div>
+                        Timetable Generator
                     </a>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'/academic/attendance') !== false ? 'active' : '' ?>" href="<?= url('academic/attendance') ?>">
                         <div class="sb-nav-link-icon"><i class="fas fa-user-check"></i></div>
@@ -603,6 +621,119 @@
     </div><!-- /layoutSidenav_content -->
 </div><!-- /layoutSidenav -->
 
+<!-- ============================================================
+     THEME SWITCHER PANEL
+     ============================================================ -->
+<div class="theme-overlay" id="themeOverlay"></div>
+
+<div class="theme-panel" id="themePanel">
+    <div class="theme-panel-header">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-palette text-primary"></i>
+            <h6>Appearance</h6>
+        </div>
+        <button class="btn-close" id="themePanelClose"></button>
+    </div>
+    <div class="theme-panel-body">
+
+        <!-- Color Themes -->
+        <p class="theme-section-title">Color Theme</p>
+        <div class="theme-swatch-grid">
+
+            <div class="theme-swatch" data-theme="default">
+                <div class="theme-swatch-preview">
+                    <div class="theme-swatch-sidebar" style="background:#0f172a"></div>
+                    <div class="theme-swatch-content" style="background:#f1f5f9"></div>
+                </div>
+                <div class="theme-swatch-label">Indigo</div>
+                <div class="theme-swatch-sub">Default</div>
+            </div>
+
+            <div class="theme-swatch" data-theme="dark">
+                <div class="theme-swatch-preview">
+                    <div class="theme-swatch-sidebar" style="background:#0d1117"></div>
+                    <div class="theme-swatch-content" style="background:#161b22"></div>
+                </div>
+                <div class="theme-swatch-label">Dark</div>
+                <div class="theme-swatch-sub">Night mode</div>
+            </div>
+
+            <div class="theme-swatch" data-theme="blue">
+                <div class="theme-swatch-preview">
+                    <div class="theme-swatch-sidebar" style="background:#082f49"></div>
+                    <div class="theme-swatch-content" style="background:#f0f9ff"></div>
+                </div>
+                <div class="theme-swatch-label">Blue Ocean</div>
+                <div class="theme-swatch-sub">Sky blue</div>
+            </div>
+
+            <div class="theme-swatch" data-theme="green">
+                <div class="theme-swatch-preview">
+                    <div class="theme-swatch-sidebar" style="background:#052e16"></div>
+                    <div class="theme-swatch-content" style="background:#f0fdf4"></div>
+                </div>
+                <div class="theme-swatch-label">Green</div>
+                <div class="theme-swatch-sub">Natural growth</div>
+            </div>
+
+            <div class="theme-swatch" data-theme="rose">
+                <div class="theme-swatch-preview">
+                    <div class="theme-swatch-sidebar" style="background:#1c0a10"></div>
+                    <div class="theme-swatch-content" style="background:#fff1f2"></div>
+                </div>
+                <div class="theme-swatch-label">Rose</div>
+                <div class="theme-swatch-sub">Warm red</div>
+            </div>
+
+            <div class="theme-swatch" data-theme="purple">
+                <div class="theme-swatch-preview">
+                    <div class="theme-swatch-sidebar" style="background:#1e1033"></div>
+                    <div class="theme-swatch-content" style="background:#faf5ff"></div>
+                </div>
+                <div class="theme-swatch-label">Purple</div>
+                <div class="theme-swatch-sub">Royal</div>
+            </div>
+
+        </div>
+
+        <!-- Font Size -->
+        <p class="theme-section-title mt-4">Font Size</p>
+        <div class="font-size-opts mb-4">
+            <div class="font-size-opt" data-size="small">
+                <span style="font-size:12px">A</span>
+                <small>Small</small>
+            </div>
+            <div class="font-size-opt" data-size="default">
+                <span style="font-size:15px">A</span>
+                <small>Default</small>
+            </div>
+            <div class="font-size-opt" data-size="large">
+                <span style="font-size:18px">A</span>
+                <small>Large</small>
+            </div>
+        </div>
+
+        <!-- Sidebar Style -->
+        <p class="theme-section-title">Sidebar</p>
+        <div class="d-flex gap-2 mb-4">
+            <div class="font-size-opt" data-sidebar="expanded" style="flex:1">
+                <i class="fas fa-sidebar fa-fw mb-1 d-block"></i>
+                <small>Expanded</small>
+            </div>
+            <div class="font-size-opt" data-sidebar="compact" style="flex:1">
+                <i class="fas fa-grip-lines-vertical fa-fw mb-1 d-block"></i>
+                <small>Compact</small>
+            </div>
+        </div>
+
+        <!-- Reset -->
+        <button class="btn btn-outline-secondary w-100 btn-sm mt-2" id="themeReset">
+            <i class="fas fa-undo me-1"></i>Reset to Default
+        </button>
+
+    </div>
+</div>
+
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -616,5 +747,160 @@
 <?php if (!empty($extraJs)): foreach ((array)$extraJs as $js): ?>
     <script src="<?= $js ?>"></script>
 <?php endforeach; endif; ?>
+
+<script>
+/* ============================================================
+   THEME ENGINE
+   Persists to localStorage + server (user preference)
+   ============================================================ */
+(function () {
+    const STORAGE_KEY  = 'crm_theme';
+    const FONT_KEY     = 'crm_font_size';
+    const SIDEBAR_KEY  = 'crm_sidebar_style';
+    const SAVE_URL     = '<?= url('user/theme') ?>';
+    const CSRF         = '<?= csrfToken() ?>';
+
+    const fontSizes = { small: '13px', default: '14px', large: '15.5px' };
+
+    // ── Apply theme ──
+    function applyTheme(theme) {
+        if (theme === 'default') {
+            document.documentElement.removeAttribute('data-theme');
+        } else {
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+        // Update dot color in navbar button
+        const dot = document.querySelector('#themeToggleBtn .theme-dot');
+        const dotColors = { default:'#f59e0b', dark:'#818cf8', blue:'#0ea5e9', green:'#10b981', rose:'#f43f5e', purple:'#8b5cf6' };
+        if (dot) dot.style.background = dotColors[theme] || dotColors.default;
+    }
+
+    // ── Apply font size ──
+    function applyFontSize(size) {
+        document.documentElement.style.fontSize = fontSizes[size] || fontSizes.default;
+    }
+
+    // ── Apply sidebar style ──
+    function applySidebar(style) {
+        document.body.classList.toggle('sidebar-compact', style === 'compact');
+    }
+
+    // ── Update swatch active state ──
+    function refreshSwatches(theme) {
+        document.querySelectorAll('.theme-swatch').forEach(s => {
+            s.classList.toggle('active', s.dataset.theme === theme);
+        });
+    }
+
+    // ── Update font size active state ──
+    function refreshFontOpts(size) {
+        document.querySelectorAll('.font-size-opt[data-size]').forEach(o => {
+            o.classList.toggle('active', o.dataset.size === size);
+        });
+    }
+
+    // ── Update sidebar opts ──
+    function refreshSidebarOpts(style) {
+        document.querySelectorAll('.font-size-opt[data-sidebar]').forEach(o => {
+            o.classList.toggle('active', o.dataset.sidebar === style);
+        });
+    }
+
+    // ── Save to server (non-blocking) ──
+    function saveToServer(theme, fontSize, sidebar) {
+        fetch(SAVE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `_token=${CSRF}&theme=${theme}&font_size=${fontSize}&sidebar=${sidebar}`
+        }).catch(() => {}); // silently ignore network errors
+    }
+
+    // ── Open / Close panel ──
+    function openPanel() {
+        document.getElementById('themePanel').classList.add('open');
+        document.getElementById('themeOverlay').classList.add('open');
+    }
+    function closePanel() {
+        document.getElementById('themePanel').classList.remove('open');
+        document.getElementById('themeOverlay').classList.remove('open');
+    }
+
+    // ── Boot: load saved preferences ──
+    const savedTheme   = localStorage.getItem(STORAGE_KEY)   || '<?= e($currentUser['theme_preference'] ?? 'default') ?>';
+    const savedFont    = localStorage.getItem(FONT_KEY)      || '<?= e($currentUser['font_size'] ?? 'default') ?>';
+    const savedSidebar = localStorage.getItem(SIDEBAR_KEY)   || 'expanded';
+
+    applyTheme(savedTheme);
+    applyFontSize(savedFont);
+    applySidebar(savedSidebar);
+
+    // Apply immediately on DOMContentLoaded to avoid FOUC
+    document.addEventListener('DOMContentLoaded', function () {
+        refreshSwatches(savedTheme);
+        refreshFontOpts(savedFont);
+        refreshSidebarOpts(savedSidebar);
+
+        // ── Navbar button ──
+        document.getElementById('themeToggleBtn').addEventListener('click', openPanel);
+        document.getElementById('themePanelClose').addEventListener('click', closePanel);
+        document.getElementById('themeOverlay').addEventListener('click', closePanel);
+
+        // ── Keyboard: Escape closes panel ──
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+
+        // ── Color theme swatches ──
+        document.querySelectorAll('.theme-swatch').forEach(swatch => {
+            swatch.addEventListener('click', function () {
+                const theme = this.dataset.theme;
+                applyTheme(theme);
+                refreshSwatches(theme);
+                localStorage.setItem(STORAGE_KEY, theme);
+                saveToServer(theme, localStorage.getItem(FONT_KEY) || 'default', localStorage.getItem(SIDEBAR_KEY) || 'expanded');
+            });
+        });
+
+        // ── Font size ──
+        document.querySelectorAll('.font-size-opt[data-size]').forEach(opt => {
+            opt.addEventListener('click', function () {
+                const size = this.dataset.size;
+                applyFontSize(size);
+                refreshFontOpts(size);
+                localStorage.setItem(FONT_KEY, size);
+                saveToServer(localStorage.getItem(STORAGE_KEY) || 'default', size, localStorage.getItem(SIDEBAR_KEY) || 'expanded');
+            });
+        });
+
+        // ── Sidebar style ──
+        document.querySelectorAll('.font-size-opt[data-sidebar]').forEach(opt => {
+            opt.addEventListener('click', function () {
+                const style = this.dataset.sidebar;
+                applySidebar(style);
+                refreshSidebarOpts(style);
+                localStorage.setItem(SIDEBAR_KEY, style);
+                saveToServer(localStorage.getItem(STORAGE_KEY) || 'default', localStorage.getItem(FONT_KEY) || 'default', style);
+            });
+        });
+
+        // ── Reset ──
+        document.getElementById('themeReset').addEventListener('click', function () {
+            applyTheme('default');
+            applyFontSize('default');
+            applySidebar('expanded');
+            refreshSwatches('default');
+            refreshFontOpts('default');
+            refreshSidebarOpts('expanded');
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(FONT_KEY);
+            localStorage.removeItem(SIDEBAR_KEY);
+            saveToServer('default', 'default', 'expanded');
+        });
+    });
+
+    // Apply theme immediately (before DOMContentLoaded) to prevent flash
+    applyTheme(savedTheme);
+    applyFontSize(savedFont);
+
+})();
+</script>
 </body>
 </html>

@@ -101,6 +101,7 @@ class GradingSchemaController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function store(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $code = strtoupper(trim($this->input('code', '')));
         $name = trim($this->input('name', ''));
         if (!$code || !$name) {
@@ -131,6 +132,7 @@ class GradingSchemaController extends BaseController
 
     public function update(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->db->query(
             "SELECT id FROM grading_schemas WHERE id = ? AND institution_id = ?",
             [$id, $this->institutionId]
@@ -166,6 +168,7 @@ class GradingSchemaController extends BaseController
 
     public function destroy(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->db->query(
             "SELECT id FROM grading_schemas WHERE id = ? AND institution_id = ?",
             [$id, $this->institutionId]
@@ -192,6 +195,7 @@ class GradingSchemaController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function storeCategory(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $schemaId = (int)$this->input('schema_id');
         $code     = strtoupper(trim($this->input('code', '')));
         $name     = trim($this->input('name', ''));
@@ -212,6 +216,7 @@ class GradingSchemaController extends BaseController
 
     public function destroyCategory(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->db->query(
             "DELETE FROM grading_schema_categories WHERE id = ? AND institution_id = ?",
             [$id, $this->institutionId]
@@ -224,6 +229,7 @@ class GradingSchemaController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function storeComponent(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $schemaId   = (int)$this->input('schema_id');
         $categoryId = (int)$this->input('category_id') ?: null;
         $code       = strtoupper(trim($this->input('code', '')));
@@ -249,6 +255,7 @@ class GradingSchemaController extends BaseController
 
     public function updateComponent(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->db->query(
             "SELECT id FROM grading_mark_components WHERE id = ? AND institution_id = ?",
             [$id, $this->institutionId]
@@ -273,6 +280,7 @@ class GradingSchemaController extends BaseController
 
     public function destroyComponent(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->db->query(
             "DELETE FROM grading_mark_components WHERE id = ? AND institution_id = ?",
             [$id, $this->institutionId]
@@ -285,6 +293,7 @@ class GradingSchemaController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function storeSubComponent(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $componentId = (int)$this->input('component_id');
         $schemaId    = (int)$this->input('schema_id');
         $code        = strtoupper(trim($this->input('code', '')));
@@ -308,6 +317,7 @@ class GradingSchemaController extends BaseController
 
     public function destroySubComponent(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->db->query(
             "DELETE FROM grading_sub_components WHERE id = ? AND institution_id = ?",
             [$id, $this->institutionId]
@@ -320,6 +330,7 @@ class GradingSchemaController extends BaseController
     // ──────────────────────────────────────────────────────────────
     public function storeRule(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $schemaId = (int)$this->input('schema_id');
         $label    = strtoupper(trim($this->input('grade_label', '')));
         if (!$schemaId || !$label) {
@@ -343,6 +354,7 @@ class GradingSchemaController extends BaseController
 
     public function destroyRule(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->db->query(
             "DELETE FROM grading_grade_rules WHERE id = ? AND institution_id = ?",
             [$id, $this->institutionId]

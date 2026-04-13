@@ -87,6 +87,7 @@ class FeeAssignmentController extends BaseController
     // ── ASSIGN (single student, multiple heads) ──────────────
     public function assign(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $studentId  = (int)$this->input('student_id', 0);
         $structureId = (int)$this->input('structure_id', 0);
         $ayId        = (int)$this->input('academic_year_id', 0);
@@ -136,6 +137,7 @@ class FeeAssignmentController extends BaseController
     // ── BULK ASSIGN (from fee structure to course/batch) ─────
     public function bulkAssign(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $structureId = (int)$this->input('structure_id', 0);
         $ayId        = (int)$this->input('academic_year_id', 0);
         $courseId    = (int)$this->input('course_id', 0);
@@ -207,6 +209,7 @@ class FeeAssignmentController extends BaseController
     // ── WAIVE / ADJUST ───────────────────────────────────────
     public function waive(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->db->query("SELECT * FROM fee_student_assignments WHERE id = ? AND institution_id = ?", [$id, $this->institutionId]);
         $row = $this->db->fetch();
         if (!$row) { $this->json(['status' => 'error', 'message' => 'Not found.'], 404); }

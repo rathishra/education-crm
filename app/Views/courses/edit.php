@@ -48,15 +48,32 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Course Type</label>
-                            <select class="form-select" name="degree_type">
-                                <?php foreach (['ug' => 'UG', 'pg' => 'PG', 'diploma' => 'Diploma', 'certificate' => 'Certificate', 'other' => 'Other'] as $val => $label): ?>
-                                <option value="<?= $val ?>" <?= old('degree_type', $course['course_type']) === $val ? 'selected' : '' ?>><?= $label ?></option>
+                            <select class="form-select" name="course_type_id" id="courseTypeSelect">
+                                <option value="">— Select Course Type —</option>
+                                <?php foreach ($courseTypes as $ct): ?>
+                                <option value="<?= $ct['id'] ?>"
+                                    data-duration="<?= (int)($ct['duration'] ?? 0) ?>"
+                                    data-semesters="<?= (int)($ct['no_of_semester'] ?? 0) ?>"
+                                    <?= old('course_type_id', $course['course_type_id'] ?? '') == $ct['id'] ? 'selected' : '' ?>>
+                                    <?= e($ct['code']) ?> — <?= e($ct['description']) ?>
+                                </option>
                                 <?php endforeach; ?>
+                                <?php if(empty($courseTypes)): ?>
+                                <option disabled>No course types found — add them in Academic Setup</option>
+                                <?php endif; ?>
                             </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Duration (Years)</label>
-                            <input type="number" class="form-control" name="duration_years" value="<?= e(old('duration_years', $course['duration_years'])) ?>" min="1" max="10">
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="duration_years" id="durationYears"
+                                       value="<?= e(old('duration_years', $course['duration_years'])) ?>"
+                                       min="1" max="10" placeholder="Auto from Course Type">
+                                <span class="input-group-text text-muted" style="font-size:12px" title="Auto-filled from Course Type">
+                                    <i class="fas fa-link"></i>
+                                </span>
+                            </div>
+                            <small class="text-muted">Auto-filled when Course Type is selected</small>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Total Seats</label>
@@ -99,3 +116,30 @@
         </div>
     </div>
 </form>
+
+<script>
+(function () {
+    const ctSelect = document.getElementById('courseTypeSelect');
+    const durInput = document.getElementById('durationYears');
+
+    function applyFromType(isOnLoad) {
+        const opt = ctSelect.options[ctSelect.selectedIndex];
+        const dur = parseInt(opt.dataset.duration || '0', 10);
+        if (dur > 0) {
+            durInput.value    = dur;
+            durInput.readOnly = true;
+            durInput.classList.add('bg-light');
+        } else {
+            durInput.readOnly = false;
+            durInput.classList.remove('bg-light');
+            // On change (not page load) clear the field so user can enter manually
+            if (!isOnLoad) durInput.value = '';
+        }
+    }
+
+    ctSelect.addEventListener('change', () => applyFromType(false));
+
+    // On page load: lock field if a course type is already selected
+    if (ctSelect.value) applyFromType(true);
+})();
+</script>

@@ -27,6 +27,7 @@ class HostelController extends BaseController
 
     public function store(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('hostel.manage');
         
         $data = $this->postData();
@@ -70,6 +71,7 @@ class HostelController extends BaseController
 
     public function storeRoom(int $hostelId): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('hostel.manage');
 
         $data = $this->postData();
@@ -124,6 +126,7 @@ class HostelController extends BaseController
 
     public function createAllocation(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('hostel.allocate');
         
         $data = $this->postData();

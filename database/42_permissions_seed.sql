@@ -35,10 +35,17 @@ INSERT INTO permissions (name, slug, module, description) VALUES
 ('Manage Organizations',     'organizations.manage',      'admin', 'Create and edit organizations'),
 ('View Institutions',        'institutions.view',         'admin', 'View institution details'),
 ('Manage Institutions',      'institutions.manage',       'admin', 'Create and edit institutions'),
+('Create Institution',       'institutions.create',       'admin', 'Create new institutions'),
+('Edit Institution',         'institutions.edit',         'admin', 'Edit institution details'),
+('Delete Institution',       'institutions.delete',       'admin', 'Delete institution records'),
 ('View Departments',         'departments.view',          'admin', 'View departments'),
 ('Manage Departments',       'departments.manage',        'admin', 'Create and edit departments'),
+('Create Department',        'departments.create',        'admin', 'Create new departments'),
+('Edit Department',          'departments.edit',          'admin', 'Edit department details'),
+('Delete Department',        'departments.delete',        'admin', 'Delete department records'),
 ('View Campuses',            'campuses.view',             'admin', 'View campus list'),
-('Manage Campuses',          'campuses.manage',           'admin', 'Create and edit campuses');
+('Manage Campuses',          'campuses.manage',           'admin', 'Create and edit campuses'),
+('Manage Users (Admin)',     'users.manage',              'admin', 'Broad user and staff account management');
 
 -- ============================================================
 -- 3. CRM MODULE
@@ -97,12 +104,21 @@ INSERT INTO permissions (name, slug, module, description) VALUES
 INSERT INTO permissions (name, slug, module, description) VALUES
 ('View Academic Years',      'academic_years.view',       'academic', 'View academic year list'),
 ('Manage Academic Years',    'academic_years.manage',     'academic', 'Create and edit academic years'),
+('Create Academic Year',     'academic_years.create',     'academic', 'Create new academic years'),
+('Edit Academic Year',       'academic_years.edit',       'academic', 'Edit academic year details'),
+('Delete Academic Year',     'academic_years.delete',     'academic', 'Delete academic year records'),
 ('View Courses',             'courses.view',              'academic', 'View course catalogue'),
 ('Manage Courses',           'courses.manage',            'academic', 'Create and edit courses'),
+('Create Course',            'courses.create',            'academic', 'Create new courses'),
+('Edit Course',              'courses.edit',              'academic', 'Edit course details'),
+('Delete Course',            'courses.delete',            'academic', 'Delete course records'),
 ('View Subjects',            'subjects.view',             'academic', 'View subjects'),
 ('Manage Subjects',          'subjects.manage',           'academic', 'Create and edit subjects'),
 ('View Batches',             'batches.view',              'academic', 'View batch list'),
 ('Manage Batches',           'batches.manage',            'academic', 'Create and edit batches'),
+('Create Batch',             'batches.create',            'academic', 'Create new batches'),
+('Edit Batch',               'batches.edit',              'academic', 'Edit batch details'),
+('Delete Batch',             'batches.delete',            'academic', 'Delete batch records'),
 ('View Sections',            'sections.view',             'academic', 'View sections'),
 ('Manage Sections',          'sections.manage',           'academic', 'Create and edit sections'),
 ('Manage Section Enrollment','sections.enroll',           'academic', 'Add/remove students from sections'),
@@ -221,7 +237,8 @@ INSERT INTO permissions (name, slug, module, description) VALUES
 INSERT INTO permissions (name, slug, module, description) VALUES
 ('View Library',             'library.view',              'library', 'View books and catalogue'),
 ('Manage Books',             'library.manage_books',      'library', 'Add and edit library books'),
-('Issue / Return Books',     'library.issue_return',      'library', 'Issue and return books to students');
+('Issue / Return Books',     'library.issue_return',      'library', 'Issue and return books to students'),
+('Manage Library',           'library.manage',            'library', 'Full library management (books + issue/return)');
 
 -- ============================================================
 -- 16. COMMUNICATION MODULE
@@ -231,7 +248,25 @@ INSERT INTO permissions (name, slug, module, description) VALUES
 ('Send Notification',        'communication.notify',      'communication', 'Send notifications to users'),
 ('Bulk Campaign',            'communication.campaign',    'communication', 'Create and send bulk campaigns'),
 ('Manage Templates',         'communication.templates',   'communication', 'Create and edit message templates'),
-('Manage Tasks',             'tasks.manage',              'communication', 'Create and assign tasks');
+('Manage Tasks',             'tasks.manage',              'communication', 'Create and assign tasks'),
+('View Tasks',               'tasks.view',                'communication', 'View task list'),
+('Create Task',              'tasks.create',              'communication', 'Create new tasks'),
+('Edit Task',                'tasks.edit',                'communication', 'Edit task details'),
+('Delete Task',              'tasks.delete',              'communication', 'Delete tasks');
+
+-- ============================================================
+-- 19. DOCUMENTS MODULE
+-- ============================================================
+INSERT INTO permissions (name, slug, module, description) VALUES
+('Upload Documents',         'documents.upload',          'documents', 'Upload documents for students/admissions'),
+('Verify Documents',         'documents.verify',          'documents', 'Mark documents as verified'),
+('Delete Documents',         'documents.delete',          'documents', 'Delete uploaded documents');
+
+-- ============================================================
+-- 20. SETTINGS MODULE (granular)
+-- ============================================================
+INSERT INTO permissions (name, slug, module, description) VALUES
+('Edit Settings',            'settings.edit',             'system', 'Edit institution and system settings');
 
 -- ============================================================
 -- 17. PLACEMENT MODULE
@@ -292,7 +327,11 @@ INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT @hod, id FROM permissions
 WHERE @hod IS NOT NULL
   AND module IN ('academic','attendance','assessments','faculty','lms','reports')
-  AND slug NOT IN ('academic_years.manage','courses.manage','grading.manage','reports.fees','reports.hr');
+  AND slug NOT IN (
+    'academic_years.manage','academic_years.create','academic_years.edit','academic_years.delete',
+    'courses.manage','courses.create','courses.edit','courses.delete',
+    'grading.manage','reports.fees','reports.hr'
+  );
 
 -- ── FACULTY — own teaching scope ─────────────────────────────
 INSERT IGNORE INTO role_permissions (role_id, permission_id)
@@ -325,6 +364,8 @@ WHERE @counselor IS NOT NULL
     'admissions.view','admissions.create','admissions.edit','admissions.approve',
     'admissions.documents.view','admissions.documents.manage','admissions.payment',
     'students.view',
+    'documents.upload','documents.verify','documents.delete',
+    'tasks.view','tasks.create','tasks.edit','tasks.delete',
     'communication.notify','communication.view',
     'reports.crm','reports.admissions'
   );

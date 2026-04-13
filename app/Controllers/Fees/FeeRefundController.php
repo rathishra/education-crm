@@ -41,6 +41,7 @@ class FeeRefundController extends BaseController
 
     public function store(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $studentId = (int)$this->input('student_id', 0);
         $receiptId = $this->input('receipt_id') ? (int)$this->input('receipt_id') : null;
         $amount    = (float)$this->input('refund_amount', 0);
@@ -81,6 +82,7 @@ class FeeRefundController extends BaseController
 
     public function approve(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->db->query(
             "SELECT * FROM fee_refunds WHERE id = ? AND institution_id = ? AND status='pending'",
             [$id, $this->institutionId]
@@ -96,6 +98,7 @@ class FeeRefundController extends BaseController
 
     public function process(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->db->query(
             "SELECT * FROM fee_refunds WHERE id = ? AND institution_id = ? AND status='approved'",
             [$id, $this->institutionId]
@@ -135,6 +138,7 @@ class FeeRefundController extends BaseController
 
     public function reject(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $reason = trim($this->input('reason', ''));
         if (!$reason) { $this->json(['status' => 'error', 'message' => 'Reason required.'], 422); }
 

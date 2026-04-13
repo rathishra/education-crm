@@ -45,6 +45,7 @@ class FeeHeadController extends BaseController
     // ── STORE ────────────────────────────────────────────────
     public function store(): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $data = [
             'head_name'     => trim($this->input('head_name', '')),
             'head_code'     => strtoupper(trim($this->input('head_code', ''))),
@@ -94,6 +95,7 @@ class FeeHeadController extends BaseController
     // ── UPDATE ───────────────────────────────────────────────
     public function update(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->db->query(
             "SELECT id FROM fee_heads WHERE id = ? AND institution_id = ?",
             [$id, $this->institutionId]
@@ -131,6 +133,7 @@ class FeeHeadController extends BaseController
     // ── TOGGLE ───────────────────────────────────────────────
     public function toggle(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->db->query(
             "SELECT is_active FROM fee_heads WHERE id = ? AND institution_id = ?",
             [$id, $this->institutionId]
@@ -149,6 +152,7 @@ class FeeHeadController extends BaseController
     // ── DESTROY ──────────────────────────────────────────────
     public function destroy(int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         // Check if used in structures
         $this->db->query(
             "SELECT COUNT(*) AS cnt FROM fee_structure_details WHERE fee_head_id = ?",

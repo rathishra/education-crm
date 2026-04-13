@@ -17,6 +17,7 @@ class LessonController extends LmsBaseController
     // ── Store lesson ──────────────────────────────────────────
     public function store(int $courseId): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('content.create');
         $course = $this->_findCourse($courseId);
 
@@ -85,6 +86,7 @@ class LessonController extends LmsBaseController
     // ── Update ────────────────────────────────────────────────
     public function update(int $courseId, int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('content.edit');
         $this->_findCourse($courseId);
         $lesson = $this->_findLesson($courseId, $id);
@@ -132,6 +134,7 @@ class LessonController extends LmsBaseController
     // ── Soft delete ───────────────────────────────────────────
     public function destroy(int $courseId, int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('content.delete');
         $this->_findLesson($courseId, $id);
 
@@ -156,6 +159,7 @@ class LessonController extends LmsBaseController
     // ── Reorder lessons (AJAX) ────────────────────────────────
     public function reorder(int $courseId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('content.edit');
         $order = (array)($this->input('order', []));
         foreach ($order as $idx => $lessonId) {
@@ -233,6 +237,7 @@ class LessonController extends LmsBaseController
     // ── Mark progress (AJAX) ──────────────────────────────────
     public function markProgress(int $courseId, int $id): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         if (!$this->lmsUserId) { $this->json(['error' => 'Not authenticated'], 401); return; }
 
         try {

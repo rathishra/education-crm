@@ -45,6 +45,7 @@ class AssignmentController extends LmsBaseController
     // ── Store ─────────────────────────────────────────────────
     public function store(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('assignments.create');
         $data = $_POST;
 
@@ -188,6 +189,7 @@ class AssignmentController extends LmsBaseController
     // ── Update ────────────────────────────────────────────────
     public function update(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('assignments.create');
         $assignment = $this->_findAssignment($id, true);
         $data = $_POST;
@@ -231,6 +233,7 @@ class AssignmentController extends LmsBaseController
     // ── Delete ────────────────────────────────────────────────
     public function destroy(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('assignments.create');
         $this->_findAssignment($id, true);
         try {
@@ -243,6 +246,7 @@ class AssignmentController extends LmsBaseController
     // ── Submit (learner) ──────────────────────────────────────
     public function submit(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->authorize('assignments.view');
         $assignment = $this->_findAssignment($id);
 
@@ -338,6 +342,7 @@ class AssignmentController extends LmsBaseController
     // ── Grade submission ──────────────────────────────────────
     public function grade(int $id, int $submissionId): void
     {
+        if (!verifyCsrf()) { jsonResponse(['success' => false, 'message' => 'Session expired.'], 403); return; }
         $this->authorize('assignments.grade');
         $assignment = $this->_findAssignment($id, true);
 

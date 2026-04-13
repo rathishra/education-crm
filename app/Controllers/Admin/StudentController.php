@@ -32,32 +32,21 @@ class StudentController extends BaseController
         $students = $this->student->getListPaginated($page, config('app.per_page', 15), $filters);
         $stats    = $this->student->getStats();
 
-        $db = $this->db;
-        $db->query("SELECT id, name FROM courses WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
-        $courses = $db->fetchAll();
-        $db->query("SELECT id, name FROM departments WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
-        $departments = $db->fetchAll();
-        $db->query("SELECT id, name FROM batches WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
-        $batches = $db->fetchAll();
+        $opts = $this->student->getFormOptions($this->institutionId);
 
-        $this->view('students/index', compact('students', 'filters', 'stats', 'courses', 'departments', 'batches'));
+        $this->view('students/index', array_merge(
+            compact('students', 'filters', 'stats'),
+            $opts
+        ));
     }
 
     public function create(): void
     {
         $this->authorize('students.create');
 
-        $db = $this->db;
-        $db->query("SELECT id, name FROM courses WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
-        $courses = $db->fetchAll();
-        $db->query("SELECT id, name FROM departments WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
-        $departments = $db->fetchAll();
-        $db->query("SELECT id, name FROM batches WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
-        $batches = $db->fetchAll();
-        $db->query("SELECT id, name FROM academic_years WHERE institution_id = ? ORDER BY is_current DESC, start_date DESC LIMIT 5", [$this->institutionId]);
-        $academicYears = $db->fetchAll();
+        $opts = $this->student->getFormOptions($this->institutionId);
 
-        $this->view('students/create', compact('courses', 'departments', 'batches', 'academicYears'));
+        $this->view('students/create', $opts);
     }
 
     public function store(): void
@@ -196,17 +185,9 @@ class StudentController extends BaseController
             return;
         }
 
-        $db = $this->db;
-        $db->query("SELECT id, name FROM courses WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
-        $courses = $db->fetchAll();
-        $db->query("SELECT id, name FROM batches WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
-        $batches = $db->fetchAll();
-        $db->query("SELECT id, name FROM departments WHERE institution_id = ? AND deleted_at IS NULL ORDER BY name", [$this->institutionId]);
-        $departments = $db->fetchAll();
-        $db->query("SELECT id, name FROM academic_years WHERE institution_id = ? ORDER BY is_current DESC, start_date DESC LIMIT 5", [$this->institutionId]);
-        $academicYears = $db->fetchAll();
+        $opts = $this->student->getFormOptions($this->institutionId);
 
-        $this->view('students/edit', compact('student', 'courses', 'batches', 'departments', 'academicYears'));
+        $this->view('students/edit', array_merge(compact('student'), $opts));
     }
 
     public function update(int $id): void

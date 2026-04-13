@@ -314,6 +314,107 @@ class Enquiry extends BaseModel
     }
 
     /**
+     * Return all dropdown options needed by the enquiry create/edit forms.
+     * Centralises the 5 repeated raw queries copy-pasted across
+     * EnquiryController::create() and edit().
+     *
+     * Returns:
+     *   institutions – id, name  (active, not deleted)
+     *   departments  – id, name  (for given institution)
+     *   courses      – id, name  (active, for given institution)
+     *   counselors   – id, name  (active users with a role in the institution)
+     *   sources      – all rows from lead_sources (active)
+     */
+    public function getFormOptions(int $institutionId): array
+    {
+        $this->db->query(
+            "SELECT id, name FROM institutions
+             WHERE status = 'active' AND deleted_at IS NULL
+             ORDER BY name"
+        );
+        $institutions = $this->db->fetchAll();
+
+        $this->db->query(
+            "SELECT id, name FROM departments
+             WHERE institution_id = ?
+             ORDER BY name",
+            [$institutionId]
+        );
+        $departments = $this->db->fetchAll();
+
+        $this->db->query(
+            "SELECT id, name FROM courses
+             WHERE institution_id = ? AND status = 'active'
+             ORDER BY name",
+            [$institutionId]
+        );
+        $courses = $this->db->fetchAll();
+
+        $counselors = $this->getCounselors($institutionId);
+
+        $this->db->query(
+            "SELECT id, name FROM lead_sources WHERE is_active = 1 ORDER BY name"
+        );
+        $sources = $this->db->fetchAll();
+
+        return compact('institutions', 'departments', 'courses', 'counselors', 'sources');
+    }
+
+    /**
+     * Fetch active counselors (users with any role in this institution).
+     * Used in both the index filter and the create/edit form dropdowns.
+     */
+    public function getCounselors(int $institutionId): array
+    {
+        $this->db->query(
+            "SELECT DISTINCT u.id,
+                    CONCAT(u.first_name, ' ', u.last_name) AS name
+             FROM users u
+             INNER JOIN user_roles ur ON ur.user_id = u.id
+                    AND ur.institution_id = ?
+             WHERE u.is_active = 1
+             ORDER BY u.first_name",
+            [$institutionId]
+        );
+        return $this->db->fetchAll();
+    }
+
+    /**
+     * Fetch distinct source strings used by enquiries in this institution.
+     * Used by the index filter bar.
+     */
+    public function getDistinctSources(int $institutionId): array
+    {
+        $this->db->query(
+            "SELECT DISTINCT source FROM enquiries
+             WHERE institution_id = ?
+               AND source IS NOT NULL AND source <> ''
+             ORDER BY source",
+            [$institutionId]
+        );
+        return array_column($this->db->fetchAll(), 'source');
+    }
+
+    /**
+     * Resolve a lead_source row ID to its name string.
+     * Returns null when $sourceId is 0 / not found.
+     * Used in EnquiryController::store() and update() to avoid repeating
+     * the same SELECT … FROM lead_sources lookup.
+     */
+    public function resolveSourceName(int $sourceId): ?string
+    {
+        if ($sourceId <= 0) {
+            return null;
+        }
+        $this->db->query(
+            "SELECT name FROM lead_sources WHERE id = ? LIMIT 1",
+            [$sourceId]
+        );
+        $row = $this->db->fetch();
+        return $row ? $row['name'] : null;
+    }
+
+    /**
      * Delete an enquiry record.
      * Once migration 15_enquiries_enhanced.sql is run, this can be changed
      * to soft-delete by setting deleted_at instead.

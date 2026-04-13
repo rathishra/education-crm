@@ -113,6 +113,7 @@ class FeeCollectionController extends BaseController
     // ── COLLECT PAYMENT ──────────────────────────────────────
     public function collect(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $studentId    = (int)$this->input('student_id', 0);
         $payMode      = $this->input('payment_mode', 'cash');
         $refNo        = trim($this->input('reference_number', ''));
@@ -234,6 +235,7 @@ class FeeCollectionController extends BaseController
     // ── CANCEL RECEIPT ───────────────────────────────────────
     public function cancel(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->db->query(
             "SELECT * FROM fee_receipts WHERE id = ? AND institution_id = ? AND status = 'active'",
             [$id, $this->institutionId]

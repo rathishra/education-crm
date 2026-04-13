@@ -49,6 +49,7 @@ class FeeConcessionController extends BaseController
 
     public function store(): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $studentId = (int)$this->input('student_id', 0);
         $type      = $this->input('concession_type', 'fixed');
         $value     = (float)$this->input('concession_value', 0);
@@ -90,6 +91,7 @@ class FeeConcessionController extends BaseController
 
     public function approve(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->db->query(
             "SELECT * FROM fee_concessions WHERE id = ? AND institution_id = ? AND status = 'pending'",
             [$id, $this->institutionId]
@@ -121,6 +123,7 @@ class FeeConcessionController extends BaseController
 
     public function reject(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $reason = trim($this->input('reason', ''));
         if (!$reason) { $this->json(['status' => 'error', 'message' => 'Rejection reason is required.'], 422); }
 
@@ -133,6 +136,7 @@ class FeeConcessionController extends BaseController
 
     public function destroy(int $id): void
     {
+        if (!verifyCsrf()) { $this->backWithErrors(['Session expired.']); return; }
         $this->db->query(
             "SELECT status FROM fee_concessions WHERE id = ? AND institution_id = ?",
             [$id, $this->institutionId]
